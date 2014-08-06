@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<artifactId>agent</artifactId>
@@ -44,43 +44,21 @@
 					<outputDirectory>../jassie/src/main/resources</outputDirectory>
 				</configuration>
 			</plugin>
-
-			<!--<plugin>-->
-			<!--<groupId>org.apache.maven.plugins</groupId>-->
-			<!--<artifactId>maven-assembly-plugin</artifactId>-->
-			<!--<executions>-->
-			<!--<execution>-->
-			<!--<goals>-->
-			<!--<goal>attached</goal>-->
-			<!--</goals>-->
-			<!--<phase>package</phase>-->
-			<!--<configuration>-->
-			<!--<descriptorRefs>-->
-			<!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
-			<!--</descriptorRefs>-->
-			<!--<archive>-->
-			<!--<manifest>-->
-			<!--<mainClass>com.focusit.agent.agent.JavaAgent</mainClass>-->
-			<!--</manifest>-->
-			<!--<manifestEntries>-->
-			<!--<Premain-Class>com.focusit.agent.agent.JavaAgent</Premain-Class>-->
-			<!--<Agent-Class>com.focusit.agent.agent.JavaAgent</Agent-Class>-->
-			<!--<Can-Redefine-Classes>true</Can-Redefine-Classes>-->
-			<!--<Can-Retransform-Classes>true</Can-Retransform-Classes>-->
-			<!--</manifestEntries>-->
-			<!--</archive>-->
-			<!--</configuration>-->
-			<!--</execution>-->
-			<!--</executions>-->
-			<!--</plugin>-->
 		</plugins>
 	</build>
 
 	<dependencies>
 		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.18.1-GA</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 

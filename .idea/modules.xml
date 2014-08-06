@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/agent.iml" filepath="$PROJECT_DIR$/agent.iml" />
       <module fileurl="file://$PROJECT_DIR$/bond/bond.iml" filepath="$PROJECT_DIR$/bond/bond.iml" />
+      <module fileurl="file://$PROJECT_DIR$/example/example.iml" filepath="$PROJECT_DIR$/example/example.iml" />
       <module fileurl="file://$PROJECT_DIR$/jassie/jassie.iml" filepath="$PROJECT_DIR$/jassie/jassie.iml" />
     </modules>
   </component>

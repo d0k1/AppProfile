@@ -5,16 +5,21 @@ import javassist.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Properties;
 
 /**
  * Class instrumentation toolkit
- *
+ * <p/>
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class ClassTransformer implements ClassFileTransformer {
 	private ClassPool classPool;
 
-	public ClassTransformer() {
+	private final Properties properties;
+
+	public ClassTransformer(Properties properties) {
+		this.properties = properties;
+
 		classPool = new ClassPool();
 		classPool.appendSystemPath();
 		try {
