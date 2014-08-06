@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>agent</artifactId>
+		<groupId>com.focusit</groupId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>bond</artifactId>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<finalName>bond</finalName>
+					<archive>
+						<manifest>
+							<mainClass>com.focusit.agent.bond.Agent</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Premain-Class>com.focusit.agent.bond.Agent</Premain-Class>
+							<Agent-Class>com.focusit.agent.bond.Agent</Agent-Class>
+							<Can-Redefine-Classes>true</Can-Redefine-Classes>
+							<Can-Retransform-Classes>true</Can-Retransform-Classes>
+						</manifestEntries>
+					</archive>
+					<outputDirectory>../jassie/src/main/resources</outputDirectory>
+				</configuration>
+			</plugin>
+
+			<!--<plugin>-->
+			<!--<groupId>org.apache.maven.plugins</groupId>-->
+			<!--<artifactId>maven-assembly-plugin</artifactId>-->
+			<!--<executions>-->
+			<!--<execution>-->
+			<!--<goals>-->
+			<!--<goal>attached</goal>-->
+			<!--</goals>-->
+			<!--<phase>package</phase>-->
+			<!--<configuration>-->
+			<!--<descriptorRefs>-->
+			<!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
+			<!--</descriptorRefs>-->
+			<!--<archive>-->
+			<!--<manifest>-->
+			<!--<mainClass>com.focusit.agent.agent.JavaAgent</mainClass>-->
+			<!--</manifest>-->
+			<!--<manifestEntries>-->
+			<!--<Premain-Class>com.focusit.agent.agent.JavaAgent</Premain-Class>-->
+			<!--<Agent-Class>com.focusit.agent.agent.JavaAgent</Agent-Class>-->
+			<!--<Can-Redefine-Classes>true</Can-Redefine-Classes>-->
+			<!--<Can-Retransform-Classes>true</Can-Retransform-Classes>-->
+			<!--</manifestEntries>-->
+			<!--</archive>-->
+			<!--</configuration>-->
+			<!--</execution>-->
+			<!--</executions>-->
+			<!--</plugin>-->
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.18.1-GA</version>
+		</dependency>
+	</dependencies>
+
+</project>
