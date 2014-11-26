@@ -12,21 +12,18 @@ import java.util.Properties;
  * <p/>
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
-public class ClassTransformer implements ClassFileTransformer {
+public class JavaAssistClassTransformer implements ClassFileTransformer {
 	private ClassPool classPool;
 
 	private final Properties properties;
 
-	public ClassTransformer(Properties properties) {
+	public JavaAssistClassTransformer(Properties properties) {
 		this.properties = properties;
 
 		classPool = new ClassPool();
 		classPool.appendSystemPath();
 		try {
 			classPool.appendPathList(System.getProperty("java.class.path"));
-
-			// make sure that MetricReporter is loaded
-//			classPool.get("com.chimpler.example.agentmetric.MetricReporter").getClass();
 			classPool.appendClassPath(new LoaderClassPath(ClassLoader.getSystemClassLoader()));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -37,6 +34,13 @@ public class ClassTransformer implements ClassFileTransformer {
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
+		if(className.startsWith("com.focusit.agent.example"))
+			System.err.println("transforming "+className);
+		else {
+			//System.err.println("skipping "+className);
+			return classfileBuffer;
+		}
+
 		classPool.appendClassPath(new ByteArrayClassPath(className, classfileBuffer));
 
 		try {
@@ -53,6 +57,7 @@ public class ClassTransformer implements ClassFileTransformer {
 			}
 			boolean isClassModified = false;
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
+				System.err.println(method.getLongName());
 				// if method is annotated, add the code to measure the time
 //					if (method.hasAnnotation(Measured.class)) {
 //						try {
@@ -60,13 +65,16 @@ public class ClassTransformer implements ClassFileTransformer {
 //								logger.debug("Skip method " + method.getLongName());
 //								continue;
 //							}
-//							logger.debug("Instrumenting method " + method.getLongName());
-//							method.addLocalVariable("__metricStartTime", CtClass.longType);
-//							method.insertBefore("__metricStartTime = System.currentTimeMillis();");
+							System.err.println("Instrumenting method " + method.getLongName());
+							method.addLocalVariable("__metricStartTime", CtClass.longType);
+							method.addLocalVariable("__metricMethodId", CtClass.longType);
+							String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
+							String addMethod = "__metricMethodId = com.focusit.agent.bond.metrics.MethodsMap.getInstance().addMethod(\""+method.getLongName()+"\");";
+							method.insertBefore(addMethod + getTime);
+
 //							String metricName = ctClass.getName() + "." + method.getName();
-//							method.insertAfter("com.chimpler.example.agentmetric.MetricReporter.reportTime(\""
-//								+ metricName + "\", System.currentTimeMillis() - __metricStartTime);");
-//							isClassModified = true;
+							method.insertAfter("com.focusit.agent.bond.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
+							isClassModified = true;
 //						} catch (Exception e) {
 //							logger.warn("Skipping instrumentation of method {}: {}", method.getName(), e.getMessage());
 //						}
@@ -75,7 +83,8 @@ public class ClassTransformer implements ClassFileTransformer {
 			if (isClassModified) {
 				return ctClass.toBytecode();
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
+				System.err.println(e.getMessage());
 //				logger.debug("Skip class {}: ", className, e.getMessage());
 		}
 		return classfileBuffer;

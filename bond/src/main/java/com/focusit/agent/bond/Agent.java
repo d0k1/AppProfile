@@ -1,5 +1,6 @@
 package com.focusit.agent.bond;
 
+import com.focusit.agent.bond.time.GlobalTime;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.FileInputStream;
@@ -13,8 +14,11 @@ import java.util.Properties;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class Agent {
-	public static final String AGENT_ENABLED = "agent.enabled";
-	public static final String AGENT_CONFIG = "agent.config";
+	private static final String AGENT_ENABLED = "agent.enabled";
+	private static final String AGENT_CONFIG = "agent.config";
+	private static final String AGENT_TRANSFORMATOR="agent.transformer";
+	private static final String AGENT_ASM="asm";
+	private static final String AGENT_JAVAASSIT="javaassist";
 	private static Instrumentation agentInstrumentation = null;
 
 	public static void premain(String agentArguments, Instrumentation instrumentation) {
@@ -40,7 +44,19 @@ public class Agent {
 
 		properties.remove(AGENT_ENABLED);
 
+		GlobalTime gt = new GlobalTime(10);
+		gt.start();
+
+		String transformer = properties.getProperty(AGENT_TRANSFORMATOR).trim();
+
 		agentInstrumentation = instrumentation;
-		agentInstrumentation.addTransformer(new ClassTransformer(properties));
+		switch (transformer){
+			case AGENT_ASM:
+				agentInstrumentation.addTransformer(new AsmClassTransformer(properties));
+				break;
+			case AGENT_JAVAASSIT:
+				agentInstrumentation.addTransformer(new JavaAssistClassTransformer(properties));
+				break;
+		}
 	}
 }

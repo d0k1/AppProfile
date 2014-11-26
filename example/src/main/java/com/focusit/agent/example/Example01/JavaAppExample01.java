@@ -1,12 +1,10 @@
-package com.focusit.agent.example;
+package com.focusit.agent.example.Example01;
 
 import com.focusit.agent.loader.jassie.AgentLoader;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Properties;
 
 /**
@@ -14,10 +12,17 @@ import java.util.Properties;
  * Created by Denis V. Kirpichenkov on 07.08.14.
  */
 public class JavaAppExample01 {
+	static {
+		try {
+			AgentLoader.loadAgent();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static void main(String[] args) throws SQLException, IOException, URISyntaxException {
-
-		AgentLoader.loadAgent();
 
 		String url = "jdbc:postgresql://localhost/example";
 		Properties props = new Properties();
@@ -25,6 +30,15 @@ public class JavaAppExample01 {
 		props.setProperty("password","stand");
 		Connection conn = DriverManager.getConnection(url, props);
 
+//		try(PreparedStatement pstmt = conn.prepareStatement("SELECT ?")){
+//			pstmt.setInt(1, 1);
+//			try(ResultSet rs = pstmt.executeQuery()){
+//				System.out.println("Executed");
+//			}
+//		}
+
+		ClassToInstrument cls = new ClassToInstrument();
+		cls.foo();
 		conn.close();
 	}
 }
