@@ -15,6 +15,10 @@ public class ExecutionInfo implements Externalizable {
 	public long end=-1;
 	public long method=-1;
 
+	public final static int sizeOf(){
+		return 4 * 8; // 4 field, each field - 8 bytes
+	}
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeLong(threadId);

@@ -46,4 +46,12 @@ public class MethodsMap {
 		Long result = methodIndexes.get(method);
 		return result==null?-1:result;
 	}
+
+	public long getLastIndex(){
+		return lastIndex.get();
+	}
+
+	public String getMethod(int index){
+		return methods.get(index);
+	}
 }

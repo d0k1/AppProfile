@@ -1,4 +1,4 @@
-package com.focusit.agent.example.Example01;
+package com.focusit.agent.example.example01;
 
 import com.focusit.agent.loader.jassie.AgentLoader;
 
@@ -24,11 +24,11 @@ public class JavaAppExample01 {
 
 	public static void main(String[] args) throws SQLException, IOException, URISyntaxException {
 
-		String url = "jdbc:postgresql://localhost/example";
-		Properties props = new Properties();
-		props.setProperty("user","stand");
-		props.setProperty("password","stand");
-		Connection conn = DriverManager.getConnection(url, props);
+//		String url = "jdbc:postgresql://localhost/example";
+//		Properties props = new Properties();
+//		props.setProperty("user","stand");
+//		props.setProperty("password","stand");
+//		Connection conn = DriverManager.getConnection(url, props);
 
 //		try(PreparedStatement pstmt = conn.prepareStatement("SELECT ?")){
 //			pstmt.setInt(1, 1);
@@ -39,6 +39,6 @@ public class JavaAppExample01 {
 
 		ClassToInstrument cls = new ClassToInstrument();
 		cls.foo();
-		conn.close();
+//		conn.close();
 	}
 }

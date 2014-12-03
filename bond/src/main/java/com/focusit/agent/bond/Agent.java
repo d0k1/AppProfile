@@ -1,9 +1,12 @@
 package com.focusit.agent.bond;
 
+import com.focusit.agent.bond.metrics.MethodsMapDumper;
+import com.focusit.agent.bond.metrics.StatisticDumper;
 import com.focusit.agent.bond.time.GlobalTime;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.Properties;
@@ -21,11 +24,11 @@ public class Agent {
 	private static final String AGENT_JAVAASSIT="javaassist";
 	private static Instrumentation agentInstrumentation = null;
 
-	public static void premain(String agentArguments, Instrumentation instrumentation) {
+	public static void premain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
 		agentmain(agentArguments, instrumentation);
 	}
 
-	public static void agentmain(String agentArguments, Instrumentation instrumentation) {
+	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
 		String propertyFile = System.getProperty(AGENT_CONFIG);
 		if(StringUtils.isEmpty(propertyFile))
 			return;
@@ -47,7 +50,36 @@ public class Agent {
 		GlobalTime gt = new GlobalTime(10);
 		gt.start();
 
-		String transformer = properties.getProperty(AGENT_TRANSFORMATOR).trim();
+		final StatisticDumper statDump = new StatisticDumper("profile.data");
+		statDump.start();
+
+		final MethodsMapDumper methodDump = new MethodsMapDumper("methods.data");
+		methodDump.start();
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				statDump.doDump();
+				try {
+					methodDump.doDump();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				try {
+					statDump.exit();
+					methodDump.exit();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		String transformer = properties.getProperty(AGENT_TRANSFORMATOR);
+
+		if(transformer==null)
+			transformer = AGENT_JAVAASSIT;
+		else
+			transformer = transformer.trim();
 
 		agentInstrumentation = instrumentation;
 		switch (transformer){

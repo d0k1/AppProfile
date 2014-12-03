@@ -1,4 +1,4 @@
-package com.focusit.agent.example.Example01;
+package com.focusit.agent.example.example01;
 
 /**
  * Created by Denis V. Kirpichenkov on 27.11.14.
