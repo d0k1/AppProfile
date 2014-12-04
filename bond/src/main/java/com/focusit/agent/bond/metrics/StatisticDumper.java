@@ -6,19 +6,22 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class StatisticDumper {
 	private int samples = 1;
+	private static int sampleSize = ExecutionInfo.sizeOf();
 
 	private Thread dumper;
-	private ByteBuffer bytes = ByteBuffer.allocate((int) (samples*ExecutionInfo.sizeOf()));
+	private ByteBuffer bytes = ByteBuffer.allocate((int) (samples*sampleSize));
 	private LongBuffer buffer = bytes.asLongBuffer();
 	private RandomAccessFile aFile;
 	private FileChannel channel;
 	private ExecutionInfo info = new ExecutionInfo();
+	private ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	public StatisticDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
@@ -30,41 +33,51 @@ public class StatisticDumper {
 					while (!Thread.interrupted()) {
 						try {
 							Thread.sleep(10);
-
 							doDump();
 						} catch (InterruptedException e) {
 							break;
 						}
 					}
 				}finally {
-					try {
-						channel.close();
-						aFile.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
 				}
 			}
 		});
 	}
 
 	public void doDump(){
-		for (int i = 0; i < samples; i++) {
-			Statistics.readData(info);
-			info.writeToLongBuffer(buffer);
+		try {
+			readWriteLock.readLock().lock();
+			for (int i = 0; i < samples; i++) {
+				buffer.rewind();
+				Statistics.readData(info);
+				info.writeToLongBuffer(buffer);
+			}
+			try {
+				channel.write(bytes);
+				bytes.clear();
+			} catch (IOException e) {
+				System.err.println(e.getMessage());
+			}
+		}finally{
+			readWriteLock.readLock().unlock();
+		}
+	}
+
+	public void dumpRest(){
+		while(Statistics.hasMore()){
+			doDump();
 		}
 		try {
-			bytes.flip();
-			channel.write(bytes);
-			buffer.clear();
+			channel.close();
+			aFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public void exit() throws InterruptedException {
-		dumper.join(1000);
+		dumper.interrupt();
+		dumper.join(10000);
 	}
 
 	public void start(){

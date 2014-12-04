@@ -16,17 +16,31 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	private ClassPool classPool;
 
 	private final Properties properties;
+	private final String excludes[];
+	private final String ignoreExcludes[];
 
-	public JavaAssistClassTransformer(Properties properties) {
+	public JavaAssistClassTransformer(Properties properties, String excludes[], String ignoreExcludes[]) {
 		this.properties = properties;
+		this.excludes = excludes;
+		this.ignoreExcludes = ignoreExcludes;
 
 		classPool = new ClassPool();
 		classPool.appendSystemPath();
 		try {
+			classPool.importPackage("com.focusit.agent");
 			classPool.appendPathList(System.getProperty("java.class.path"));
 			classPool.appendClassPath(new LoaderClassPath(ClassLoader.getSystemClassLoader()));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+
+		try {
+			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.MethodsMap");
+			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.MethodsMapDumper");
+			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.StatisticDumper");
+			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.Statistics");
+		} catch(ClassNotFoundException e){
+			System.err.println(e.getMessage());
 		}
 	}
 
@@ -34,11 +48,28 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
-		if(className.startsWith("com.focusit.agent.example"))
-			System.err.println("transforming "+className);
-		else {
-			//System.err.println("skipping "+className);
-			return classfileBuffer;
+
+		if(excludes!=null) {
+			boolean skip = false;
+
+			for (int i = 0; i < excludes.length;i++) {
+				if (className.startsWith(excludes[i])) {
+					skip = true;
+					break;
+				}
+			}
+
+			for (int i = 0; i < ignoreExcludes.length;i++) {
+				if (className.startsWith(ignoreExcludes[i])) {
+					skip = false;
+					break;
+				}
+			}
+
+			if(skip)
+				return classfileBuffer;
+			else
+				System.err.println("Transforming "+className);
 		}
 
 		classPool.appendClassPath(new ByteArrayClassPath(className, classfileBuffer));
@@ -47,17 +78,17 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			CtClass ctClass = classPool.get(className);
 			if (ctClass.isFrozen()) {
 //					logger.debug("Skip class {}: is frozen", className);
-				return null;
+				return classfileBuffer;
 			}
 
 			if (ctClass.isPrimitive() || ctClass.isArray() || ctClass.isAnnotation()
 				|| ctClass.isEnum() || ctClass.isInterface()) {
 //					logger.debug("Skip class {}: not a class", className);
-				return null;
+				return classfileBuffer;
 			}
 			boolean isClassModified = false;
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
-				System.err.println(method.getLongName());
+//				System.err.println(method.getLongName());
 				// if method is annotated, add the code to measure the time
 //					if (method.hasAnnotation(Measured.class)) {
 //						try {

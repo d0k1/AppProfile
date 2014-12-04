@@ -14,6 +14,18 @@ import java.net.URLDecoder;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class AgentLoader {
+	public static void addShutdownHook() {
+		try {
+			com.focusit.agent.bond.AgentManager manager = (com.focusit.agent.bond.AgentManager) Class.forName("com.focusit.agent.bond.AgentManager").newInstance();
+			manager.addShutodwnHook();
+		} catch (ClassNotFoundException e){
+			System.err.println(e.getMessage());
+		} catch (InstantiationException e1){
+			System.err.println(e1.getMessage());
+		} catch (IllegalAccessException e2){
+			System.err.println(e2.getMessage());
+		}
+	}
 	public static void loadAgent() throws URISyntaxException, IOException {
 
 		InputStream in = AgentLoader.class.getResourceAsStream("/bond.jar");

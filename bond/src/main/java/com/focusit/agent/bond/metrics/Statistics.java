@@ -33,7 +33,7 @@ public class Statistics {
 			result.start = start;
 			result.end = stop;
 
-			System.err.println("Method call: "+result);
+//			System.err.println("Method call: "+result);
 			return result;
 		} finally {
 			rwLock.writeLock().unlock();
@@ -58,5 +58,9 @@ public class Statistics {
 		} finally {
 			rwLock.readLock().unlock();
 		}
+	}
+
+	public static boolean hasMore(){
+		return position.get()>0;
 	}
 }

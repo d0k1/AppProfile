@@ -18,6 +18,8 @@ import java.util.Properties;
  */
 public class Agent {
 	private static final String AGENT_ENABLED = "agent.enabled";
+	private static final String AGENT_INGORE_EXCLUDE ="agent.exclude.ingore";
+	private static final String AGENT_EXCLUDE = "agent.exclude";
 	private static final String AGENT_CONFIG = "agent.config";
 	private static final String AGENT_TRANSFORMATOR="agent.transformer";
 	private static final String AGENT_ASM="asm";
@@ -27,6 +29,9 @@ public class Agent {
 	public static void premain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
 		agentmain(agentArguments, instrumentation);
 	}
+
+	static StatisticDumper statDump;
+	static MethodsMapDumper methodDump;
 
 	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
 		String propertyFile = System.getProperty(AGENT_CONFIG);
@@ -47,32 +52,26 @@ public class Agent {
 
 		properties.remove(AGENT_ENABLED);
 
+		String excludes[] = null;
+		if(properties.getProperty(AGENT_EXCLUDE)!=null){
+			excludes = properties.getProperty(AGENT_EXCLUDE).split(",");
+			properties.remove(AGENT_EXCLUDE);
+		}
+
+		String ignoreExcludes[] = null;
+		if(properties.getProperty(AGENT_INGORE_EXCLUDE)!=null){
+			ignoreExcludes = properties.getProperty(AGENT_INGORE_EXCLUDE).split(",");
+			properties.remove(AGENT_INGORE_EXCLUDE);
+		}
+
 		GlobalTime gt = new GlobalTime(10);
 		gt.start();
 
-		final StatisticDumper statDump = new StatisticDumper("profile.data");
+		statDump = new StatisticDumper("profile.data");
 		statDump.start();
 
-		final MethodsMapDumper methodDump = new MethodsMapDumper("methods.data");
+		methodDump = new MethodsMapDumper("methods.data");
 		methodDump.start();
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				statDump.doDump();
-				try {
-					methodDump.doDump();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-				try {
-					statDump.exit();
-					methodDump.exit();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		});
 
 		String transformer = properties.getProperty(AGENT_TRANSFORMATOR);
 
@@ -84,11 +83,12 @@ public class Agent {
 		agentInstrumentation = instrumentation;
 		switch (transformer){
 			case AGENT_ASM:
-				agentInstrumentation.addTransformer(new AsmClassTransformer(properties));
+				agentInstrumentation.addTransformer(new AsmClassTransformer(properties, excludes, ignoreExcludes));
 				break;
 			case AGENT_JAVAASSIT:
-				agentInstrumentation.addTransformer(new JavaAssistClassTransformer(properties));
+				agentInstrumentation.addTransformer(new JavaAssistClassTransformer(properties, excludes, ignoreExcludes));
 				break;
 		}
+
 	}
 }

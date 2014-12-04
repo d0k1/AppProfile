@@ -15,7 +15,7 @@ public class AsmClassTransformer implements ClassFileTransformer {
 
 	private final Properties properties;
 
-	public AsmClassTransformer(Properties properties) {
+	public AsmClassTransformer(Properties properties, String excludes[], String ignoreExcludes[]) {
 		this.properties = properties;
 	}
 

@@ -15,6 +15,7 @@ public class JavaAppExample01 {
 	static {
 		try {
 			AgentLoader.loadAgent();
+			AgentLoader.addShutdownHook();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

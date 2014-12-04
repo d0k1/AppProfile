@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class MethodsMap {
 	private static MethodsMap instance = new MethodsMap();
-
+	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	private final List<String> methods;
 	private final ConcurrentHashMap<String, Long> methodIndexes;
 	private final AtomicLong lastIndex;
@@ -28,23 +29,35 @@ public class MethodsMap {
 	}
 
 	public long addMethod(String method){
-		Long current = methodIndexes.get(method);
+		try {
+			rwLock.writeLock().lock();
 
-		if(current!=null){
-			return current.longValue();
+			Long current = methodIndexes.get(method);
+
+			if (current != null) {
+				return current.longValue();
+			}
+
+			methods.add(method);
+			long index = lastIndex.getAndIncrement();
+			methodIndexes.put(method, index);
+
+			//System.out.println("mappedMethod: "+method+" = "+index);
+			return index;
+		} finally{
+			rwLock.writeLock().unlock();
 		}
-
-		methods.add(method);
-		long index = lastIndex.getAndIncrement();
-		methodIndexes.put(method, index);
-
-		System.out.println("mappedMethod: "+method+" = "+index);
-		return index;
 	}
 
 	public long getMethodIndex(String method){
-		Long result = methodIndexes.get(method);
-		return result==null?-1:result;
+		try{
+			rwLock.readLock().lock();
+
+			Long result = methodIndexes.get(method);
+			return result==null?-1:result;
+		} finally {
+			rwLock.readLock().unlock();
+		}
 	}
 
 	public long getLastIndex(){
@@ -52,6 +65,12 @@ public class MethodsMap {
 	}
 
 	public String getMethod(int index){
-		return methods.get(index);
+		try{
+			rwLock.readLock().lock();
+
+			return methods.get(index);
+		} finally {
+			rwLock.readLock().unlock();
+		}
 	}
 }
