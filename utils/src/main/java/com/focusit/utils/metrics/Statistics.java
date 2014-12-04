@@ -1,7 +1,5 @@
-package com.focusit.agent.bond.metrics;
+package com.focusit.utils.metrics;
 
-import java.util.ArrayList;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 

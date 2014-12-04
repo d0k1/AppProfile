@@ -25,13 +25,14 @@
         <module name="bond" />
         <module name="example" />
         <module name="jassie" />
+        <module name="utils" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="bond" target="1.7" />
       <module name="example" target="1.7" />
       <module name="jassie" target="1.7" />
+      <module name="utils" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
-

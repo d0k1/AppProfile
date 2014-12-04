@@ -1,8 +1,8 @@
 package com.focusit.agent.bond;
 
-import com.focusit.agent.bond.metrics.MethodsMapDumper;
-import com.focusit.agent.bond.metrics.StatisticDumper;
 import com.focusit.agent.bond.time.GlobalTime;
+import com.focusit.utils.metrics.MethodsMapDumper;
+import com.focusit.utils.metrics.StatisticDumper;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.FileInputStream;

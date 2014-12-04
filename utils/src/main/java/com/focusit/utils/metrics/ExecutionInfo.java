@@ -1,4 +1,4 @@
-package com.focusit.agent.bond.metrics;
+package com.focusit.utils.metrics;
 
 import java.io.Externalizable;
 import java.io.IOException;

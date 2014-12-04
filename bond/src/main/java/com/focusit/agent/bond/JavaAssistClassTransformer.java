@@ -35,10 +35,10 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		}
 
 		try {
-			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.MethodsMap");
-			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.MethodsMapDumper");
-			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.StatisticDumper");
-			ClassLoader.getSystemClassLoader().loadClass("com.focusit.agent.bond.metrics.Statistics");
+			ClassLoader.getSystemClassLoader().loadClass("MethodsMap");
+			ClassLoader.getSystemClassLoader().loadClass("MethodsMapDumper");
+			ClassLoader.getSystemClassLoader().loadClass("StatisticDumper");
+			ClassLoader.getSystemClassLoader().loadClass("Statistics");
 		} catch(ClassNotFoundException e){
 			System.err.println(e.getMessage());
 		}
@@ -100,11 +100,11 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 							method.addLocalVariable("__metricStartTime", CtClass.longType);
 							method.addLocalVariable("__metricMethodId", CtClass.longType);
 							String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
-							String addMethod = "__metricMethodId = com.focusit.agent.bond.metrics.MethodsMap.getInstance().addMethod(\""+method.getLongName()+"\");";
+							String addMethod = "__metricMethodId = com.focusit.utils.metrics.MethodsMap.getInstance().addMethod(\""+method.getLongName()+"\");";
 							method.insertBefore(addMethod + getTime);
 
 //							String metricName = ctClass.getName() + "." + method.getName();
-							method.insertAfter("com.focusit.agent.bond.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
+							method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
 							isClassModified = true;
 //						} catch (Exception e) {
 //							logger.warn("Skipping instrumentation of method {}: {}", method.getName(), e.getMessage());

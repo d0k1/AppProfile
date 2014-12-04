@@ -13,6 +13,7 @@
 		<module>bond</module>
 		<module>jassie</module>
 		<module>example</module>
+		<module>utils</module>
 	</modules>
 
 
