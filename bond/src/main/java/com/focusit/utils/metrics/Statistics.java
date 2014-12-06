@@ -10,13 +10,14 @@ public class Statistics {
 	private final static int LIMIT=1638400;
 	private final static AtomicInteger position = new AtomicInteger(0);
 	private final static ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
+
+	public static ExecutionInfo[] data = new ExecutionInfo[LIMIT];
+
 	static {
 		for(int i=0;i<LIMIT;i++){
 			data[i] = new ExecutionInfo();
 		}
 	}
-
-	public static ExecutionInfo[] data = new ExecutionInfo[LIMIT];
 
 	public static ExecutionInfo storeData(long methodId, long start, long stop){
 		if(position.get()==LIMIT)

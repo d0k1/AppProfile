@@ -4,6 +4,7 @@ import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.utils.metrics.MethodsMapDumper;
 import com.focusit.utils.metrics.StatisticDumper;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
@@ -36,8 +37,41 @@ public class Agent {
 		}
 	}
 
+	private static boolean isClassExcluded(String className) {
+		String excludes[] = AgentConfiguration.getExcludeClasses();
+		String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
+
+		if (excludes != null) {
+			boolean skip = false;
+
+			for (int i = 0; i < excludes.length; i++) {
+				if (className.startsWith(excludes[i])) {
+					skip = true;
+					break;
+				}
+			}
+
+			for (int i = 0; i < ignoreExcludes.length; i++) {
+				if (className.startsWith(ignoreExcludes[i])) {
+					skip = false;
+					break;
+				}
+			}
+
+			if (skip) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public static void retransformAlreadyLoadedClasses(Instrumentation instrumentation) {
 		for (Class cls : instrumentation.getAllLoadedClasses()) {
+
+			if (isClassExcluded(cls.getName()))
+				continue;
+
 			if (instrumentation.isModifiableClass(cls)) {
 				try {
 					instrumentation.retransformClasses(cls);
@@ -59,15 +93,6 @@ public class Agent {
 		String excludes[] = AgentConfiguration.getExcludeClasses();
 		String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 
-		GlobalTime gt = new GlobalTime(10);
-		gt.start();
-
-		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
-		statDump.start();
-
-		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());
-		methodDump.start();
-
 		AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();
 
 		agentInstrumentation = instrumentation;
@@ -83,6 +108,19 @@ public class Agent {
 
 		retransformAlreadyLoadedClasses(instrumentation);
 
+		startDumpers();
+	}
+
+	private static void startDumpers() throws FileNotFoundException {
+		GlobalTime gt = new GlobalTime(10);
+		gt.start();
+
+		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
+		statDump.start();
+
+		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());
+		methodDump.start();
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				try {
@@ -96,11 +134,12 @@ public class Agent {
 					methodDump.dumpRest();
 					statDump.dumpRest();
 				} catch (Throwable e) {
-					System.err.println("NCDFE: " + e.getMessage());
+					System.err.println("Shutdown hook error: " + e.getMessage());
 				}
 			}
 		});
 	}
+
 
 	private static void printClasspath() {
 		ClassLoader cl = ClassLoader.getSystemClassLoader();

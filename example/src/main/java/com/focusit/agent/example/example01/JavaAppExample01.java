@@ -26,9 +26,9 @@ public class JavaAppExample01 {
 		try {
 			HashMap<String, String> test = new HashMap<>();
 			test.put("1", "2");
+			new ClassToInstrument().foo();
 		} catch (Throwable e) {
 			System.err.println("Error: " + e.getMessage());
 		}
-		AgentLoader.addShutdownHook();
 	}
 }

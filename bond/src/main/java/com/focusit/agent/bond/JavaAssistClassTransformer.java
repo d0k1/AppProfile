@@ -1,5 +1,6 @@
 package com.focusit.agent.bond;
 
+import com.focusit.utils.metrics.MethodsMap;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -10,8 +11,8 @@ import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 
 /**
- * Class instrumentation toolkit
- * <p/>
+ * Java bytecode instrumentation based on javaassist library
+ *
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class JavaAssistClassTransformer implements ClassFileTransformer {
@@ -26,19 +27,12 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		this.instrumentation = instrumentation;
 
 		classPool = ClassPool.getDefault();
-		try {
-//			classPool.appendPathList(System.getProperty("java.class.path"));
-//			classPool.appendClassPath(new LoaderClassPath(ClassLoader.getSystemClassLoader()));
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	@Override
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
-//		System.out.println("Check to transform: " + className);
 		if (excludes != null) {
 			boolean skip = false;
 
@@ -57,67 +51,42 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 
 			if (skip) {
-//				System.out.println("Skipped: " + className);
 				return classfileBuffer;
 			} else {
-//				if (loader != null)
-//					System.err.println("Transforming " + className + " loaded by " + loader.toString());
-//				else {
-//					System.err.println("Transforming " + className + " and set loader");
-//				}
 			}
 		}
 
 		try {
 
 			CtClass ctClass = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-//			CtClass ctClass = classPool.get(className);
 			if (ctClass.isFrozen()) {
 				return classfileBuffer;
 			}
 
 			if (ctClass.isPrimitive() || ctClass.isArray() || ctClass.isAnnotation()
 				|| ctClass.isEnum() || ctClass.isInterface()) {
-//					logger.debug("Skip class {}: not a class", className);
 				return classfileBuffer;
 			}
 			boolean isClassModified = false;
 
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
-//				System.err.println(method.getLongName());
-				// if method is annotated, add the code to measure the time
-//					if (method.hasAnnotation(Measured.class)) {
-//						try {
-//							if (method.getMethodInfo().getCodeAttribute() == null) {
-//								logger.debug("Skip method " + method.getLongName());
-//								continue;
-//							}
 				System.err.println("Instrumenting method " + method.getLongName());
+
+				long methodId = MethodsMap.getInstance().addMethod(method.getLongName());
+
 				method.addLocalVariable("__metricStartTime", CtClass.longType);
-				method.addLocalVariable("__metricMethodId", CtClass.longType);
 				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
-				String addMethod = "__metricMethodId = com.focusit.utils.metrics.MethodsMap.getInstance().addMethod(\"" + method.getLongName() + "\");";
-				method.insertBefore(addMethod + getTime);
-//							method.insertBefore("System.err.println(\"Begin\");");
-//							String metricName = ctClass.getName() + "." + method.getName();
-				method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
+				method.insertBefore(getTime);
+				method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
 				isClassModified = true;
-//						} catch (Exception e) {
-//							logger.warn("Skipping instrumentation of method {}: {}", method.getName(), e.getMessage());
-//						}
-//					}
 			}
 
 			if (isClassModified) {
-//					classPool.importPackage("com.focusit.agent.bond.time");
-//					classPool.importPackage("com.focusit.utils.metrics");
 				ctClass.detach();
-				byte klass[] = ctClass.toBytecode();
-				return klass;
+				return ctClass.toBytecode();
 			}
 		} catch (Throwable e) {
-			System.err.println(e.getMessage());
-//				logger.debug("Skip class {}: ", className, e.getMessage());
+			System.err.println("Instrumentation error: " + e.getMessage());
 		}
 		return classfileBuffer;
 	}
