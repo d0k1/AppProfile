@@ -12,9 +12,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class StatisticDumper {
-	private int samples = 1;
 	private static int sampleSize = ExecutionInfo.sizeOf();
-
+	private int samples = 1;
 	private Thread dumper;
 	private ByteBuffer bytes = ByteBuffer.allocate((int) (samples*sampleSize));
 	private LongBuffer buffer = bytes.asLongBuffer();
@@ -30,6 +29,7 @@ public class StatisticDumper {
 			@Override
 			public void run() {
 				try {
+					channel.position(0);
 					while (!Thread.interrupted()) {
 						try {
 							Thread.sleep(10);
@@ -38,7 +38,9 @@ public class StatisticDumper {
 							break;
 						}
 					}
-				}finally {
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
 				}
 			}
 		});

@@ -5,23 +5,22 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Utility class to store strings
- *
+ * <p/>
  * Created by Denis V. Kirpichenkov on 10.08.14.
  */
 public class StringHolder {
 
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private long nextIndex = 0L;
 	private long index = 0L;
 	private HashMap<String, Long> strings = new HashMap<>();
 	private HashMap<Long, String> indexes = new HashMap<>();
 
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-
-	public long putString(String str){
+	public long putString(String str) {
 		try {
 			lock.writeLock().lock();
 			Long strIndex = strings.get(str);
-			if(strIndex!=null)
+			if (strIndex != null)
 				return strIndex.longValue();
 
 			strings.put(str, nextIndex);
@@ -36,7 +35,7 @@ public class StringHolder {
 		}
 	}
 
-	public String getString(long index){
+	public String getString(long index) {
 		return indexes.get(index);
 	}
 }

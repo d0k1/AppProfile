@@ -29,6 +29,7 @@ public class MethodsMapDumper {
 			@Override
 			public void run() {
 				try{
+					channel.position(0);
 					while (!Thread.interrupted()) {
 
 						try {
@@ -41,6 +42,8 @@ public class MethodsMapDumper {
 							break;
 						}
 					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				} finally {
 				}
 			}

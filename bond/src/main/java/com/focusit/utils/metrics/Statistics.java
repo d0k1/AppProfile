@@ -8,15 +8,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class Statistics {
 	private final static int LIMIT=1638400;
-	public static ExecutionInfo []data = new ExecutionInfo[LIMIT];
 	private final static AtomicInteger position = new AtomicInteger(0);
 	private final static ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
-
 	static {
 		for(int i=0;i<LIMIT;i++){
 			data[i] = new ExecutionInfo();
 		}
 	}
+
+	public static ExecutionInfo[] data = new ExecutionInfo[LIMIT];
 
 	public static ExecutionInfo storeData(long methodId, long start, long stop){
 		if(position.get()==LIMIT)

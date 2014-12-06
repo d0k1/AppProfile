@@ -10,15 +10,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class MethodsMap {
-	private static MethodsMap instance = new MethodsMap();
+	private static final MethodsMap instance = new MethodsMap();
+	private final static int INITIAL_SIZE = 15000;
 	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	private final List<String> methods;
 	private final ConcurrentHashMap<String, Long> methodIndexes;
 	private final AtomicLong lastIndex;
 
-	private final static int INITIAL_SIZE=15000;
-
-	protected MethodsMap(){
+	public MethodsMap() {
 		methods = new ArrayList<>(INITIAL_SIZE);
 		methodIndexes = new ConcurrentHashMap<>(INITIAL_SIZE);
 		lastIndex = new AtomicLong(0);
@@ -42,7 +41,7 @@ public class MethodsMap {
 			long index = lastIndex.getAndIncrement();
 			methodIndexes.put(method, index);
 
-			//System.out.println("mappedMethod: "+method+" = "+index);
+			System.out.println("mappedMethod: " + method + " = " + index);
 			return index;
 		} finally{
 			rwLock.writeLock().unlock();

@@ -4,8 +4,8 @@ import com.focusit.agent.loader.jassie.AgentLoader;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.*;
-import java.util.Properties;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * Example of using agent
@@ -15,7 +15,6 @@ public class JavaAppExample01 {
 	static {
 		try {
 			AgentLoader.loadAgent();
-			AgentLoader.addShutdownHook();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -24,22 +23,12 @@ public class JavaAppExample01 {
 	}
 
 	public static void main(String[] args) throws SQLException, IOException, URISyntaxException {
-
-//		String url = "jdbc:postgresql://localhost/example";
-//		Properties props = new Properties();
-//		props.setProperty("user","stand");
-//		props.setProperty("password","stand");
-//		Connection conn = DriverManager.getConnection(url, props);
-
-//		try(PreparedStatement pstmt = conn.prepareStatement("SELECT ?")){
-//			pstmt.setInt(1, 1);
-//			try(ResultSet rs = pstmt.executeQuery()){
-//				System.out.println("Executed");
-//			}
-//		}
-
-		ClassToInstrument cls = new ClassToInstrument();
-		cls.foo();
-//		conn.close();
+		try {
+			HashMap<String, String> test = new HashMap<>();
+			test.put("1", "2");
+		} catch (Throwable e) {
+			System.err.println("Error: " + e.getMessage());
+		}
+		AgentLoader.addShutdownHook();
 	}
 }

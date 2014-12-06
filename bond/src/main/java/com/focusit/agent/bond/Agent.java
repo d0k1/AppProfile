@@ -3,92 +3,110 @@ package com.focusit.agent.bond;
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.utils.metrics.MethodsMapDumper;
 import com.focusit.utils.metrics.StatisticDumper;
-import org.apache.commons.lang.StringUtils;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.util.Properties;
+import java.lang.instrument.UnmodifiableClassException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.jar.JarFile;
 
 /**
- * Agent main class stub
- *
+ * Agent main class. Loading desired class transformer
+ * <p/>
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class Agent {
-	private static final String AGENT_ENABLED = "agent.enabled";
-	private static final String AGENT_INGORE_EXCLUDE ="agent.exclude.ingore";
-	private static final String AGENT_EXCLUDE = "agent.exclude";
-	private static final String AGENT_CONFIG = "agent.config";
-	private static final String AGENT_TRANSFORMATOR="agent.transformer";
-	private static final String AGENT_ASM="asm";
-	private static final String AGENT_JAVAASSIT="javaassist";
 	private static Instrumentation agentInstrumentation = null;
 
-	public static void premain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
+	public static void premain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
 		agentmain(agentArguments, instrumentation);
 	}
 
-	static StatisticDumper statDump;
-	static MethodsMapDumper methodDump;
+	private static void modifyBootstrapClasspath(Instrumentation instrumentation) throws IOException {
+		if (AgentManager.agentJar != null) {
+			instrumentation.appendToBootstrapClassLoaderSearch(AgentManager.agentJar);
+		}
 
-	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws FileNotFoundException {
-		String propertyFile = System.getProperty(AGENT_CONFIG);
-		if(StringUtils.isEmpty(propertyFile))
+		URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+		for (URL url : systemClassLoader.getURLs()) {
+			if (url.getProtocol() == "file" && url.getFile().contains("javassist")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getPath()));
+			}
+		}
+	}
+
+	public static void retransformAlreadyLoadedClasses(Instrumentation instrumentation) {
+		for (Class cls : instrumentation.getAllLoadedClasses()) {
+			if (instrumentation.isModifiableClass(cls)) {
+				try {
+					instrumentation.retransformClasses(cls);
+				} catch (UnmodifiableClassException e) {
+					System.err.println("unmodifiable class " + cls.getName());
+				}
+			}
+		}
+	}
+
+	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
+
+		if (!AgentConfiguration.isAgentEnabled()) {
 			return;
-
-		Properties properties = new Properties();
-		try {
-			properties.load(new FileInputStream(propertyFile));
-		} catch (IOException e) {
-			return;
 		}
 
-		String enabledValue = properties.getProperty(AGENT_ENABLED);
-		if(enabledValue==null || !enabledValue.equalsIgnoreCase(Boolean.toString(true))){
-			return;
-		}
+		modifyBootstrapClasspath(instrumentation);
 
-		properties.remove(AGENT_ENABLED);
-
-		String excludes[] = null;
-		if(properties.getProperty(AGENT_EXCLUDE)!=null){
-			excludes = properties.getProperty(AGENT_EXCLUDE).split(",");
-			properties.remove(AGENT_EXCLUDE);
-		}
-
-		String ignoreExcludes[] = null;
-		if(properties.getProperty(AGENT_INGORE_EXCLUDE)!=null){
-			ignoreExcludes = properties.getProperty(AGENT_INGORE_EXCLUDE).split(",");
-			properties.remove(AGENT_INGORE_EXCLUDE);
-		}
+		String excludes[] = AgentConfiguration.getExcludeClasses();
+		String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 
 		GlobalTime gt = new GlobalTime(10);
 		gt.start();
 
-		statDump = new StatisticDumper("profile.data");
+		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
 		statDump.start();
 
-		methodDump = new MethodsMapDumper("methods.data");
+		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());
 		methodDump.start();
 
-		String transformer = properties.getProperty(AGENT_TRANSFORMATOR);
-
-		if(transformer==null)
-			transformer = AGENT_JAVAASSIT;
-		else
-			transformer = transformer.trim();
+		AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();
 
 		agentInstrumentation = instrumentation;
-		switch (transformer){
-			case AGENT_ASM:
-				agentInstrumentation.addTransformer(new AsmClassTransformer(properties, excludes, ignoreExcludes));
-				break;
-			case AGENT_JAVAASSIT:
-				agentInstrumentation.addTransformer(new JavaAssistClassTransformer(properties, excludes, ignoreExcludes));
-				break;
+
+		// strange bu usage SWITCH causes IllegalAccessException but IF is OK
+		if (transformer == AgentConfiguration.Transformer.asm) {
+			agentInstrumentation.addTransformer(new AsmClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+		} else if (transformer == AgentConfiguration.Transformer.javaassist) {
+			agentInstrumentation.addTransformer(new JavaAssistClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+		} else if (transformer == AgentConfiguration.Transformer.cglib) {
+
 		}
 
+		retransformAlreadyLoadedClasses(instrumentation);
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				try {
+					statDump.exit();
+					methodDump.exit();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				try {
+					methodDump.dumpRest();
+					statDump.dumpRest();
+				} catch (Throwable e) {
+					System.err.println("NCDFE: " + e.getMessage());
+				}
+			}
+		});
+	}
+
+	private static void printClasspath() {
+		ClassLoader cl = ClassLoader.getSystemClassLoader();
+		URL[] urls = ((URLClassLoader) cl).getURLs();
+		for (URL url : urls) {
+			System.out.println(url.getFile());
+		}
 	}
 }

@@ -5,18 +5,15 @@ import org.objectweb.asm.ClassWriter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
-import java.util.Properties;
 
 /**
  * Created by Denis V. Kirpichenkov on 25.11.14.
  */
 public class AsmClassTransformer implements ClassFileTransformer {
 
-	private final Properties properties;
-
-	public AsmClassTransformer(Properties properties, String excludes[], String ignoreExcludes[]) {
-		this.properties = properties;
+	public AsmClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
 	}
 
 	@Override

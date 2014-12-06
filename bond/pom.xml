@@ -35,10 +35,12 @@
 							<mainClass>com.focusit.agent.bond.Agent</mainClass>
 						</manifest>
 						<manifestEntries>
+							<!--<Boot-Class-Path>bond.jar</Boot-Class-Path>-->
 							<Premain-Class>com.focusit.agent.bond.Agent</Premain-Class>
 							<Agent-Class>com.focusit.agent.bond.Agent</Agent-Class>
 							<Can-Redefine-Classes>true</Can-Redefine-Classes>
 							<Can-Retransform-Classes>true</Can-Retransform-Classes>
+							<!--<Classpath></Classpath>-->
 						</manifestEntries>
 					</archive>
 					<outputDirectory>../jassie/src/main/resources</outputDirectory>
@@ -49,9 +51,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -69,6 +71,11 @@
 			<artifactId>javassist</artifactId>
 			<version>3.18.1-GA</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.focusit</groupId>
+			<artifactId>utils</artifactId>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

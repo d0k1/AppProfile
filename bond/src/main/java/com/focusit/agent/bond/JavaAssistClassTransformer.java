@@ -1,11 +1,13 @@
 package com.focusit.agent.bond;
 
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
-import java.util.Properties;
 
 /**
  * Class instrumentation toolkit
@@ -13,34 +15,22 @@ import java.util.Properties;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class JavaAssistClassTransformer implements ClassFileTransformer {
-	private ClassPool classPool;
-
-	private final Properties properties;
 	private final String excludes[];
 	private final String ignoreExcludes[];
+	private final Instrumentation instrumentation;
+	private ClassPool classPool;
 
-	public JavaAssistClassTransformer(Properties properties, String excludes[], String ignoreExcludes[]) {
-		this.properties = properties;
+	public JavaAssistClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
 		this.excludes = excludes;
 		this.ignoreExcludes = ignoreExcludes;
+		this.instrumentation = instrumentation;
 
-		classPool = new ClassPool();
-		classPool.appendSystemPath();
+		classPool = ClassPool.getDefault();
 		try {
-			classPool.importPackage("com.focusit.agent");
-			classPool.appendPathList(System.getProperty("java.class.path"));
-			classPool.appendClassPath(new LoaderClassPath(ClassLoader.getSystemClassLoader()));
+//			classPool.appendPathList(System.getProperty("java.class.path"));
+//			classPool.appendClassPath(new LoaderClassPath(ClassLoader.getSystemClassLoader()));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
-		}
-
-		try {
-			ClassLoader.getSystemClassLoader().loadClass("MethodsMap");
-			ClassLoader.getSystemClassLoader().loadClass("MethodsMapDumper");
-			ClassLoader.getSystemClassLoader().loadClass("StatisticDumper");
-			ClassLoader.getSystemClassLoader().loadClass("Statistics");
-		} catch(ClassNotFoundException e){
-			System.err.println(e.getMessage());
 		}
 	}
 
@@ -48,36 +38,41 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
-
-		if(excludes!=null) {
+//		System.out.println("Check to transform: " + className);
+		if (excludes != null) {
 			boolean skip = false;
 
-			for (int i = 0; i < excludes.length;i++) {
+			for (int i = 0; i < excludes.length; i++) {
 				if (className.startsWith(excludes[i])) {
 					skip = true;
 					break;
 				}
 			}
 
-			for (int i = 0; i < ignoreExcludes.length;i++) {
+			for (int i = 0; i < ignoreExcludes.length; i++) {
 				if (className.startsWith(ignoreExcludes[i])) {
 					skip = false;
 					break;
 				}
 			}
 
-			if(skip)
+			if (skip) {
+//				System.out.println("Skipped: " + className);
 				return classfileBuffer;
-			else
-				System.err.println("Transforming "+className);
+			} else {
+//				if (loader != null)
+//					System.err.println("Transforming " + className + " loaded by " + loader.toString());
+//				else {
+//					System.err.println("Transforming " + className + " and set loader");
+//				}
+			}
 		}
 
-		classPool.appendClassPath(new ByteArrayClassPath(className, classfileBuffer));
-
 		try {
-			CtClass ctClass = classPool.get(className);
+
+			CtClass ctClass = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
+//			CtClass ctClass = classPool.get(className);
 			if (ctClass.isFrozen()) {
-//					logger.debug("Skip class {}: is frozen", className);
 				return classfileBuffer;
 			}
 
@@ -87,6 +82,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				return classfileBuffer;
 			}
 			boolean isClassModified = false;
+
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
 //				System.err.println(method.getLongName());
 				// if method is annotated, add the code to measure the time
@@ -96,26 +92,31 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 //								logger.debug("Skip method " + method.getLongName());
 //								continue;
 //							}
-							System.err.println("Instrumenting method " + method.getLongName());
-							method.addLocalVariable("__metricStartTime", CtClass.longType);
-							method.addLocalVariable("__metricMethodId", CtClass.longType);
-							String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
-							String addMethod = "__metricMethodId = com.focusit.utils.metrics.MethodsMap.getInstance().addMethod(\""+method.getLongName()+"\");";
-							method.insertBefore(addMethod + getTime);
-
+				System.err.println("Instrumenting method " + method.getLongName());
+				method.addLocalVariable("__metricStartTime", CtClass.longType);
+				method.addLocalVariable("__metricMethodId", CtClass.longType);
+				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
+				String addMethod = "__metricMethodId = com.focusit.utils.metrics.MethodsMap.getInstance().addMethod(\"" + method.getLongName() + "\");";
+				method.insertBefore(addMethod + getTime);
+//							method.insertBefore("System.err.println(\"Begin\");");
 //							String metricName = ctClass.getName() + "." + method.getName();
-							method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
-							isClassModified = true;
+				method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(__metricMethodId, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
+				isClassModified = true;
 //						} catch (Exception e) {
 //							logger.warn("Skipping instrumentation of method {}: {}", method.getName(), e.getMessage());
 //						}
 //					}
 			}
+
 			if (isClassModified) {
-				return ctClass.toBytecode();
+//					classPool.importPackage("com.focusit.agent.bond.time");
+//					classPool.importPackage("com.focusit.utils.metrics");
+				ctClass.detach();
+				byte klass[] = ctClass.toBytecode();
+				return klass;
 			}
 		} catch (Throwable e) {
-				System.err.println(e.getMessage());
+			System.err.println(e.getMessage());
 //				logger.debug("Skip class {}: ", className, e.getMessage());
 		}
 		return classfileBuffer;

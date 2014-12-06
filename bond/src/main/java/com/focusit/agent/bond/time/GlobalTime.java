@@ -9,18 +9,22 @@ import static java.lang.Thread.sleep;
  * Created by Denis V. Kirpichenkov on 25.11.14.
  */
 public class GlobalTime {
-	private final int interval;
 	private static final AtomicLong time = new AtomicLong(0L);
+	private final int interval;
 
-	public GlobalTime(int interval){
+	public GlobalTime(int interval) {
 		this.interval = interval;
 	}
 
-	public void start(){
+	public static long getCurrentTime() {
+		return time.get();
+	}
+
+	public void start() {
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while(!Thread.interrupted()) {
+				while (!Thread.interrupted()) {
 					long temp_time = time.get();
 					time.compareAndSet(temp_time, System.nanoTime());
 					try {
@@ -32,9 +36,5 @@ public class GlobalTime {
 			}
 		});
 		thread.start();
-	}
-
-	public static long getCurrentTime(){
-		return time.get();
 	}
 }
