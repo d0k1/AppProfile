@@ -35,7 +35,7 @@
 							<mainClass>com.focusit.agent.bond.Agent</mainClass>
 						</manifest>
 						<manifestEntries>
-							<!--<Boot-Class-Path>bond.jar</Boot-Class-Path>-->
+							<Boot-Class-Path>bond.jar</Boot-Class-Path>
 							<Premain-Class>com.focusit.agent.bond.Agent</Premain-Class>
 							<Agent-Class>com.focusit.agent.bond.Agent</Agent-Class>
 							<Can-Redefine-Classes>true</Can-Redefine-Classes>
