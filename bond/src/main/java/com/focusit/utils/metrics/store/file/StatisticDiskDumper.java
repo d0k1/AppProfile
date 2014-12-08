@@ -2,7 +2,6 @@ package com.focusit.utils.metrics.store.file;
 
 import com.focusit.utils.metrics.Statistics;
 import com.focusit.utils.metrics.samples.ExecutionInfo;
-import com.focusit.utils.metrics.store.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +18,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
-public final class StatisticDumper implements Storage {
-	private static final Logger LOG = LoggerFactory.getLogger(StatisticDumper.class);
+public class StatisticDiskDumper implements com.focusit.utils.metrics.store.Storage {
+	private static final Logger LOG = LoggerFactory.getLogger(StatisticDiskDumper.class);
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = 1;
 	private final Thread dumper;
@@ -31,7 +30,7 @@ public final class StatisticDumper implements Storage {
 	private final ExecutionInfo info = new ExecutionInfo();
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
-	public StatisticDumper(String file) throws FileNotFoundException {
+	public StatisticDiskDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
 		channel = aFile.getChannel();
 		dumper = new Thread(new Runnable() {

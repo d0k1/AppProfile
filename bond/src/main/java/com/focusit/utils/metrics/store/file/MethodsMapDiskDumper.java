@@ -18,8 +18,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
-public final class MethodsMapDumper implements Storage {
-	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDumper.class);
+public class MethodsMapDiskDumper implements Storage {
+	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDiskDumper.class);
 	private long lastIndex = 0;
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
@@ -28,7 +28,7 @@ public final class MethodsMapDumper implements Storage {
 	private final Charset cs = Charset.forName("UTF-8");
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
-	public MethodsMapDumper(String file) throws FileNotFoundException {
+	public MethodsMapDiskDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
 		channel = aFile.getChannel();
 

@@ -26,11 +26,27 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static String getMongoDbHost() {
+		return "127.0.0.1";
+	}
+
+	public static String getMongoDbPort() {
+		return "28017";
+	}
+
+	public static String getMongoDbInitialDb() {
+		return "bond";
+	}
+
+	public static boolean getMongoDbCreateDbOnStart() {
+		return true;
+	}
+
 	public static String getMethodsMapFile() {
 		return "methods.data";
 	}
 
-	public static String getProfieFile() {
+	public static String getStatisticsFile() {
 		return "profile.data";
 	}
 
@@ -85,5 +101,13 @@ public class AgentConfiguration {
 
 	public static URL getAgentLog4jProps() {
 		return ClassLoader.getSystemClassLoader().getResource("log4j.properties");
+	}
+
+	public enum StorageType {
+		disk, mongodb, netty
+	}
+
+	public static StorageType getActiveStorgeType() {
+		return StorageType.disk;
 	}
 }

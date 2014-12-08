@@ -1,8 +1,7 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.utils.metrics.store.file.MethodsMapDumper;
-import com.focusit.utils.metrics.store.file.StatisticDumper;
+import com.focusit.utils.metrics.store.StorageManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,12 @@ public class Agent {
 	private static final Logger LOG = LoggerFactory.getLogger(Agent.class);
 
 	public static void premain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
-		agentmain(agentArguments, instrumentation);
+		try {
+			agentmain(agentArguments, instrumentation);
+		} catch (Throwable e) {
+			LOG.error("Agent loading error", e);
+			throw e;
+		}
 	}
 
 	private static void modifyBootstrapClasspath(Instrumentation instrumentation) throws IOException {
@@ -99,60 +103,58 @@ public class Agent {
 	}
 
 	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
+		try {
+			agentInstrumentation = instrumentation;
 
-		agentInstrumentation = instrumentation;
+			modifyBootstrapClasspath(instrumentation);
+			setupLogging();
 
-		modifyBootstrapClasspath(instrumentation);
-		setupLogging();
+			if (!AgentConfiguration.isAgentEnabled()) {
+				LOG.info("Agent is disabled");
+				return;
+			}
 
-		if (!AgentConfiguration.isAgentEnabled()) {
-			LOG.info("Agent is disabled");
-			return;
+			LOG.info("Loading bond agent");
+
+			String excludes[] = AgentConfiguration.getExcludeClasses();
+			String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
+
+			AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();
+
+			// strange bu usage SWITCH causes IllegalAccessException but IF is OK
+			if (transformer == AgentConfiguration.Transformer.asm) {
+				agentInstrumentation.addTransformer(new AsmClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+			} else if (transformer == AgentConfiguration.Transformer.javaassist) {
+				agentInstrumentation.addTransformer(new JavaAssistClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+			} else if (transformer == AgentConfiguration.Transformer.cglib) {
+				agentInstrumentation.addTransformer(new CGLibClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+			}
+
+			retransformAlreadyLoadedClasses(instrumentation);
+
+			startStorage();
+		} catch (Throwable e) {
+			LOG.error("Error loading agent", e);
 		}
-
-		LOG.info("Loading bond agent");
-
-		String excludes[] = AgentConfiguration.getExcludeClasses();
-		String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
-
-		AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();
-
-		// strange bu usage SWITCH causes IllegalAccessException but IF is OK
-		if (transformer == AgentConfiguration.Transformer.asm) {
-			agentInstrumentation.addTransformer(new AsmClassTransformer(excludes, ignoreExcludes, instrumentation), true);
-		} else if (transformer == AgentConfiguration.Transformer.javaassist) {
-			agentInstrumentation.addTransformer(new JavaAssistClassTransformer(excludes, ignoreExcludes, instrumentation), true);
-		} else if (transformer == AgentConfiguration.Transformer.cglib) {
-			agentInstrumentation.addTransformer(new CGLibClassTransformer(excludes, ignoreExcludes, instrumentation), true);
-		}
-
-		retransformAlreadyLoadedClasses(instrumentation);
-
-		startDumpers();
 	}
 
-	private static void startDumpers() throws FileNotFoundException {
+	private static void startStorage() throws FileNotFoundException {
 		GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
 		gt.start();
 
-		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
-		statDump.start();
-
-		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());
-		methodDump.start();
+		final StorageManager storage = new StorageManager();
+		storage.start();
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				try {
-					statDump.exit();
-					methodDump.exit();
+					storage.exit();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 
 				try {
-					methodDump.dumpRest();
-					statDump.dumpRest();
+					storage.dumpRest();
 				} catch (Throwable e) {
 					LOG.error("Shutdown hook error: " + e.getMessage(), e);
 				}
