@@ -4,6 +4,8 @@ import com.focusit.utils.metrics.MethodsMap;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -15,7 +17,8 @@ import java.security.ProtectionDomain;
  *
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
-public class JavaAssistClassTransformer implements ClassFileTransformer {
+class JavaAssistClassTransformer implements ClassFileTransformer {
+	private static final Logger LOG = LoggerFactory.getLogger(JavaAssistClassTransformer.class);
 	private final String excludes[];
 	private final String ignoreExcludes[];
 	private final Instrumentation instrumentation;
@@ -52,10 +55,10 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 
 			if (skip) {
 				return classfileBuffer;
-			} else {
 			}
 		}
 
+		String methodName = "";
 		try {
 
 			CtClass ctClass = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
@@ -70,9 +73,9 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			boolean isClassModified = false;
 
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
-				System.err.println("Instrumenting method " + method.getLongName());
-
-				long methodId = MethodsMap.getInstance().addMethod(method.getLongName());
+				methodName = method.getLongName();
+				long methodId = MethodsMap.getInstance().addMethod(methodName);
+				LOG.trace("Instrumenting method {} with index {}", methodName, methodId);
 
 				method.addLocalVariable("__metricStartTime", CtClass.longType);
 				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
@@ -86,7 +89,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				return ctClass.toBytecode();
 			}
 		} catch (Throwable e) {
-			System.err.println("Instrumentation error: " + e.getMessage());
+			LOG.error("Instrumentation method " + methodName + " error: " + e.getMessage(), e);
 		}
 		return classfileBuffer;
 	}

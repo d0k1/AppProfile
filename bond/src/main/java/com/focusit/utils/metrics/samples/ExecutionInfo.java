@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics;
+package com.focusit.utils.metrics.samples;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -7,15 +7,31 @@ import java.io.ObjectOutput;
 import java.nio.LongBuffer;
 
 /**
+ * Minimal profiling sample. Store method execution data in executing thread context
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class ExecutionInfo implements Externalizable {
-	public long threadId=-1;
-	public long start=-1;
-	public long end=-1;
-	public long method=-1;
+	/**
+	 * Thread Id
+	 */
+	public long threadId = -1;
 
-	public final static int sizeOf(){
+	/**
+	 * nanos at start
+	 */
+	public long start = -1;
+
+	/**
+	 * nanos at exit
+	 */
+	public long end = -1;
+
+	/**
+	 * method map index
+	 */
+	public long method = -1;
+
+	public static int sizeOf(){
 		return 4 * 8; // 4 field, each field - 8 bytes
 	}
 

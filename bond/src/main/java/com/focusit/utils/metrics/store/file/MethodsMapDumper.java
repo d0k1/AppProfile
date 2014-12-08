@@ -1,4 +1,9 @@
-package com.focusit.utils.metrics;
+package com.focusit.utils.metrics.store.file;
+
+import com.focusit.utils.metrics.MethodsMap;
+import com.focusit.utils.metrics.store.Storage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -9,17 +14,19 @@ import java.nio.charset.Charset;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * Simple method map dumper. Uses RandomAccessFile as it's backing storage
+ *
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
-public class MethodsMapDumper {
+public final class MethodsMapDumper implements Storage {
+	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDumper.class);
 	private long lastIndex = 0;
-	private RandomAccessFile aFile;
-	private FileChannel channel;
-	private Thread dumper;
-	private MethodsMap map = MethodsMap.getInstance();
-	private Charset cs = Charset.forName("UTF-8");
-	private ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
-
+	private final RandomAccessFile aFile;
+	private final FileChannel channel;
+	private final Thread dumper;
+	private final MethodsMap map = MethodsMap.getInstance();
+	private final Charset cs = Charset.forName("UTF-8");
+	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	public MethodsMapDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
@@ -50,12 +57,14 @@ public class MethodsMapDumper {
 		});
 	}
 
-	public void exit() throws InterruptedException {
+	@Override
+	public final void exit() throws InterruptedException {
 		dumper.interrupt();
 		dumper.join(10000);
 	}
 
-	public void dumpRest(){
+	@Override
+	public final void dumpRest() {
 		while(lastIndex<map.getLastIndex()){
 			doDump();
 		}
@@ -67,7 +76,7 @@ public class MethodsMapDumper {
 		}
 	}
 
-	public void doDump() {
+	private void doDump() {
 		try {
 			readWriteLock.readLock().lock();
 
@@ -82,14 +91,15 @@ public class MethodsMapDumper {
 				channel.position(channel.position() + 1);
 				lastIndex++;
 			} catch (IOException e) {
-				System.err.println(e.getMessage());
+				LOG.error("Error method map dumping", e);
 			}
 		}finally{
 			readWriteLock.readLock().unlock();
 		}
 	}
 
-	public void start() {
+	@Override
+	public final void start() {
 		dumper.start();
 	}
 }

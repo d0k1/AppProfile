@@ -1,8 +1,12 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.utils.metrics.MethodsMapDumper;
-import com.focusit.utils.metrics.StatisticDumper;
+import com.focusit.utils.metrics.store.Storage;
+import com.focusit.utils.metrics.store.file.MethodsMapDumper;
+import com.focusit.utils.metrics.store.file.StatisticDumper;
+import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,6 +23,7 @@ import java.util.jar.JarFile;
  */
 public class Agent {
 	private static Instrumentation agentInstrumentation = null;
+	private static final Logger LOG = LoggerFactory.getLogger(Agent.class);
 
 	public static void premain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
 		agentmain(agentArguments, instrumentation);
@@ -29,12 +34,24 @@ public class Agent {
 			instrumentation.appendToBootstrapClassLoaderSearch(AgentManager.agentJar);
 		}
 
-		URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		for (URL url : systemClassLoader.getURLs()) {
-			if (url.getProtocol() == "file" && url.getFile().contains("javassist")) {
+		for (URL url : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
+			if (url.getFile().contains("slf4j-api")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
+			} else if (url.getFile().contains("slf4j-log4j12")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
+			} else if (url.getFile().contains("log4j-")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
+			} else if (url.getFile().contains("commons-lang3-")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
+			} else if (url.getFile().contains("javassist")) {
 				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getPath()));
 			}
 		}
+	}
+
+	private static void setupLogging() {
+		System.setProperty("log4j.ignoreTCL", "true");
+		PropertyConfigurator.configure(AgentConfiguration.getAgentLog4jProps());
 	}
 
 	private static boolean isClassExcluded(String className) {
@@ -66,7 +83,7 @@ public class Agent {
 		return false;
 	}
 
-	public static void retransformAlreadyLoadedClasses(Instrumentation instrumentation) {
+	private static void retransformAlreadyLoadedClasses(Instrumentation instrumentation) {
 		for (Class cls : instrumentation.getAllLoadedClasses()) {
 
 			if (isClassExcluded(cls.getName()))
@@ -76,7 +93,7 @@ public class Agent {
 				try {
 					instrumentation.retransformClasses(cls);
 				} catch (UnmodifiableClassException e) {
-					System.err.println("unmodifiable class " + cls.getName());
+					LOG.error("unmodifiable class {}", cls.getName());
 				}
 			}
 		}
@@ -84,18 +101,22 @@ public class Agent {
 
 	public static void agentmain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
 
+		agentInstrumentation = instrumentation;
+
+		modifyBootstrapClasspath(instrumentation);
+		setupLogging();
+
 		if (!AgentConfiguration.isAgentEnabled()) {
+			LOG.info("Agent is disabled");
 			return;
 		}
 
-		modifyBootstrapClasspath(instrumentation);
+		LOG.info("Loading bond agent");
 
 		String excludes[] = AgentConfiguration.getExcludeClasses();
 		String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 
 		AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();
-
-		agentInstrumentation = instrumentation;
 
 		// strange bu usage SWITCH causes IllegalAccessException but IF is OK
 		if (transformer == AgentConfiguration.Transformer.asm) {
@@ -103,7 +124,7 @@ public class Agent {
 		} else if (transformer == AgentConfiguration.Transformer.javaassist) {
 			agentInstrumentation.addTransformer(new JavaAssistClassTransformer(excludes, ignoreExcludes, instrumentation), true);
 		} else if (transformer == AgentConfiguration.Transformer.cglib) {
-
+			agentInstrumentation.addTransformer(new CGLibClassTransformer(excludes, ignoreExcludes, instrumentation), true);
 		}
 
 		retransformAlreadyLoadedClasses(instrumentation);
@@ -112,10 +133,10 @@ public class Agent {
 	}
 
 	private static void startDumpers() throws FileNotFoundException {
-		GlobalTime gt = new GlobalTime(10);
+		GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
 		gt.start();
 
-		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
+		final Storage statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
 		statDump.start();
 
 		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());
@@ -134,7 +155,7 @@ public class Agent {
 					methodDump.dumpRest();
 					statDump.dumpRest();
 				} catch (Throwable e) {
-					System.err.println("Shutdown hook error: " + e.getMessage());
+					LOG.error("Shutdown hook error: " + e.getMessage(), e);
 				}
 			}
 		});

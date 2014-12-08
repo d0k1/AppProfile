@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -35,11 +36,8 @@ public class AgentConfiguration {
 
 	public static boolean isAgentEnabled() {
 		String enabledValue = properties.getProperty("agent.enabled");
-		if (enabledValue == null || !enabledValue.equalsIgnoreCase(Boolean.toString(true))) {
-			return false;
-		}
+		return !(enabledValue == null || !enabledValue.equalsIgnoreCase(Boolean.toString(true)));
 
-		return true;
 	}
 
 	public static Transformer getAgentClassTransformer() {
@@ -51,8 +49,7 @@ public class AgentConfiguration {
 		String excludes = properties.getProperty("agent.exclude");
 		excludes = excludes.trim();
 		if (StringUtils.isEmpty(excludes)) {
-			String result[] = new String[0];
-			return result;
+			return new String[0];
 		}
 		return excludes.split(",");
 	}
@@ -61,13 +58,32 @@ public class AgentConfiguration {
 		String igonres = properties.getProperty("agent.exclude.ingore");
 		igonres = igonres.trim();
 		if (StringUtils.isEmpty(igonres)) {
-			String result[] = new String[0];
-			return result;
+			return new String[0];
 		}
 		return igonres.split(",");
 	}
 
+	public static int getTimerPrecision() {
+		int result = 10;
+		try {
+			String interval = properties.getProperty("agent.timer.interval");
+			if (!StringUtils.isEmpty(interval)) {
+				try {
+					result = Integer.parseInt(interval);
+				} catch (NumberFormatException e) {
+					result = 10;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
 	public enum Transformer {
 		asm, javaassist, cglib
+	}
+
+	public static URL getAgentLog4jProps() {
+		return ClassLoader.getSystemClassLoader().getResource("log4j.properties");
 	}
 }

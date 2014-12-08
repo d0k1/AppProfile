@@ -5,7 +5,6 @@ import com.focusit.agent.loader.jassie.AgentLoader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 /**
  * Example of using agent
@@ -24,8 +23,6 @@ public class JavaAppExample01 {
 
 	public static void main(String[] args) throws SQLException, IOException, URISyntaxException {
 		try {
-			HashMap<String, String> test = new HashMap<>();
-			test.put("1", "2");
 			new ClassToInstrument().foo();
 		} catch (Throwable e) {
 			System.err.println("Error: " + e.getMessage());
