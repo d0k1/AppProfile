@@ -1,7 +1,6 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.utils.metrics.store.Storage;
 import com.focusit.utils.metrics.store.file.MethodsMapDumper;
 import com.focusit.utils.metrics.store.file.StatisticDumper;
 import org.apache.log4j.PropertyConfigurator;
@@ -136,7 +135,7 @@ public class Agent {
 		GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
 		gt.start();
 
-		final Storage statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
+		final StatisticDumper statDump = new StatisticDumper(AgentConfiguration.getProfieFile());
 		statDump.start();
 
 		final MethodsMapDumper methodDump = new MethodsMapDumper(AgentConfiguration.getMethodsMapFile());

@@ -17,7 +17,7 @@ import java.security.ProtectionDomain;
  *
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
-class JavaAssistClassTransformer implements ClassFileTransformer {
+public class JavaAssistClassTransformer implements ClassFileTransformer {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaAssistClassTransformer.class);
 	private final String excludes[];
 	private final String ignoreExcludes[];

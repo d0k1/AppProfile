@@ -12,7 +12,7 @@ import java.security.ProtectionDomain;
  * Class transformer based on asm
  * Created by Denis V. Kirpichenkov on 25.11.14.
  */
-class AsmClassTransformer implements ClassFileTransformer {
+public class AsmClassTransformer implements ClassFileTransformer {
 
 	public AsmClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
 	}

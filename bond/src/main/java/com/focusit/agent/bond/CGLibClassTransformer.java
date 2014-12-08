@@ -10,7 +10,7 @@ import java.security.ProtectionDomain;
  *
  * Created by Denis V. Kirpichenkov on 06.12.14.
  */
-class CGLibClassTransformer implements ClassFileTransformer {
+public class CGLibClassTransformer implements ClassFileTransformer {
 
 	public CGLibClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
 	}
