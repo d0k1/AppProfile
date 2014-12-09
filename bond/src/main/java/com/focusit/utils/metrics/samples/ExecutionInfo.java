@@ -1,16 +1,12 @@
 package com.focusit.utils.metrics.samples;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.nio.LongBuffer;
 
 /**
  * Minimal profiling sample. Store method execution data in executing thread context
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
-public class ExecutionInfo implements Externalizable {
+public class ExecutionInfo implements Sample<ExecutionInfo> {
 	/**
 	 * Thread Id
 	 */
@@ -36,19 +32,13 @@ public class ExecutionInfo implements Externalizable {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeLong(threadId);
-		out.writeLong(start);
-		out.writeLong(end);
-		out.writeLong(method);
-	}
+	public Sample<ExecutionInfo> copyDataFrom(Sample<ExecutionInfo> sample) {
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		threadId = in.readLong();
-		start = in.readLong();
-		end = in.readLong();
-		method = in.readLong();
+		this.threadId = ((ExecutionInfo) sample).threadId;
+		this.start = ((ExecutionInfo) sample).start;
+		this.end = ((ExecutionInfo) sample).end;
+		this.method = ((ExecutionInfo) sample).method;
+		return this;
 	}
 
 	public void writeToLongBuffer(LongBuffer out){
@@ -63,6 +53,11 @@ public class ExecutionInfo implements Externalizable {
 		start = in.get();
 		end = in.get();
 		method = in.get();
+	}
+
+	@Override
+	public int sizeOfSample() {
+		return ExecutionInfo.sizeOf();
 	}
 
 	@Override

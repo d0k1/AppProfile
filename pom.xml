@@ -14,6 +14,7 @@
 		<module>jassie</module>
 		<module>example</module>
 		<module>utils</module>
+		<module>web-example</module>
 	</modules>
 
 
