@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics;
+package com.focusit.agent.metrics;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

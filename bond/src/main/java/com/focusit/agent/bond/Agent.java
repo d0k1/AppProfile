@@ -1,7 +1,8 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.utils.metrics.store.StorageManager;
+import com.focusit.agent.metrics.JvmMonitoring;
+import com.focusit.agent.metrics.dump.SamplesDumpManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,29 +133,35 @@ public class Agent {
 
 			retransformAlreadyLoadedClasses(instrumentation);
 
-			startStorage();
+			startSensors();
+
+			startDumping();
 		} catch (Throwable e) {
 			LOG.error("Error loading agent", e);
 		}
 	}
 
-	private static void startStorage() throws FileNotFoundException {
+	private static void startSensors() {
+		JvmMonitoring.getInstance().start();
+	}
+
+	private static void startDumping() throws FileNotFoundException {
 		GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
 		gt.start();
 
-		final StorageManager storage = new StorageManager();
-		storage.start();
+		final SamplesDumpManager dataDumper = new SamplesDumpManager();
+		dataDumper.start();
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				try {
-					storage.exit();
+					dataDumper.exit();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 
 				try {
-					storage.dumpRest();
+					dataDumper.dumpRest();
 				} catch (Throwable e) {
 					LOG.error("Shutdown hook error: " + e.getMessage(), e);
 				}

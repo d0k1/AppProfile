@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics.samples;
+package com.focusit.agent.metrics.samples;
 
 /**
  * Class to hold host OS metric sample

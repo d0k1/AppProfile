@@ -1,8 +1,8 @@
-package com.focusit.utils.metrics.store;
+package com.focusit.agent.metrics.dump;
 
 import com.focusit.agent.bond.AgentConfiguration;
-import com.focusit.utils.metrics.store.file.MethodsMapDiskDumper;
-import com.focusit.utils.metrics.store.file.StatisticDiskDumper;
+import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
+import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
 
 import java.io.FileNotFoundException;
 
@@ -11,32 +11,32 @@ import java.io.FileNotFoundException;
  * <p/>
  * Created by Denis V. Kirpichenkov on 09.12.14.
  */
-public class StorageManager implements Storage {
+public class SamplesDumpManager implements SamplesDataDumper {
 
-	private Storage storages[] = new Storage[2];
+	private SamplesDataDumper storages[] = new SamplesDataDumper[2];
 
-	public StorageManager() throws FileNotFoundException {
+	public SamplesDumpManager() throws FileNotFoundException {
 		storages[0] = new StatisticDiskDumper(AgentConfiguration.getStatisticsFile());
 		storages[1] = new MethodsMapDiskDumper(AgentConfiguration.getMethodsMapFile());
 	}
 
 	@Override
 	public void dumpRest() {
-		for (Storage s : storages) {
+		for (SamplesDataDumper s : storages) {
 			s.dumpRest();
 		}
 	}
 
 	@Override
 	public void exit() throws InterruptedException {
-		for (Storage s : storages) {
+		for (SamplesDataDumper s : storages) {
 			s.exit();
 		}
 	}
 
 	@Override
 	public void start() {
-		for (Storage s : storages) {
+		for (SamplesDataDumper s : storages) {
 			s.start();
 		}
 	}

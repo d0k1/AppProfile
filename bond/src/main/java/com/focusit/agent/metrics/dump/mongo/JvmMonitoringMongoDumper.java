@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics.store.mongo;
+package com.focusit.agent.metrics.dump.mongo;
 
 /**
  * Created by Denis V. Kirpichenkov on 10.12.14.

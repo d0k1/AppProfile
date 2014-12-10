@@ -1,7 +1,7 @@
-package com.focusit.utils.metrics.store.file;
+package com.focusit.agent.metrics.dump.file;
 
-import com.focusit.utils.metrics.MethodsMap;
-import com.focusit.utils.metrics.store.Storage;
+import com.focusit.agent.metrics.MethodsMap;
+import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
-public class MethodsMapDiskDumper implements Storage {
+public class MethodsMapDiskDumper implements SamplesDataDumper {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDiskDumper.class);
 	private long lastIndex = 0;
 	private final RandomAccessFile aFile;
@@ -54,7 +54,7 @@ public class MethodsMapDiskDumper implements Storage {
 				} finally {
 				}
 			}
-		});
+		}, "MethodMap dumping thread");
 	}
 
 	@Override

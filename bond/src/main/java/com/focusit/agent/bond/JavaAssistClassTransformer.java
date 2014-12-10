@@ -1,6 +1,6 @@
 package com.focusit.agent.bond;
 
-import com.focusit.utils.metrics.MethodsMap;
+import com.focusit.agent.metrics.MethodsMap;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -80,7 +80,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				method.addLocalVariable("__metricStartTime", CtClass.longType);
 				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
 				method.insertBefore(getTime);
-				method.insertAfter("com.focusit.utils.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
+				method.insertAfter("com.focusit.agent.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
 				isClassModified = true;
 			}
 

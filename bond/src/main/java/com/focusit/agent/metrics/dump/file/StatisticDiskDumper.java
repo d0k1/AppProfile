@@ -1,7 +1,8 @@
-package com.focusit.utils.metrics.store.file;
+package com.focusit.agent.metrics.dump.file;
 
-import com.focusit.utils.metrics.Statistics;
-import com.focusit.utils.metrics.samples.ExecutionInfo;
+import com.focusit.agent.metrics.Statistics;
+import com.focusit.agent.metrics.dump.SamplesDataDumper;
+import com.focusit.agent.metrics.samples.ExecutionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
-public class StatisticDiskDumper implements com.focusit.utils.metrics.store.Storage {
+public class StatisticDiskDumper implements SamplesDataDumper {
 	private static final Logger LOG = LoggerFactory.getLogger(StatisticDiskDumper.class);
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = 1;
@@ -51,10 +52,14 @@ public class StatisticDiskDumper implements com.focusit.utils.metrics.store.Stor
 				} finally {
 				}
 			}
-		});
+		}, "Profiling stat dumping thread");
 	}
 
 	private void doDump() {
+
+		if (!Statistics.hasMore())
+			return;
+
 		try {
 			readWriteLock.readLock().lock();
 			for (int i = 0; i < samples; i++) {

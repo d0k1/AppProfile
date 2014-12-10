@@ -110,4 +110,8 @@ public class AgentConfiguration {
 	public static StorageType getActiveStorgeType() {
 		return StorageType.disk;
 	}
+
+	public static int getJvmMonitoringInterval() {
+		return 2000;
+	}
 }

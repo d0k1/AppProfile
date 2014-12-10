@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics.samples;
+package com.focusit.agent.metrics.samples;
 
 import java.nio.LongBuffer;
 

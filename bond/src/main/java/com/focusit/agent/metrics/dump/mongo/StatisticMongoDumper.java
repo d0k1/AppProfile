@@ -1,4 +1,4 @@
-package com.focusit.utils.metrics.store.mongo;
+package com.focusit.agent.metrics.dump.mongo;
 
 /**
  * Profiling statistics dumper based on MongoDb
