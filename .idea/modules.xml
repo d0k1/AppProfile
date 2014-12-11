@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/bond/bond.iml" filepath="$PROJECT_DIR$/bond/bond.iml" />
       <module fileurl="file://$PROJECT_DIR$/example/example.iml" filepath="$PROJECT_DIR$/example/example.iml" />
       <module fileurl="file://$PROJECT_DIR$/jassie/jassie.iml" filepath="$PROJECT_DIR$/jassie/jassie.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mongo/mongo.iml" filepath="$PROJECT_DIR$/mongo/mongo.iml" />
       <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/web-example/web-example.iml" filepath="$PROJECT_DIR$/web-example/web-example.iml" />
     </modules>
