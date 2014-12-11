@@ -41,7 +41,7 @@ public class AgentLoader {
 			VirtualMachine vm = VirtualMachine.attach(pid);
 			vm.loadAgent(jarPath);
 			vm.detach();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -4,7 +4,8 @@ import com.focusit.agent.loader.jassie.AgentLoader;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Properties;
 
 /**
  * Example of using agent
@@ -23,6 +24,19 @@ public class JavaAppExample01 {
 
 	public static void main(String[] args) throws SQLException, IOException, URISyntaxException {
 		try {
+			String url = "jdbc:postgresql://localhost/example";
+			Properties props = new Properties();
+			props.setProperty("user", "stand");
+			props.setProperty("password", "stand");
+			Connection conn = DriverManager.getConnection(url, props);
+
+			try (PreparedStatement pstmt = conn.prepareStatement("SELECT ?")) {
+				pstmt.setInt(1, 1);
+				try (ResultSet rs = pstmt.executeQuery()) {
+					System.out.println("Executed");
+				}
+			}
+
 			new ClassToInstrument().foo();
 		} catch (Throwable e) {
 			System.err.println("Error: " + e.getMessage());

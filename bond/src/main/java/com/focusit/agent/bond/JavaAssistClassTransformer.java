@@ -73,6 +73,11 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			boolean isClassModified = false;
 
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
+
+				// skip empty and abstract methods
+				if (method.isEmpty())
+					continue;
+
 				methodName = method.getLongName();
 				long methodId = MethodsMap.getInstance().addMethod(methodName);
 				LOG.trace("Instrumenting method {} with index {}", methodName, methodId);
