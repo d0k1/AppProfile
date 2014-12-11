@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -20,6 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class MethodsMapDiskDumper implements SamplesDataDumper {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDiskDumper.class);
+	public static final String METHOD_MAP_DUMPING_THREAD = "MethodMap dumping thread";
 	private long lastIndex = 0;
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
@@ -27,6 +29,8 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 	private final MethodsMap map = MethodsMap.getInstance();
 	private final Charset cs = Charset.forName("UTF-8");
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
+
+	private AtomicLong samplesRead = new AtomicLong(0L);
 
 	public MethodsMapDiskDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
@@ -54,7 +58,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 				} finally {
 				}
 			}
-		}, "MethodMap dumping thread");
+		}, getName());
 	}
 
 	@Override
@@ -90,6 +94,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 				channel.write(ByteBuffer.wrap(bytes, 0, length));
 				channel.position(channel.position() + 1);
 				lastIndex++;
+				samplesRead.incrementAndGet();
 			} catch (IOException e) {
 				LOG.error("Error method map dumping", e);
 			}
@@ -101,5 +106,15 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 	@Override
 	public final void start() {
 		dumper.start();
+	}
+
+	@Override
+	public long getSamplesRead() {
+		return samplesRead.get();
+	}
+
+	@Override
+	public String getName() {
+		return METHOD_MAP_DUMPING_THREAD;
 	}
 }

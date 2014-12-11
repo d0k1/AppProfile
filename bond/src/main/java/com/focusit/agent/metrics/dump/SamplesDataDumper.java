@@ -10,4 +10,8 @@ public interface SamplesDataDumper {
 	void exit() throws InterruptedException;
 
 	void start();
+
+	long getSamplesRead();
+
+	String getName();
 }

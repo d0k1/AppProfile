@@ -9,7 +9,7 @@ import java.nio.LongBuffer;
  */
 public class JvmInfo implements Sample<JvmInfo> {
 
-	public int sizeOf() {
+	public static int sizeOf() {
 		// 8 byte per field * 24 fields
 		return 8 * 24;
 	}

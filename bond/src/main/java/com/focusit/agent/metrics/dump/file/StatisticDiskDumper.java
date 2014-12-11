@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -21,6 +22,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class StatisticDiskDumper implements SamplesDataDumper {
 	private static final Logger LOG = LoggerFactory.getLogger(StatisticDiskDumper.class);
+	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = 1;
 	private final Thread dumper;
@@ -30,6 +32,8 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 	private final FileChannel channel;
 	private final ExecutionInfo info = new ExecutionInfo();
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
+
+	private AtomicLong samplesRead = new AtomicLong(0L);
 
 	public StatisticDiskDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
@@ -52,7 +56,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				} finally {
 				}
 			}
-		}, "Profiling stat dumping thread");
+		}, getName());
 	}
 
 	private void doDump() {
@@ -66,10 +70,12 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				buffer.rewind();
 				Statistics.readData(info);
 				info.writeToLongBuffer(buffer);
+				samplesRead.incrementAndGet();
 			}
 			try {
 				channel.write(bytes);
 				bytes.clear();
+
 			} catch (IOException e) {
 				LOG.error("Error statistics dump", e);
 			}
@@ -100,5 +106,15 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 	@Override
 	public final void start() {
 		dumper.start();
+	}
+
+	@Override
+	public long getSamplesRead() {
+		return samplesRead.get();
+	}
+
+	@Override
+	public String getName() {
+		return PROFILING_STAT_DUMPING_THREAD;
 	}
 }

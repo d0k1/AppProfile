@@ -14,8 +14,10 @@ import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -158,22 +160,19 @@ public class JvmMonitoring {
 
 	private void fillIps() {
 		try {
-			InetAddress localhost = InetAddress.getLocalHost();
-			// Just in case this host has multiple IP addresses....
-			InetAddress[] allMyIps = InetAddress.getAllByName(localhost.getCanonicalHostName());
+			int ipIdx = 0;
+			for (NetworkInterface netIf : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+				if (netIf.getInetAddresses().hasMoreElements()) {
+					InetAddress addr = netIf.getInetAddresses().nextElement();
 
-			if (allMyIps != null && allMyIps.length > 1) {
-				for (int i = 0; i < allMyIps.length; i++) {
-					LOG.info("    " + allMyIps[i]);
-					if (i < ips.length) {
-						ips[i] = ByteBuffer.wrap(allMyIps[i].getAddress()).getInt();
+					if (ipIdx < 4) {
+						ips[ipIdx++] = ByteBuffer.wrap(addr.getAddress()).getInt();
 					}
 				}
 			}
-		} catch (UnknownHostException e) {
-			LOG.error(" (error retrieving server host name)");
+		} catch (SocketException e) {
+			e.printStackTrace();
 		}
-
 	}
 
 	public static final JvmMonitoring getInstance() {
@@ -187,5 +186,13 @@ public class JvmMonitoring {
 	public void stop() throws InterruptedException {
 		monitoringThread.interrupt();
 		monitoringThread.join(10000);
+	}
+
+	public static boolean hasMore() {
+		return data.hasMore();
+	}
+
+	public static JvmInfo readData(JvmInfo info) {
+		return data.readItemTo(info);
 	}
 }

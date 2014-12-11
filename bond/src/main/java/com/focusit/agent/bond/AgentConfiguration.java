@@ -50,6 +50,10 @@ public class AgentConfiguration {
 		return "profile.data";
 	}
 
+	public static String getJvmMonitoringFile() {
+		return "jvm.data";
+	}
+
 	public static boolean isAgentEnabled() {
 		String enabledValue = properties.getProperty("agent.enabled");
 		return !(enabledValue == null || !enabledValue.equalsIgnoreCase(Boolean.toString(true)));
