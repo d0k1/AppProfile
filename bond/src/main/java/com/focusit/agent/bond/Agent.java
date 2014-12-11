@@ -4,8 +4,6 @@ import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.dump.SamplesDumpManager;
 import org.apache.log4j.PropertyConfigurator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,13 +20,13 @@ import java.util.jar.JarFile;
  */
 public class Agent {
 	private static Instrumentation agentInstrumentation = null;
-	private static final Logger LOG = LoggerFactory.getLogger(Agent.class);
+//	private static final Logger LOG = LoggerFactory.getLogger(Agent.class);
 
 	public static void premain(String agentArguments, Instrumentation instrumentation) throws IOException, UnmodifiableClassException {
 		try {
 			agentmain(agentArguments, instrumentation);
 		} catch (Throwable e) {
-			LOG.error("Agent loading error", e);
+//			LOG.error("Agent loading error", e);
 			throw e;
 		}
 	}
@@ -38,7 +36,12 @@ public class Agent {
 			instrumentation.appendToBootstrapClassLoaderSearch(AgentManager.agentJar);
 		}
 
-		for (URL url : ((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs()) {
+		URLClassLoader loader = AgentManager.appClassloader;
+
+		if (loader == null)
+			loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+
+		for (URL url : loader.getURLs()) {
 			if (url.getFile().contains("slf4j-api")) {
 				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
 			} else if (url.getFile().contains("slf4j-log4j12")) {
@@ -97,7 +100,7 @@ public class Agent {
 				try {
 					instrumentation.retransformClasses(cls);
 				} catch (UnmodifiableClassException e) {
-					LOG.error("unmodifiable class {}", cls.getName());
+					//LOG.error("unmodifiable class {}", cls.getName());
 				}
 			}
 		}
@@ -107,15 +110,16 @@ public class Agent {
 		try {
 			agentInstrumentation = instrumentation;
 
+			modifyBootstrapClasspathByArgs(agentArguments);
 			modifyBootstrapClasspath(instrumentation);
 			setupLogging();
 
 			if (!AgentConfiguration.isAgentEnabled()) {
-				LOG.info("Agent is disabled");
+//				LOG.info("Agent is disabled");
 				return;
 			}
 
-			LOG.info("Loading bond agent");
+//			LOG.info("Loading bond agent");
 
 			String excludes[] = AgentConfiguration.getExcludeClasses();
 			String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
@@ -137,7 +141,17 @@ public class Agent {
 
 			startDumping();
 		} catch (Throwable e) {
-			LOG.error("Error loading agent", e);
+			throw e;
+//			LOG.error("Error loading agent", e);
+		}
+	}
+
+	private static void modifyBootstrapClasspathByArgs(String agentArguments) throws IOException {
+		if (agentArguments != null && agentArguments.trim().toLowerCase().length() > 0) {
+			String jars[] = agentArguments.split(",");
+			for (String jar : jars) {
+				agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(jar));
+			}
 		}
 	}
 
@@ -163,7 +177,7 @@ public class Agent {
 				try {
 					dataDumper.dumpRest();
 				} catch (Throwable e) {
-					LOG.error("Shutdown hook error: " + e.getMessage(), e);
+//					LOG.error("Shutdown hook error: " + e.getMessage(), e);
 				}
 			}
 		});

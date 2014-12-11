@@ -1,6 +1,6 @@
 package com.focusit.agent.bond;
 
-import java.io.IOException;
+import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
 /**
@@ -9,9 +9,10 @@ import java.util.jar.JarFile;
  */
 public class AgentManager {
 
-	public static JarFile agentJar = null;
+	public static JarFile agentJar;
+	public static URLClassLoader appClassloader;
 
-	public void setAgentJar(String jarPath) throws IOException {
-		agentJar = new JarFile(jarPath);
-	}
+//	public void setAgentJar(String jarPath) throws IOException {
+//		agentJar = new JarFile(jarPath);
+//	}
 }

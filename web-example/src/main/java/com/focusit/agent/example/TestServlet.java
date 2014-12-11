@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 
 /**
  * Created by Denis V. Kirpichenkov on 12.12.14.
@@ -18,7 +19,8 @@ import java.net.URISyntaxException;
 public class TestServlet extends HttpServlet {
 	static {
 		try {
-			AgentLoader.loadAgent();
+			System.err.println("Current dir: " + Paths.get("").toAbsolutePath().toString());
+			AgentLoader.loadAgent(TestServlet.class.getClassLoader());
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
