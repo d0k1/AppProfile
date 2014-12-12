@@ -4,6 +4,7 @@ import com.focusit.agent.metrics.MethodsMap;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,19 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		this.instrumentation = instrumentation;
 
 		classPool = ClassPool.getDefault();
+
+		String jars = System.getProperty("agent.search.classpath");
+
+		if (jars != null) {
+			String paths[] = jars.split(",");
+			for (String jar : paths) {
+				try {
+					classPool.appendClassPath(jar);
+				} catch (NotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	@Override

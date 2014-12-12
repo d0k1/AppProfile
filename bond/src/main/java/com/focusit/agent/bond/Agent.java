@@ -42,6 +42,9 @@ public class Agent {
 			loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
 
 		for (URL url : loader.getURLs()) {
+			if (AgentManager.agentJar == null && url.getFile().startsWith("bond") && url.getFile().endsWith(".jar")) {
+				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
+			}
 			if (url.getFile().contains("slf4j-api")) {
 				instrumentation.appendToBootstrapClassLoaderSearch(new JarFile(url.getFile()));
 			} else if (url.getFile().contains("slf4j-log4j12")) {

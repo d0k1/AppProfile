@@ -14,7 +14,7 @@ import java.util.Properties;
 public class JavaAppExample01 {
 	static {
 		try {
-			AgentLoader.loadAgent();
+			AgentLoader.loadAgent(JavaAppExample01.class.getClassLoader());
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
