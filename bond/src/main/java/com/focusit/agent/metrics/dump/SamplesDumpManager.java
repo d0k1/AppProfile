@@ -4,10 +4,9 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.util.logging.Logger;
 
 /**
  * Facade storage implementation.
@@ -16,7 +15,7 @@ import java.io.FileNotFoundException;
  */
 public class SamplesDumpManager implements SamplesDataDumper {
 
-	private final static Logger LOG = LoggerFactory.getLogger(SamplesDumpManager.class);
+	private final static Logger LOG = Logger.getLogger(SamplesDumpManager.class.getName());
 
 	private SamplesDataDumper storages[] = new SamplesDataDumper[3];
 
@@ -31,7 +30,7 @@ public class SamplesDumpManager implements SamplesDataDumper {
 		for (SamplesDataDumper s : storages) {
 			s.dumpRest();
 
-			LOG.info("Dumped {} samples by {}", s.getSamplesRead(), s.getName());
+			LOG.info(String.format("Dumped %s samples by %s", s.getSamplesRead(), s.getName()));
 		}
 	}
 

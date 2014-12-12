@@ -3,8 +3,6 @@ package com.focusit.agent.metrics.dump.file;
 import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.JvmInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,6 +12,7 @@ import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 /**
  * Jvm monitoring data disk writer
@@ -21,7 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 10.12.14.
  */
 public class JvmMonitoringDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = LoggerFactory.getLogger(StatisticDiskDumper.class);
+	private static final Logger LOG = Logger.getLogger(JvmMonitoringDiskDumper.class.getName());
 	public static final String JVM_MONITORING_DUMPING_THREAD = "Jvm monitoring dumping thread";
 	private static int sampleSize = JvmInfo.sizeOf();
 	private final int samples = 1;
@@ -77,7 +76,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 				bytes.clear();
 
 			} catch (IOException e) {
-				LOG.error("Error jvm monitoring dump", e);
+				LOG.severe("Error jvm monitoring dump " + e.getMessage());
 			}
 		} finally {
 			readWriteLock.readLock().unlock();

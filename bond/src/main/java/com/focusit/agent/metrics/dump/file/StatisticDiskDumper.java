@@ -3,8 +3,6 @@ package com.focusit.agent.metrics.dump.file;
 import com.focusit.agent.metrics.Statistics;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,6 +12,7 @@ import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 /**
  * Simple profiling data dumper. Uses RandomAccessFile to backing storage
@@ -21,7 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class StatisticDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = LoggerFactory.getLogger(StatisticDiskDumper.class);
+	private static final Logger LOG = Logger.getLogger(StatisticDiskDumper.class.getName());
 	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = 1;
@@ -77,7 +76,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				bytes.clear();
 
 			} catch (IOException e) {
-				LOG.error("Error statistics dump", e);
+				LOG.severe("Error statistics dump " + e);
 			}
 		}finally{
 			readWriteLock.readLock().unlock();

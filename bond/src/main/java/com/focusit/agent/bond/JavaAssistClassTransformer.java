@@ -5,13 +5,12 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.logging.Logger;
 
 /**
  * Java bytecode instrumentation based on javaassist library
@@ -19,7 +18,7 @@ import java.security.ProtectionDomain;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class JavaAssistClassTransformer implements ClassFileTransformer {
-	private static final Logger LOG = LoggerFactory.getLogger(JavaAssistClassTransformer.class);
+	private static final Logger LOG = Logger.getLogger(JavaAssistClassTransformer.class.getName());
 	private final String excludes[];
 	private final String ignoreExcludes[];
 	private final Instrumentation instrumentation;
@@ -94,7 +93,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 
 				methodName = method.getLongName();
 				long methodId = MethodsMap.getInstance().addMethod(methodName);
-				LOG.trace("Instrumenting method {} with index {}", methodName, methodId);
+				LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
 
 				method.addLocalVariable("__metricStartTime", CtClass.longType);
 				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
@@ -108,7 +107,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				return ctClass.toBytecode();
 			}
 		} catch (Throwable e) {
-			LOG.error("Instrumentation method " + methodName + " error: " + e.getMessage(), e);
+			LOG.severe("Instrumentation method " + methodName + " error: " + e.getMessage());
 		}
 		return classfileBuffer;
 	}

@@ -7,8 +7,6 @@ import com.focusit.agent.utils.common.FixedSamplesArray;
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.ThreadMXBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -26,7 +24,6 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 10.12.14.
  */
 public class JvmMonitoring {
-	private final static Logger LOG = LoggerFactory.getLogger(JvmMonitoring.class);
 
 	private static final JvmMonitoring instance = new JvmMonitoring();
 

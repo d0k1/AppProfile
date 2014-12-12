@@ -2,8 +2,6 @@ package com.focusit.agent.metrics.dump.file;
 
 import com.focusit.agent.metrics.MethodsMap;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 /**
  * Simple method map dumper. Uses RandomAccessFile as it's backing storage
@@ -20,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
 public class MethodsMapDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = LoggerFactory.getLogger(MethodsMapDiskDumper.class);
+	private static final Logger LOG = Logger.getLogger(MethodsMapDiskDumper.class.getName());
 	public static final String METHOD_MAP_DUMPING_THREAD = "MethodMap dumping thread";
 	private long lastIndex = 0;
 	private final RandomAccessFile aFile;
@@ -96,7 +95,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 				lastIndex++;
 				samplesRead.incrementAndGet();
 			} catch (IOException e) {
-				LOG.error("Error method map dumping", e);
+				LOG.severe("Error method map dumping " + e.getMessage());
 			}
 		}finally{
 			readWriteLock.readLock().unlock();

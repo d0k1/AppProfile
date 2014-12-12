@@ -1,12 +1,11 @@
 package com.focusit.agent.utils.common;
 
 import com.focusit.agent.metrics.samples.Sample;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 /**
  * Common code to work with limited static arrays of measured samples
@@ -21,7 +20,7 @@ public class FixedSamplesArray<T> {
 	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	private final String name;
 
-	private static final Logger LOG = LoggerFactory.getLogger(FixedSamplesArray.class);
+	private static final Logger LOG = Logger.getLogger(FixedSamplesArray.class.getName());
 
 	public FixedSamplesArray(int limit, ItemInitializer creator, String name) {
 		this.limit = limit;
@@ -46,7 +45,7 @@ public class FixedSamplesArray<T> {
 	public T getItemToWrite() {
 		Sample<T> result = data[position.getAndIncrement()];
 
-		LOG.trace("stored sample to {}" + result, name);
+		LOG.finer("stored sample to " + name + " " + result);
 		return (T) result;
 	}
 
@@ -66,7 +65,7 @@ public class FixedSamplesArray<T> {
 	 */
 	public void writeItemFrom(Sample<T> itemToCopyFrom) {
 		if (isFull()) {
-			LOG.error("No memory to dump sample in {}", name);
+			LOG.severe("No memory to dump sample in " + name);
 			return;
 		}
 		try {
@@ -75,7 +74,7 @@ public class FixedSamplesArray<T> {
 			Sample<T> result = data[position.getAndIncrement()];
 			result.copyDataFrom(itemToCopyFrom);
 
-			LOG.trace("stored sample to {}" + result, name);
+			LOG.finer("stored sample to " + name + " " + result);
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -83,7 +82,7 @@ public class FixedSamplesArray<T> {
 
 	public T readItemTo(Sample<T> itemToReadTo) {
 		if (isEmpty()) {
-			LOG.error("No samples to read in {}", name);
+			LOG.severe("No samples to read in " + name);
 			return null;
 		}
 
@@ -92,7 +91,7 @@ public class FixedSamplesArray<T> {
 			Sample<T> result = data[position.decrementAndGet()];
 			itemToReadTo.copyDataFrom(result);
 
-			LOG.trace("Read sample from {}", name);
+			LOG.finer("Read sample from " + name);
 			return (T)itemToReadTo;
 		} finally {
 			rwLock.readLock().unlock();

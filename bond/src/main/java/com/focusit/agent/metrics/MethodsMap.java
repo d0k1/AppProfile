@@ -1,13 +1,11 @@
 package com.focusit.agent.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 /**
  * Array that stores method links.
@@ -15,7 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class MethodsMap {
-	private static final Logger LOG = LoggerFactory.getLogger(MethodsMap.class);
+	private static final Logger LOG = Logger.getLogger(MethodsMap.class.getName());
 	private static final MethodsMap instance = new MethodsMap();
 	private final static int INITIAL_SIZE = 15000;
 	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
@@ -47,7 +45,7 @@ public class MethodsMap {
 			long index = lastIndex.getAndIncrement();
 			methodIndexes.put(method, index);
 
-			LOG.debug("mappedMethod: " + method + " = " + index);
+			LOG.fine("mappedMethod: " + method + " = " + index);
 			return index;
 		} finally{
 			rwLock.writeLock().unlock();
