@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -28,9 +27,6 @@ public class AgentLoader {
 	}
 
 	public static void loadAgent(ClassLoader loader) throws URISyntaxException, IOException {
-
-//		AgentManager.appClassloader = (URLClassLoader) loader;
-
 		InputStream in = AgentLoader.class.getResourceAsStream("/bond.jar");
 
 		File temp = File.createTempFile("bond", ".jar");
@@ -43,13 +39,10 @@ public class AgentLoader {
 
 		generateArgs((URLClassLoader) loader, jarPath);
 
-//		AgentManager.agentJar = new JarFile(jarPath);
-
 		String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
 		int p = nameOfRunningVM.indexOf('@');
 		String pid = nameOfRunningVM.substring(0, p);
 
-//		String args = generateArgs(jarPath);
 		try {
 			VirtualMachine vm = VirtualMachine.attach(pid);
 			vm.loadAgent(jarPath);//, args);
@@ -79,56 +72,8 @@ public class AgentLoader {
 
 	private static void generateArgs(URLClassLoader loader, String agentJar) {
 		List<String> classpath = getJars(loader);
-//		classpath.add(agentJar);
-//
-//		List<String> neededJars = new ArrayList<>();
-/*
-		for (String jar : classpath) {
-			if (jar.toLowerCase().contains("slf4j-api")) {
-				neededJars.add(jar);
-			} else if (jar.toLowerCase().contains("slf4j-log4j12")) {
-				neededJars.add(jar);
-			} else if (jar.toLowerCase().contains("log4j-")) {
-				neededJars.add(jar);
-			} else if (jar.toLowerCase().contains("commons-lang3-")) {
-				neededJars.add(jar);
-			} else if (jar.toLowerCase().contains("javassist")) {
-				neededJars.add(jar);
-			}
-		}
-*/
-//		neededJars.add(agentJar);
 
 		System.setProperty("agent.jar", agentJar);
 		System.setProperty("agent.search.classpath", StringUtils.join(classpath, ','));
-//		String result = StringUtils.join(neededJars, ',');
-//		return result;
-	}
-
-	private static void modifySystemClassloader(String... jars) {
-		URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		Class sysclass = URLClassLoader.class;
-
-		Class[] parameters = new Class[]{URL.class};
-
-		List<String> loaded = new ArrayList<>();
-
-		for (URL url : sysloader.getURLs()) {
-			loaded.add(url.getFile().toLowerCase());
-		}
-
-		try {
-			Method method = sysclass.getDeclaredMethod("addURL", parameters);
-			method.setAccessible(true);
-			for (String jar : jars) {
-				if (loaded.contains(jar.toLowerCase()))
-					continue;
-
-				method.invoke(sysloader, new File(jar).toURL());
-			}
-		} catch (Throwable e) {
-			throw new RuntimeException(e);
-		}//end try catch
-
 	}
 }
