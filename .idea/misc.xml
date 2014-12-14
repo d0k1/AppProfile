@@ -4,6 +4,7 @@
     <entry_points version="2.0" />
   </component>
   <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/web-analyzer" />
     <file type="web" url="file://$PROJECT_DIR$/web-example" />
   </component>
   <component name="IdProvider" IDEtalkID="E173C91BBABC0A96FCCAB3866D8062EB" />

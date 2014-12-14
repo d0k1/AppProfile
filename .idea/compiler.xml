@@ -26,6 +26,7 @@
         <module name="example" />
         <module name="jassie" />
         <module name="mongo" />
+        <module name="web-analyzer" />
         <module name="web-example" />
       </profile>
     </annotationProcessing>
@@ -34,7 +35,7 @@
       <module name="example" target="1.7" />
       <module name="jassie" target="1.7" />
       <module name="mongo" target="1.7" />
-      <module name="utils" target="1.7" />
+      <module name="web-analyzer" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>

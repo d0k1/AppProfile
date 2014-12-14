@@ -1,0 +1,13 @@
+body {
+	font-size: medium;
+}
+
+.action_link {
+	cursor: default;
+	text-decoration: none;
+}
+
+.action_link:hover {
+	text-decoration: none;
+}
+
