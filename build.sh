@@ -1,6 +1,4 @@
 #!/bin/bash
-rm ./methods.data
-rm ./profile.data
-rm ./agent.log
+./reset.sh
 
 mvn clean install -DskipTests

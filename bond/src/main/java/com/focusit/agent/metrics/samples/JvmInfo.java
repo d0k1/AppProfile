@@ -7,7 +7,7 @@ import java.nio.LongBuffer;
  * <p/>
  * Created by Denis V. Kirpichenkov on 08.12.14.
  */
-public class JvmInfo implements Sample<JvmInfo> {
+public final class JvmInfo implements Sample<JvmInfo> {
 
 	public static int sizeOf() {
 		// 8 byte per field * 24 fields

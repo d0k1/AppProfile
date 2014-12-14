@@ -6,7 +6,7 @@ import java.nio.LongBuffer;
  * Minimal profiling sample. Store method execution data in executing thread context
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
-public class ExecutionInfo implements Sample<ExecutionInfo> {
+public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	/**
 	 * Thread Id
 	 */

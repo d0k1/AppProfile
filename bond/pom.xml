@@ -22,30 +22,6 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-
-			<!--<plugin>-->
-			<!--<groupId>org.apache.maven.plugins</groupId>-->
-			<!--<artifactId>maven-jar-plugin</artifactId>-->
-			<!--<version>2.3.1</version>-->
-			<!--<configuration>-->
-			<!--<finalName>bond</finalName>-->
-			<!--<archive>-->
-			<!--<manifest>-->
-			<!--<addClasspath>true</addClasspath>-->
-			<!--<mainClass>com.focusit.agent.bond.Agent</mainClass>-->
-			<!--</manifest>-->
-			<!--<manifestEntries>-->
-			<!--<Boot-Class-Path>bond.jar</Boot-Class-Path>-->
-			<!--<Premain-Class>com.focusit.agent.bond.Agent</Premain-Class>-->
-			<!--<Agent-Class>com.focusit.agent.bond.Agent</Agent-Class>-->
-			<!--<Can-Redefine-Classes>true</Can-Redefine-Classes>-->
-			<!--<Can-Retransform-Classes>true</Can-Retransform-Classes>-->
-			<!--&lt;!&ndash;<Classpath></Classpath>&ndash;&gt;-->
-			<!--</manifestEntries>-->
-			<!--</archive>-->
-			<!--<outputDirectory>../jassie/src/main/resources</outputDirectory>-->
-			<!--</configuration>-->
-			<!--</plugin>-->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
@@ -69,7 +45,6 @@
 							<Agent-Class>com.focusit.agent.bond.Agent</Agent-Class>
 							<Can-Redefine-Classes>true</Can-Redefine-Classes>
 							<Can-Retransform-Classes>true</Can-Retransform-Classes>
-							<!--<Classpath></Classpath>-->
 						</manifestEntries>
 					</archive>
 

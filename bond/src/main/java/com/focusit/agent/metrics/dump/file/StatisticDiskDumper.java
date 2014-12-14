@@ -1,5 +1,6 @@
 package com.focusit.agent.metrics.dump.file;
 
+import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.Statistics;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
@@ -44,7 +45,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 					channel.position(0);
 					while (!Thread.interrupted()) {
 						try {
-							Thread.sleep(10);
+							Thread.sleep(AgentConfiguration.getDumpInterval());
 							doDump();
 						} catch (InterruptedException e) {
 							break;
@@ -99,7 +100,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 	@Override
 	public final void exit() throws InterruptedException {
 		dumper.interrupt();
-		dumper.join(10000);
+		dumper.join(AgentConfiguration.getThreadJoinTimeout());
 	}
 
 	@Override

@@ -185,6 +185,10 @@ public class JvmMonitoring {
 		monitoringThread.join(10000);
 	}
 
+	public void doMeasureAtExit() {
+		writeMeasure();
+	}
+
 	public static boolean hasMore() {
 		return data.hasMore();
 	}

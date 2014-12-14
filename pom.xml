@@ -13,7 +13,6 @@
 		<module>bond</module>
 		<module>jassie</module>
 		<module>example</module>
-		<module>utils</module>
 		<module>web-example</module>
 		<module>mongo</module>
 	</modules>

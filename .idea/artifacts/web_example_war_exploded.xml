@@ -11,15 +11,11 @@
             <element id="module-output" name="jassie" />
           </element>
           <element id="library" level="project" name="Maven: commons-io:commons-io:1.3.2" />
-          <element id="library" level="project" name="Maven: org.javassist:javassist:3.18.1-GA" />
-          <element id="library" level="project" name="Maven: commons-lang:commons-lang:2.6" />
-          <element id="archive" name="utils-1.0-SNAPSHOT.jar">
-            <element id="module-output" name="utils" />
-          </element>
           <element id="archive" name="bond-1.0-SNAPSHOT.jar">
             <element id="module-output" name="bond" />
           </element>
           <element id="library" level="project" name="Maven: asm:asm:3.3.1" />
+          <element id="library" level="project" name="Maven: org.javassist:javassist:3.18.1-GA" />
           <element id="library" level="project" name="Maven: org.apache.commons:commons-lang3:3.0" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.7" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-log4j12:1.7.7" />
