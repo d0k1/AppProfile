@@ -26,6 +26,13 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static int getDumpInterval() {
+		return 10;
+	}
+
+	public static int getThreadJoinTimeout() {
+		return 10000;
+	}
 	public static String getMongoDbHost() {
 		return "127.0.0.1";
 	}
@@ -52,6 +59,10 @@ public class AgentConfiguration {
 
 	public static String getJvmMonitoringFile() {
 		return "jvm.data";
+	}
+
+	public static String getSessionsFile() {
+		return "sessions.data";
 	}
 
 	public static boolean isAgentEnabled() {
