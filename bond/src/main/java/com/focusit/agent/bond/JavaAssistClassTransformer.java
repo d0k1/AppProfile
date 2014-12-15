@@ -9,7 +9,12 @@ import javassist.NotFoundException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +28,8 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	private final String ignoreExcludes[];
 	private final Instrumentation instrumentation;
 	private ClassPool classPool;
+
+	private List<WeakReference<ClassLoader>> loaders = new ArrayList<>();
 
 	public JavaAssistClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
 		this.excludes = excludes;
@@ -39,7 +46,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				try {
 					classPool.appendClassPath(jar);
 				} catch (NotFoundException e) {
-					e.printStackTrace();
+					LOG.severe("Error adding classpath by property: " + e.getMessage());
 				}
 			}
 		}
@@ -48,7 +55,14 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	@Override
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
+		try {
+			processClassloader((URLClassLoader) loader);
+		} catch (NotFoundException e) {
+			LOG.severe("Error processing classloader: "+e.getMessage());
+		}
+
 		String className = fullyQualifiedClassName.replace("/", ".");
+
 		if (excludes != null) {
 			boolean skip = false;
 
@@ -67,13 +81,6 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 
 			if (skip) {
-				// try {
-				// 	CtClass ctClass = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-				// 	ctClass.detach();
-				// 	return ctClass.toBytecode();
-				// } catch(Throwable e){
-				// 	LOG.severe("Error adding class " + className + " to classPool error: " + e.getMessage());
-				// }
 				return classfileBuffer;
 			}
 		}
@@ -119,5 +126,40 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			LOG.severe("Instrumentation method " + methodName + " error: " + e.getMessage());
 		}
 		return classfileBuffer;
+	}
+
+	private void processClassloader(URLClassLoader loader) throws NotFoundException {
+		List<String> jars = getClassloaderURLs(loader);
+
+		LOG.finer("Adding "+jars.size()+" urls to class pool");
+
+		for(String jar:jars){
+			classPool.appendClassPath(jar);
+		}
+	}
+
+	private List<String> getClassloaderURLs(URLClassLoader loader) throws NotFoundException {
+
+		if (loader == null)
+		{
+			return new ArrayList<>();
+		}
+
+		for(WeakReference<ClassLoader> ref:loaders){
+			if(ref.get()!=null && ref.get().equals(loader)){
+				return new ArrayList<>();
+			}
+		}
+
+		loaders.add(new WeakReference<ClassLoader>(loader));
+
+		List<String> jars = new ArrayList<>();
+		for (URL url : loader.getURLs()) {
+			jars.add(url.getFile());
+		}
+
+		jars.addAll(getClassloaderURLs((URLClassLoader) loader.getParent()));
+
+		return jars;
 	}
 }
