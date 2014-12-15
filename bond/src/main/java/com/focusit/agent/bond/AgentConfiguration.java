@@ -16,6 +16,9 @@ public class AgentConfiguration {
 	private static Properties properties = null;
 
 	static {
+		Properties props = System.getProperties();
+		props.list(System.out);
+
 		String propertyFile = System.getProperty("agent.config").trim();
 		properties = new Properties();
 		if (!StringUtils.isEmpty(propertyFile)) {
