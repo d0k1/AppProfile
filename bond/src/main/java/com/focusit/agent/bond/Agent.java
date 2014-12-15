@@ -142,7 +142,9 @@ public class Agent {
 	}
 
 	private static void modifyBootstrapClasspathByArgs(String agentArguments) throws IOException {
-		agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(System.getProperty("agent.jar")));
+		if(System.getProperty("agent.jar")!=null){
+			agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(System.getProperty("agent.jar")));
+		}
 //		if (agentArguments != null && agentArguments.trim().toLowerCase().length() > 0) {
 //			String jars[] = agentArguments.split(",");
 //			for (String jar : jars) {

@@ -67,9 +67,18 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 
 			if (skip) {
+				// try {
+				// 	CtClass ctClass = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
+				// 	ctClass.detach();
+				// 	return ctClass.toBytecode();
+				// } catch(Throwable e){
+				// 	LOG.severe("Error adding class " + className + " to classPool error: " + e.getMessage());
+				// }
 				return classfileBuffer;
 			}
 		}
+
+		System.out.println("Instrumenting "+className);
 
 		String methodName = "";
 		try {
