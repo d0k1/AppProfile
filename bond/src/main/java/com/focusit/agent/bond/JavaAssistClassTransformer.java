@@ -78,7 +78,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 		}
 
-		System.out.println("Instrumenting "+className);
+		LOG.finer("Instrumenting "+className);
 
 		String methodName = "";
 		try {

@@ -57,6 +57,8 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				}
 			}
 		}, getName());
+
+		dumper.setDaemon(true);
 	}
 
 	private void doDump() {

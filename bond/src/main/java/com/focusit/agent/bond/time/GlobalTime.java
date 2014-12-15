@@ -35,6 +35,7 @@ public class GlobalTime {
 				}
 			}
 		});
+		thread.setDaemon(true);
 		thread.start();
 	}
 }

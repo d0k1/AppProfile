@@ -38,6 +38,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	public JvmMonitoringDiskDumper(String file) throws FileNotFoundException {
 		aFile = new RandomAccessFile(file, "rw");
 		channel = aFile.getChannel();
+
 		dumper = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -57,6 +58,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 				}
 			}
 		}, getName());
+		dumper.setDaemon(true);
 	}
 
 	private void doDump() {

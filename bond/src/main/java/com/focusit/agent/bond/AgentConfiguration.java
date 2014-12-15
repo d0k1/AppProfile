@@ -5,7 +5,9 @@ import com.focusit.agent.utils.common.StringUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Agent's configuration
@@ -13,11 +15,17 @@ import java.util.Properties;
  * Created by Denis V. Kirpichenkov on 06.12.14.
  */
 public class AgentConfiguration {
+	private static final Logger LOG = Logger.getLogger(AgentConfiguration.class.getName());
 	private static Properties properties = null;
 
 	static {
-		Properties props = System.getProperties();
-		props.list(System.out);
+		Properties p = System.getProperties();
+		Enumeration keys = p.keys();
+		while (keys.hasMoreElements()) {
+			String key = (String)keys.nextElement();
+			String value = (String)p.get(key);
+			LOG.finer(key + "='" + value+"'");
+		}
 
 		String propertyFile = System.getProperty("agent.config").trim();
 		properties = new Properties();

@@ -143,14 +143,8 @@ public class Agent {
 
 	private static void modifyBootstrapClasspathByArgs(String agentArguments) throws IOException {
 		if(System.getProperty("agent.jar")!=null){
-			agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(System.getProperty("agent.jar")));
+			agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(System.getProperty("agent.jar").trim()));
 		}
-//		if (agentArguments != null && agentArguments.trim().toLowerCase().length() > 0) {
-//			String jars[] = agentArguments.split(",");
-//			for (String jar : jars) {
-//				agentInstrumentation.appendToBootstrapClassLoaderSearch(new JarFile(jar));
-//			}
-//		}
 	}
 
 	private static void startSensors() {

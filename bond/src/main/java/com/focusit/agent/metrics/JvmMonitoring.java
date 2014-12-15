@@ -78,6 +78,8 @@ public class JvmMonitoring {
 			}
 		}, "JvmMonitoring thread");
 
+		monitoringThread.setDaemon(true);
+
 		pid = fillPid();
 		fillIps();
 

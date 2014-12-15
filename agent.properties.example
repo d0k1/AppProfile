@@ -1,5 +1,6 @@
 agent.enabled=true
 agent.transformer=javaassist
 agent.exclude=sun,com.sun,java,javax,com.focusit.agent
-agent.exclude.ingore=
 agent.timer.interval=10
+agent.exclude.ingore=com.focusit.agent.example,java.sql
+

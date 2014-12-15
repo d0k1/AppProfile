@@ -59,6 +59,8 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 				}
 			}
 		}, getName());
+
+		dumper.setDaemon(true);
 	}
 
 	@Override
