@@ -1,5 +1,9 @@
 package com.focusit.agent.bond;
 
+import com.focusit.agent.bond.time.GlobalTime;
+import com.focusit.agent.metrics.JvmMonitoring;
+import com.focusit.agent.metrics.dump.SamplesDumpManager;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,14 +12,8 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
-
-import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.agent.metrics.JvmMonitoring;
-import com.focusit.agent.metrics.dump.SamplesDumpManager;
 
 /**
  * Agent main class. Loading desired class transformer
@@ -49,11 +47,12 @@ public class Agent
 
             startSensors();
 
-	    LOG.info("!!Dumping");
+    	    LOG.info("!!Dumping");
 
             startDumping();
 
-	    LOG.info("!!Start transformer");
+	        LOG.info("!!Start transformer");
+
             String excludes[] = AgentConfiguration.getExcludeClasses();
             String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 
@@ -76,14 +75,13 @@ public class Agent
                         new CGLibClassTransformer(excludes, ignoreExcludes, instrumentation), true);
             }
 
-	    LOG.info("!!Retransform");
+    	    LOG.info("!!Retransform");
             retransformAlreadyLoadedClasses(instrumentation);
 
         }
         catch (Throwable e)
         {
-	    System.err.println("Error loading agent: "+e.getMessage());
-            //LOG.severe("Error loading agent " + e.getMessage());
+            LOG.severe("Error loading agent " + e.getMessage());
             throw e;
         }
     }
@@ -97,8 +95,7 @@ public class Agent
         }
         catch (Throwable e)
         {
-            System.err.println("Agent loading error " + e);
-            //LOG.severe("Agent loading error " + e.getMessage());
+            LOG.severe("Agent loading error " + e.getMessage());
             throw e;
         }
     }
@@ -202,31 +199,31 @@ public class Agent
 
     private static void retransformAlreadyLoadedClasses(Instrumentation instrumentation)
     {
-	try{
-        for (Class cls : instrumentation.getAllLoadedClasses())
-        {
-
-            if (isClassExcluded(cls.getName()))
+        try{
+            for (Class cls : instrumentation.getAllLoadedClasses())
             {
-                continue;
-            }
 
-            if (instrumentation.isModifiableClass(cls))
-            {
-                try
+                if (isClassExcluded(cls.getName()))
                 {
-		    //LOG.info("Retransform class: "+cls.getName());
-                    instrumentation.retransformClasses(cls);
+                    continue;
                 }
-                catch (UnmodifiableClassException e)
+
+                if (instrumentation.isModifiableClass(cls))
                 {
-                    //LOG.severe("unmodifiable class " + cls.getName());
+                    try
+                    {
+                        //LOG.info("Retransform class: "+cls.getName());
+                        instrumentation.retransformClasses(cls);
+                    }
+                    catch (UnmodifiableClassException e)
+                    {
+                        LOG.severe("unmodifiable class " + cls.getName());
+                    }
                 }
             }
+        }catch(java.lang.Error e){
+            LOG.severe("Error retransforming class: " + e);
         }
-	}catch(java.lang.Error e){
-	    System.err.println("Error retrnsforming class: "+e);
-	}
     }
 
     private static void startDumping() throws FileNotFoundException
