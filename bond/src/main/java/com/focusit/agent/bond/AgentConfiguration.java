@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 public class AgentConfiguration {
 	private static final Logger LOG = Logger.getLogger(AgentConfiguration.class.getName());
 	private static Properties properties = null;
+	private static Integer dumpInterval = null;
+	private static Integer timerInterval = null;
 
 	static {
 		Properties p = System.getProperties();
@@ -35,10 +37,30 @@ public class AgentConfiguration {
 			} catch (IOException e) {
 			}
 		}
+
+		getDumpInterval();
+		getTimerPrecision();
 	}
 
 	public static int getDumpInterval() {
-		return 10;
+		if(dumpInterval!=null)
+			return dumpInterval;
+
+		int result = 10;
+		try {
+
+			String interval = properties.getProperty("agent.dump.interval");
+			if (!StringUtils.isEmpty(interval)) {
+				try {
+					result = Integer.parseInt(interval);
+				} catch (NumberFormatException e) {
+					result = 10;
+				}
+			}
+		} finally {
+			dumpInterval = result;
+			return dumpInterval;
+		}
 	}
 
 	public static int getThreadJoinTimeout() {
@@ -106,6 +128,9 @@ public class AgentConfiguration {
 	}
 
 	public static int getTimerPrecision() {
+		if(timerInterval!=null)
+			return timerInterval;
+
 		int result = 10;
 		try {
 			String interval = properties.getProperty("agent.timer.interval");
@@ -117,7 +142,8 @@ public class AgentConfiguration {
 				}
 			}
 		} finally {
-			return result;
+			timerInterval = result;
+			return timerInterval;
 		}
 	}
 
