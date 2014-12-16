@@ -47,11 +47,10 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 					int interval = AgentConfiguration.getDumpInterval();
 					while (!Thread.interrupted()) {
 						try {
-							Thread.sleep(interval);
+							Thread.sleep(0, interval);
 							while (JvmMonitoring.hasMore()) {
 								doDump();
 							}
-							doDump();
 						} catch (InterruptedException e) {
 							break;
 						}

@@ -46,7 +46,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 					int interval = AgentConfiguration.getDumpInterval();
 					while (!Thread.interrupted()) {
 						try {
-							Thread.sleep(interval);
+							Thread.sleep(0, interval);
 							while (Statistics.hasMore()) {
 								doDump();
 							}
