@@ -41,13 +41,14 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 			public void run() {
 				try{
 					channel.position(0);
+					int interval = AgentConfiguration.getDumpInterval();
 					while (!Thread.interrupted()) {
 
 						try {
 							while(lastIndex<map.getLastIndex()){
 								doDump();
 							}
-							Thread.sleep(AgentConfiguration.getDumpInterval());
+							Thread.sleep(interval);
 
 						} catch (InterruptedException e) {
 							break;
@@ -61,6 +62,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 		}, getName());
 
 		dumper.setDaemon(true);
+		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	@Override
