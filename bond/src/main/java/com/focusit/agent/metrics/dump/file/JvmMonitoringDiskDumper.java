@@ -48,6 +48,9 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 					while (!Thread.interrupted()) {
 						try {
 							Thread.sleep(interval);
+							while (JvmMonitoring.hasMore()) {
+								doDump();
+							}
 							doDump();
 						} catch (InterruptedException e) {
 							break;

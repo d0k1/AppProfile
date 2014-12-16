@@ -47,7 +47,9 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 					while (!Thread.interrupted()) {
 						try {
 							Thread.sleep(interval);
-							doDump();
+							while (Statistics.hasMore()) {
+								doDump();
+							}
 						} catch (InterruptedException e) {
 							break;
 						}
