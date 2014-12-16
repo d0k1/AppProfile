@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class Statistics {
 	private static final Logger LOG = Logger.getLogger(Statistics.class.getName());
 	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
-	private final static int LIMIT = 6553600;
+	private final static int LIMIT = 3*6553600;
 
 	private static final FixedSamplesArray<ExecutionInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
 		@Override
