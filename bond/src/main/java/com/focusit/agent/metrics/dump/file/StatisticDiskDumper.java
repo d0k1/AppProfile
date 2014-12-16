@@ -79,7 +79,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				bytes.clear();
 
 			} catch (IOException e) {
-				LOG.severe("Error statistics dump " + e);
+				System.err.println("Error statistics dump " + e);
 			}
 		}finally{
 			readWriteLock.readLock().unlock();

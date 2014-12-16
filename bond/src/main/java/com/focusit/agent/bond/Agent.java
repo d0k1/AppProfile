@@ -34,11 +34,11 @@ public class Agent
 
             if (!AgentConfiguration.isAgentEnabled())
             {
-                LOG.info("Agent is disabled");
+                System.out.println("Agent is disabled");
                 return;
             }
 
-            LOG.info("Loading bond agent");
+            System.out.println("Loading bond agent");
 
             startSensors();
 
@@ -68,7 +68,7 @@ public class Agent
         }
         catch (Throwable e)
         {
-            LOG.severe("Error loading agent " + e.getMessage());
+            System.err.println("Error loading agent " + e.getMessage());
             throw e;
         }
     }
@@ -82,7 +82,7 @@ public class Agent
         }
         catch (Throwable e)
         {
-            LOG.severe("Agent loading error " + e.getMessage());
+            System.err.println("Agent loading error " + e.getMessage());
             throw e;
         }
     }
@@ -149,12 +149,12 @@ public class Agent
                     }
                     catch (UnmodifiableClassException e)
                     {
-                        LOG.severe("unmodifiable class " + cls.getName());
+                        System.err.println("unmodifiable class " + cls.getName());
                     }
                 }
             }
         }catch(Throwable e){
-            LOG.severe("Error retransforming class: " + e);
+            System.err.println("Error retransforming class: " + e);
             throw e;
         }
     }
@@ -187,7 +187,7 @@ public class Agent
             }
             catch (Throwable e)
             {
-                LOG.severe("Shutdown hook error: " + e.getMessage());
+                System.err.println("Shutdown hook error: " + e.getMessage());
                 throw e;
             }
             }

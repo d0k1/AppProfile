@@ -45,7 +45,7 @@ public class MethodsMap {
 			long index = lastIndex.getAndIncrement();
 			methodIndexes.put(method, index);
 
-			LOG.fine("mappedMethod: " + method + " = " + index);
+			//LOG.fine("mappedMethod: " + method + " = " + index);
 			return index;
 		} finally{
 			rwLock.writeLock().unlock();

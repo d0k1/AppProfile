@@ -79,7 +79,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 				bytes.clear();
 
 			} catch (IOException e) {
-				LOG.severe("Error jvm monitoring dump " + e.getMessage());
+				System.err.println("Error jvm monitoring dump " + e.getMessage());
 			}
 		} finally {
 			readWriteLock.readLock().unlock();

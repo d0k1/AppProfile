@@ -45,7 +45,7 @@ public class FixedSamplesArray<T> {
 	public T getItemToWrite() {
 		Sample<T> result = data[position.getAndIncrement()];
 
-		LOG.finer("stored sample to " + name + " " + result);
+		//LOG.finer("stored sample to " + name + " " + result);
 		return (T) result;
 	}
 
@@ -65,7 +65,7 @@ public class FixedSamplesArray<T> {
 	 */
 	public void writeItemFrom(Sample<T> itemToCopyFrom) {
 		if (isFull()) {
-			LOG.severe("No memory to dump sample in " + name);
+			System.err.println("No memory to dump sample in " + name);
 			return;
 		}
 		try {
@@ -74,7 +74,7 @@ public class FixedSamplesArray<T> {
 			Sample<T> result = data[position.getAndIncrement()];
 			result.copyDataFrom(itemToCopyFrom);
 
-			LOG.finer("stored sample to " + name + " " + result);
+			//LOG.finer("stored sample to " + name + " " + result);
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -82,7 +82,7 @@ public class FixedSamplesArray<T> {
 
 	public T readItemTo(Sample<T> itemToReadTo) {
 		if (isEmpty()) {
-			LOG.severe("No samples to read in " + name);
+			System.err.println("No samples to read in " + name);
 			return null;
 		}
 
@@ -91,7 +91,7 @@ public class FixedSamplesArray<T> {
 			Sample<T> result = data[position.decrementAndGet()];
 			itemToReadTo.copyDataFrom(result);
 
-			LOG.finer("Read sample from " + name);
+			//LOG.finer("Read sample from " + name);
 			return (T)itemToReadTo;
 		} finally {
 			rwLock.readLock().unlock();

@@ -30,7 +30,7 @@ public class SamplesDumpManager implements SamplesDataDumper {
 		for (SamplesDataDumper s : storages) {
 			s.dumpRest();
 
-			LOG.info(String.format("Dumped %s samples by %s", s.getSamplesRead(), s.getName()));
+			System.out.println(String.format("Dumped %s samples by %s", s.getSamplesRead(), s.getName()));
 		}
 	}
 

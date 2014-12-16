@@ -46,7 +46,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				try {
 					classPool.appendClassPath(jar);
 				} catch (NotFoundException e) {
-					LOG.severe("Error adding classpath by property: " + e.getMessage());
+					System.err.println("Error adding classpath by property: " + e.getMessage());
 				}
 			}
 		}
@@ -58,7 +58,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		try {
 			processClassloader((URLClassLoader) loader);
 		} catch (NotFoundException e) {
-			LOG.severe("Error processing classloader: "+e.getMessage());
+			System.err.println("Error processing classloader: "+e.getMessage());
 		}
 
 		String className = fullyQualifiedClassName.replace("/", ".");
@@ -85,7 +85,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 		}
 
-		LOG.finer("Instrumenting "+className);
+		//LOG.finer("Instrumenting "+className);
 
 		String methodName = "";
 		try {
@@ -109,7 +109,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 
 				methodName = method.getLongName();
 				long methodId = MethodsMap.getInstance().addMethod(methodName);
-				LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
+				//LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
 
 				method.addLocalVariable("__metricStartTime", CtClass.longType);
 				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
@@ -123,7 +123,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 				return ctClass.toBytecode();
 			}
 		} catch (Throwable e) {
-			LOG.severe("Instrumentation method " + methodName + " error: " + e.getMessage());
+			System.err.println("Instrumentation method " + methodName + " error: " + e.getMessage());
 		}
 		return classfileBuffer;
 	}
@@ -131,7 +131,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 	private void processClassloader(URLClassLoader loader) throws NotFoundException {
 		List<String> jars = getClassloaderURLs(loader);
 
-		LOG.finer("Adding "+jars.size()+" urls to class pool");
+		//LOG.finer("Adding "+jars.size()+" urls to class pool");
 
 		for(String jar:jars){
 			classPool.appendClassPath(jar);

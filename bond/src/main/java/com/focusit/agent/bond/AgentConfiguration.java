@@ -24,7 +24,7 @@ public class AgentConfiguration {
 		while (keys.hasMoreElements()) {
 			String key = (String)keys.nextElement();
 			String value = (String)p.get(key);
-			LOG.finer(key + "='" + value+"'");
+			//LOG.finer(key + "='" + value+"'");
 		}
 
 		String propertyFile = System.getProperty("agent.config").trim();

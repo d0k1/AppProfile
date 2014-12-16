@@ -98,7 +98,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 				lastIndex++;
 				samplesRead.incrementAndGet();
 			} catch (IOException e) {
-				LOG.severe("Error method map dumping " + e.getMessage());
+				System.err.println("Error method map dumping " + e.getMessage());
 			}
 		}finally{
 			readWriteLock.readLock().unlock();

@@ -31,7 +31,7 @@ public class Statistics {
 	public static void storeData(long methodId, long start, long stop) {
 
 		if (data.isFull()) {
-			LOG.severe("No memory to dump sample in " + data.getName());
+			System.err.println("No memory to dump sample in " + data.getName());
 			return;
 		}
 		try {
@@ -43,7 +43,7 @@ public class Statistics {
 			result.start = start;
 			result.end = stop;
 
-			LOG.finer("stored method call " + result);
+			//LOG.finer("stored method call " + result);
 		} finally {
 			data.getWriteLock().unlock();
 		}
