@@ -33,7 +33,7 @@ public class StatisticsLoader implements MongoLoader {
 				}
 
 				ExecutionInfo info = new ExecutionInfo();
-				info.readFromLongBuffer(buffer.asLongBuffer());
+				info.readFromBuffer(buffer);
 
 				BasicDBObject executionInfo = new BasicDBObject("sessionId", sessionId)
 					.append("threadId", info.threadId)

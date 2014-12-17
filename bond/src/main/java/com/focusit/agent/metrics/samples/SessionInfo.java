@@ -1,6 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import java.nio.LongBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Hold profiling session start time
@@ -39,12 +39,12 @@ public final class SessionInfo implements Sample<SessionInfo> {
 	}
 
 	@Override
-	public void writeToLongBuffer(LongBuffer buffer) {
+	public void writeToBuffer(ByteBuffer buffer) {
 
 	}
 
 	@Override
-	public void readFromLongBuffer(LongBuffer buffer) {
+	public void readFromBuffer(ByteBuffer buffer) {
 
 	}
 

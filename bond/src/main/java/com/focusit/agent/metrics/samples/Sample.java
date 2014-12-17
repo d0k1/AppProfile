@@ -1,6 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import java.nio.LongBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Common interface of measuring sample
@@ -10,9 +10,9 @@ public interface Sample<T> {
 
 	Sample<T> copyDataFrom(Sample<T> sample);
 
-	void writeToLongBuffer(LongBuffer buffer);
+	void writeToBuffer(ByteBuffer buffer);
 
-	void readFromLongBuffer(LongBuffer buffer);
+	void readFromBuffer(ByteBuffer buffer);
 
 	int sizeOfSample();
 }

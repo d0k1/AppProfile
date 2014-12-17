@@ -1,6 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import java.nio.LongBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Class to hold JVM metrics sample
@@ -73,61 +73,61 @@ public final class JvmInfo implements Sample<JvmInfo> {
 	}
 
 	@Override
-	public void writeToLongBuffer(LongBuffer out) {
-		out.put(ipv4Addr1);
-		out.put(ipv4Addr2);
-		out.put(ipv4Addr3);
-		out.put(ipv4Addr4);
-		out.put(pid);
-		out.put(loadedClassCount);
-		out.put(heapCommited);
-		out.put(heapInit);
-		out.put(heapMax);
-		out.put(heapUsed);
-		out.put(freePhysMem);
-		out.put(freeSwap);
-		out.put(totalPhysMem);
-		out.put(totalSwap);
-		out.put(threadCount);
-		out.put(threadDaemonCount);
-		out.put(peakThreadCount);
-		out.put(totalStartedThreadCount);
-		out.put(lastTimeGc1);
-		out.put(lastTimeGc2);
-		out.put(totalCountGc1);
-		out.put(totalCountGc2);
+	public void writeToBuffer(ByteBuffer out) {
+		out.putLong(ipv4Addr1);
+		out.putLong(ipv4Addr2);
+		out.putLong(ipv4Addr3);
+		out.putLong(ipv4Addr4);
+		out.putLong(pid);
+		out.putLong(loadedClassCount);
+		out.putLong(heapCommited);
+		out.putLong(heapInit);
+		out.putLong(heapMax);
+		out.putLong(heapUsed);
+		out.putLong(freePhysMem);
+		out.putLong(freeSwap);
+		out.putLong(totalPhysMem);
+		out.putLong(totalSwap);
+		out.putLong(threadCount);
+		out.putLong(threadDaemonCount);
+		out.putLong(peakThreadCount);
+		out.putLong(totalStartedThreadCount);
+		out.putLong(lastTimeGc1);
+		out.putLong(lastTimeGc2);
+		out.putLong(totalCountGc1);
+		out.putLong(totalCountGc2);
 
-		out.put(Double.doubleToLongBits(processCpuLoad));
-		out.put(Double.doubleToLongBits(systemCpuLoad));
+		out.putLong(Double.doubleToLongBits(processCpuLoad));
+		out.putLong(Double.doubleToLongBits(systemCpuLoad));
 	}
 
 	@Override
-	public void readFromLongBuffer(LongBuffer in) {
-		ipv4Addr1 = in.get();
-		ipv4Addr2 = in.get();
-		ipv4Addr3 = in.get();
-		ipv4Addr4 = in.get();
-		pid = in.get();
-		loadedClassCount = in.get();
-		heapCommited = in.get();
-		heapInit = in.get();
-		heapMax = in.get();
-		heapUsed = in.get();
-		freePhysMem = in.get();
-		freeSwap = in.get();
-		totalPhysMem = in.get();
-		totalSwap = in.get();
-		threadCount = in.get();
-		threadDaemonCount = in.get();
-		peakThreadCount = in.get();
-		totalStartedThreadCount = in.get();
-		lastTimeGc1 = in.get();
-		lastTimeGc2 = in.get();
-		totalCountGc1 = in.get();
-		totalCountGc2 = in.get();
+	public void readFromBuffer(ByteBuffer in) {
+		ipv4Addr1 = in.getLong();
+		ipv4Addr2 = in.getLong();
+		ipv4Addr3 = in.getLong();
+		ipv4Addr4 = in.getLong();
+		pid = in.getLong();
+		loadedClassCount = in.getLong();
+		heapCommited = in.getLong();
+		heapInit = in.getLong();
+		heapMax = in.getLong();
+		heapUsed = in.getLong();
+		freePhysMem = in.getLong();
+		freeSwap = in.getLong();
+		totalPhysMem = in.getLong();
+		totalSwap = in.getLong();
+		threadCount = in.getLong();
+		threadDaemonCount = in.getLong();
+		peakThreadCount = in.getLong();
+		totalStartedThreadCount = in.getLong();
+		lastTimeGc1 = in.getLong();
+		lastTimeGc2 = in.getLong();
+		totalCountGc1 = in.getLong();
+		totalCountGc2 = in.getLong();
 
-		processCpuLoad = Double.longBitsToDouble(in.get());
-		systemCpuLoad = Double.longBitsToDouble(in.get());
+		processCpuLoad = Double.longBitsToDouble(in.getLong());
+		systemCpuLoad = Double.longBitsToDouble(in.getLong());
 
 	}
 

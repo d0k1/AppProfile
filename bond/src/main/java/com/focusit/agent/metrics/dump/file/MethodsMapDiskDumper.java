@@ -4,7 +4,6 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.MethodsMap;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -32,10 +31,10 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	public MethodsMapDiskDumper(String file) throws FileNotFoundException {
+	public MethodsMapDiskDumper(String file) throws IOException {
 		aFile = new RandomAccessFile(file, "rw");
 		channel = aFile.getChannel();
-
+		channel.truncate(0);
 		dumper = new Thread(new Runnable() {
 			@Override
 			public void run() {

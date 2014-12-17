@@ -1,6 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import java.nio.LongBuffer;
+import java.nio.ByteBuffer;
 
 /**
  * Minimal profiling sample. Store method execution data in executing thread context
@@ -41,18 +41,18 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		return this;
 	}
 
-	public void writeToLongBuffer(LongBuffer out){
-		out.put(threadId);
-		out.put(start);
-		out.put(end);
-		out.put(method);
+	public void writeToBuffer(ByteBuffer out){
+		out.putLong(threadId);
+		out.putLong(start);
+		out.putLong(end);
+		out.putLong(method);
 	}
 
-	public void readFromLongBuffer(LongBuffer in){
-		threadId = in.get();
-		start = in.get();
-		end = in.get();
-		method = in.get();
+	public void readFromBuffer(ByteBuffer in){
+		threadId = in.getLong();
+		start = in.getLong();
+		end = in.getLong();
+		method = in.getLong();
 	}
 
 	@Override

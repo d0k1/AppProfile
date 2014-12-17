@@ -35,7 +35,7 @@ public class JvmMonitoringLoader implements MongoLoader {
 				}
 
 				JvmInfo info = new JvmInfo();
-				info.readFromLongBuffer(buffer.asLongBuffer());
+				info.readFromBuffer(buffer);
 
 				BasicDBObject jvmInfo = new BasicDBObject("sessionId", sessionId);
 

@@ -5,12 +5,12 @@ import com.focusit.agent.metrics.Statistics;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.StandardOpenOption;
+import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
@@ -24,40 +24,38 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 	private static final Logger LOG = Logger.getLogger(StatisticDiskDumper.class.getName());
 	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
-	private final int samples = 1;
+	private final int samples = 500;
 	private final Thread dumper;
-	private final ByteBuffer bytes = ByteBuffer.allocate((int) (samples * sampleSize));
-	private final LongBuffer buffer = bytes.asLongBuffer();
-	private final RandomAccessFile aFile;
-	private final FileChannel channel;
+	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
+
+	FileChannel channel;
 	private final ExecutionInfo info = new ExecutionInfo();
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	public StatisticDiskDumper(String file) throws FileNotFoundException {
-		aFile = new RandomAccessFile(file, "rw");
-		channel = aFile.getChannel();
+	public StatisticDiskDumper(String file) throws IOException {
+		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+
+		for(int i=0;i<samples;i++){
+			bytesBuffers[i] = ByteBuffer.allocate(sampleSize);
+		}
+
 		dumper = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					channel.position(0);
-					int interval = AgentConfiguration.getDumpInterval();
-					while (!Thread.interrupted()) {
-						try {
-							Thread.sleep(0, interval);
-							while (Statistics.hasMore()) {
-								doDump();
-							}
-						} catch (InterruptedException e) {
-							break;
+				int interval = AgentConfiguration.getDumpInterval();
+				while (!Thread.interrupted()) {
+					try {
+						Thread.sleep(0, interval);
+						while (Statistics.hasMore()) {
+							doDump();
 						}
+					} catch (InterruptedException e) {
+						break;
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
 				}
+
 			}
 		}, getName());
 
@@ -67,21 +65,24 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 
 	private void doDump() {
 
-		if (!Statistics.hasMore())
+		boolean hasMore = Statistics.hasMore();
+		if (!hasMore)
 			return;
 
 		try {
 			readWriteLock.readLock().lock();
-			for (int i = 0; i < samples; i++) {
-				buffer.rewind();
+			int sampleRead = 0;
+			for (int i = 0; i < samples && hasMore; i++) {
+				bytesBuffers[i].clear();
 				Statistics.readData(info);
-				info.writeToLongBuffer(buffer);
+				info.writeToBuffer(bytesBuffers[i]);
 				samplesRead.incrementAndGet();
+				hasMore = Statistics.hasMore();
+				bytesBuffers[i].flip();
+				sampleRead++;
 			}
 			try {
-				channel.write(bytes);
-				bytes.clear();
-
+				channel.write(bytesBuffers, 0, sampleRead);
 			} catch (IOException e) {
 				System.err.println("Error statistics dump " + e);
 			}
@@ -97,7 +98,6 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 		}
 		try {
 			channel.close();
-			aFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

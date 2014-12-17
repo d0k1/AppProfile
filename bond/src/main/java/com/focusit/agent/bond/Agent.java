@@ -4,7 +4,6 @@ import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.dump.SamplesDumpManager;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
@@ -159,7 +158,7 @@ public class Agent
         }
     }
 
-    private static void startDumping() throws FileNotFoundException
+    private static void startDumping() throws IOException
     {
         GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
         gt.start();
