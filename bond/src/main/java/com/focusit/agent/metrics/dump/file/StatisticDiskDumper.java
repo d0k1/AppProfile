@@ -6,14 +6,11 @@ import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 /**
  * Simple profiling data dumper. Uses RandomAccessFile to backing storage
@@ -21,21 +18,23 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class StatisticDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = Logger.getLogger(StatisticDiskDumper.class.getName());
 	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = 500;
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 
-	FileChannel channel;
+	private final RandomAccessFile aFile;
+	private final FileChannel channel;
 	private final ExecutionInfo info = new ExecutionInfo();
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
 	public StatisticDiskDumper(String file) throws IOException {
-		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+		aFile = new RandomAccessFile(file, "rw");
+		channel = aFile.getChannel();
+		channel.truncate(0);
 
 		for(int i=0;i<samples;i++){
 			bytesBuffers[i] = ByteBuffer.allocate(sampleSize);
@@ -98,6 +97,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 		}
 		try {
 			channel.close();
+			aFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

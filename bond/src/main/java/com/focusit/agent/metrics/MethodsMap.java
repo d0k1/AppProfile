@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 /**
  * Array that stores method links.
@@ -13,7 +12,6 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class MethodsMap {
-	private static final Logger LOG = Logger.getLogger(MethodsMap.class.getName());
 	private static final MethodsMap instance = new MethodsMap();
 	private final static int INITIAL_SIZE = 15000;
 	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);

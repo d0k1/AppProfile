@@ -4,15 +4,12 @@ import com.focusit.agent.metrics.samples.ExecutionInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
 
-import java.util.logging.Logger;
-
 /**
  * Class to dump profiling data to it's own temporary buffer.
  * Will Log a lot if buffer is full
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class Statistics {
-	private static final Logger LOG = Logger.getLogger(Statistics.class.getName());
 	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
 	private final static int LIMIT = 6553600;
 

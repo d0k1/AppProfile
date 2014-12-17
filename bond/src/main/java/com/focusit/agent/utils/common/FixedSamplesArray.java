@@ -5,7 +5,6 @@ import com.focusit.agent.metrics.samples.Sample;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 /**
  * Common code to work with limited static arrays of measured samples
@@ -19,8 +18,6 @@ public class FixedSamplesArray<T> {
 	private final AtomicInteger position = new AtomicInteger(0);
 	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	private final String name;
-
-	private static final Logger LOG = Logger.getLogger(FixedSamplesArray.class.getName());
 
 	public FixedSamplesArray(int limit, ItemInitializer creator, String name) {
 		this.limit = limit;

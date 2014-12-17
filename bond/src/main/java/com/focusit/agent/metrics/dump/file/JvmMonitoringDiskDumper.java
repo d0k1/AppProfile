@@ -6,14 +6,11 @@ import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.JvmInfo;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 /**
  * Jvm monitoring data disk writer
@@ -21,13 +18,13 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 10.12.14.
  */
 public class JvmMonitoringDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = Logger.getLogger(JvmMonitoringDiskDumper.class.getName());
 	public static final String JVM_MONITORING_DUMPING_THREAD = "Jvm monitoring dumping thread";
 	private static int sampleSize = JvmInfo.sizeOf();
 	private final int samples = 500;
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 
+	private final RandomAccessFile aFile;
 	private final FileChannel channel;
 	private final JvmInfo info = new JvmInfo();
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
@@ -35,7 +32,10 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
 	public JvmMonitoringDiskDumper(String file) throws IOException {
-		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+//		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+		aFile = new RandomAccessFile(file, "rw");
+		channel = aFile.getChannel();
+		channel.truncate(0);
 
 		for(int i=0;i<samples;i++){
 			bytesBuffers[i] = ByteBuffer.allocate(sampleSize);
@@ -104,6 +104,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 		}
 		try {
 			channel.close();
+			aFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

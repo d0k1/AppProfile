@@ -15,7 +15,6 @@ import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Java bytecode instrumentation based on javaassist library
@@ -23,7 +22,6 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class JavaAssistClassTransformer implements ClassFileTransformer {
-	private static final Logger LOG = Logger.getLogger(JavaAssistClassTransformer.class.getName());
 	private final String excludes[];
 	private final String ignoreExcludes[];
 	private final Instrumentation instrumentation;
@@ -58,7 +56,7 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		try {
 			processClassloader((URLClassLoader) loader);
 		} catch (NotFoundException e) {
-			System.err.println("Error processing classloader: "+e.getMessage());
+			System.err.println("Error processing classloader: " + e.getMessage());
 		}
 
 		String className = fullyQualifiedClassName.replace("/", ".");

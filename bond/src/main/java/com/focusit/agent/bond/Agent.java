@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 
 /**
  * Agent main class. Loading desired class transformer
@@ -18,7 +17,6 @@ import java.util.logging.Logger;
 public class Agent
 {
     private static Instrumentation agentInstrumentation = null;
-    private static final Logger LOG = Logger.getLogger(Agent.class.getName());
     private static String excludes[] = AgentConfiguration.getExcludeClasses();
     private static String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 

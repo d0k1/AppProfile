@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Logger;
 
 /**
  * Simple method map dumper. Uses RandomAccessFile as it's backing storage
@@ -19,7 +18,6 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
 public class MethodsMapDiskDumper implements SamplesDataDumper {
-	private static final Logger LOG = Logger.getLogger(MethodsMapDiskDumper.class.getName());
 	public static final String METHOD_MAP_DUMPING_THREAD = "MethodMap dumping thread";
 	private long lastIndex = 0;
 	private final RandomAccessFile aFile;
