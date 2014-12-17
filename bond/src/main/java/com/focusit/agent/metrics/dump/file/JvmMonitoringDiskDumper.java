@@ -49,7 +49,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 					int interval = AgentConfiguration.getDumpInterval();
 					while (!Thread.interrupted()) {
 						try {
-							Thread.sleep(0, interval);
+							Thread.sleep(interval);
 							while (JvmMonitoring.hasMore()) {
 								doDump();
 							}
@@ -64,7 +64,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 			}
 		}, getName());
 		dumper.setDaemon(true);
-		dumper.setPriority(Thread.MAX_PRIORITY);
+//		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	private void doDump() {

@@ -45,7 +45,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 							while(lastIndex<map.getLastIndex()){
 								doDump();
 							}
-							Thread.sleep(0, interval);
+							Thread.sleep(interval);
 
 						} catch (InterruptedException e) {
 							break;
@@ -59,7 +59,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 		}, getName());
 
 		dumper.setDaemon(true);
-		dumper.setPriority(Thread.MAX_PRIORITY);
+//		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	@Override

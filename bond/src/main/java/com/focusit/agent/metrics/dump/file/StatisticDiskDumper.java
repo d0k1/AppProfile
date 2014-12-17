@@ -46,7 +46,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				int interval = AgentConfiguration.getDumpInterval();
 				while (!Thread.interrupted()) {
 					try {
-						Thread.sleep(0, interval);
+						Thread.sleep(interval);
 						while (Statistics.hasMore()) {
 							doDump();
 						}
@@ -59,7 +59,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 		}, getName());
 
 		dumper.setDaemon(true);
-		dumper.setPriority(Thread.MAX_PRIORITY);
+//		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	private void doDump() {
