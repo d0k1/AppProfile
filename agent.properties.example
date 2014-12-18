@@ -4,4 +4,6 @@ agent.exclude=sun,com.sun,java,javax,sun.util,org.apache.juli,org.apache.catalin
 agent.timer.interval=10
 agent.dump.interval=1
 agent.exclude.ingore=com.focusit.agent.example,java.sql
-
+methods.file=
+statistics.file=
+jvm.file=

@@ -14,7 +14,7 @@ import java.security.ProtectionDomain;
  */
 public class AsmClassTransformer implements ClassFileTransformer {
 
-	public AsmClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
+	public AsmClassTransformer(Instrumentation instrumentation) {
 	}
 
 	@Override

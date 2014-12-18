@@ -12,7 +12,7 @@ import java.security.ProtectionDomain;
  */
 public class CGLibClassTransformer implements ClassFileTransformer {
 
-	public CGLibClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
+	public CGLibClassTransformer(Instrumentation instrumentation) {
 	}
 
 	@Override

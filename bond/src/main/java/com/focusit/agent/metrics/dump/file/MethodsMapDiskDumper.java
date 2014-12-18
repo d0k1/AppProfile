@@ -29,8 +29,8 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	public MethodsMapDiskDumper(String file) throws IOException {
-		aFile = new RandomAccessFile(file, "rw");
+	public MethodsMapDiskDumper() throws IOException {
+		aFile = new RandomAccessFile(AgentConfiguration.getMethodsMapFile(), "rw");
 		channel = aFile.getChannel();
 		channel.truncate(0);
 		dumper = new Thread(new Runnable() {

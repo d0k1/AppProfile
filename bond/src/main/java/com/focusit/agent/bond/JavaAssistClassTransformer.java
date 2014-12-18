@@ -22,16 +22,12 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 06.08.14.
  */
 public class JavaAssistClassTransformer implements ClassFileTransformer {
-	private final String excludes[];
-	private final String ignoreExcludes[];
 	private final Instrumentation instrumentation;
 	private ClassPool classPool;
 
 	private List<WeakReference<ClassLoader>> loaders = new ArrayList<>();
 
-	public JavaAssistClassTransformer(String excludes[], String ignoreExcludes[], Instrumentation instrumentation) {
-		this.excludes = excludes;
-		this.ignoreExcludes = ignoreExcludes;
+	public JavaAssistClassTransformer(Instrumentation instrumentation) {
 		this.instrumentation = instrumentation;
 
 		classPool = ClassPool.getDefault();
@@ -61,27 +57,8 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
 
-		if (excludes != null) {
-			boolean skip = false;
-
-			for (int i = 0; i < excludes.length; i++) {
-				if (className.startsWith(excludes[i])) {
-					skip = true;
-					break;
-				}
-			}
-
-			for (int i = 0; i < ignoreExcludes.length; i++) {
-				if (className.startsWith(ignoreExcludes[i])) {
-					skip = false;
-					break;
-				}
-			}
-
-			if (skip) {
-				return classfileBuffer;
-			}
-		}
+		if(AgentConfiguration.isClassExcluded(className))
+			return classfileBuffer;
 
 		//LOG.finer("Instrumenting "+className);
 

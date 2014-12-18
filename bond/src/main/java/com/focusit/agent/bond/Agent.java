@@ -17,8 +17,6 @@ import java.util.jar.JarFile;
 public class Agent
 {
     private static Instrumentation agentInstrumentation = null;
-    private static String excludes[] = AgentConfiguration.getExcludeClasses();
-    private static String ignoreExcludes[] = AgentConfiguration.getIgnoreExcludeClasses();
 
     public static void agentmain(String agentArguments, Instrumentation instrumentation) throws IOException,
             UnmodifiableClassException
@@ -46,18 +44,17 @@ public class Agent
             // strange bu usage SWITCH causes IllegalAccessException but IF is OK
             if (transformer == AgentConfiguration.Transformer.asm)
             {
-                agentInstrumentation.addTransformer(new AsmClassTransformer(excludes, ignoreExcludes, instrumentation),
+                agentInstrumentation.addTransformer(new AsmClassTransformer(instrumentation),
                         true);
             }
             else if (transformer == AgentConfiguration.Transformer.javaassist)
             {
-                agentInstrumentation.addTransformer(new JavaAssistClassTransformer(excludes, ignoreExcludes,
-                        instrumentation), true);
+                agentInstrumentation.addTransformer(new JavaAssistClassTransformer(instrumentation), true);
             }
             else if (transformer == AgentConfiguration.Transformer.cglib)
             {
                 agentInstrumentation.addTransformer(
-                        new CGLibClassTransformer(excludes, ignoreExcludes, instrumentation), true);
+                        new CGLibClassTransformer(instrumentation), true);
             }
 
             retransformAlreadyLoadedClasses(instrumentation);
@@ -84,40 +81,6 @@ public class Agent
         }
     }
 
-    private static boolean isClassExcluded(String className)
-    {
-
-        if (excludes != null)
-        {
-            boolean skip = false;
-
-            for (String exclude : excludes)
-            {
-                if (className.startsWith(exclude))
-                {
-                    skip = true;
-                    break;
-                }
-            }
-
-            for (String ignoreExclude : ignoreExcludes)
-            {
-                if (className.startsWith(ignoreExclude))
-                {
-                    skip = false;
-                    break;
-                }
-            }
-
-            if (skip)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private static void modifyBootstrapClasspathByArgs(String agentArguments) throws IOException
     {
         if (System.getProperty("agent.jar") != null)
@@ -133,7 +96,7 @@ public class Agent
             for (Class cls : instrumentation.getAllLoadedClasses())
             {
 
-                if (isClassExcluded(cls.getName()))
+                if (AgentConfiguration.isClassExcluded(cls.getName()))
                 {
                     continue;
                 }

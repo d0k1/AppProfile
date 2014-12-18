@@ -31,9 +31,9 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	public JvmMonitoringDiskDumper(String file) throws IOException {
+	public JvmMonitoringDiskDumper() throws IOException {
 //		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
-		aFile = new RandomAccessFile(file, "rw");
+		aFile = new RandomAccessFile(AgentConfiguration.getJvmMonitoringFile(), "rw");
 		channel = aFile.getChannel();
 		channel.truncate(0);
 

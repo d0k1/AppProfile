@@ -31,8 +31,8 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	public StatisticDiskDumper(String file) throws IOException {
-		aFile = new RandomAccessFile(file, "rw");
+	public StatisticDiskDumper() throws IOException {
+		aFile = new RandomAccessFile(AgentConfiguration.getStatisticsFile(), "rw");
 		channel = aFile.getChannel();
 		channel.truncate(0);
 

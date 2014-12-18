@@ -1,6 +1,5 @@
 package com.focusit.agent.metrics.dump;
 
-import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
@@ -20,9 +19,9 @@ public class SamplesDumpManager implements SamplesDataDumper {
 	private SamplesDataDumper storages[] = new SamplesDataDumper[3];
 
 	public SamplesDumpManager() throws IOException {
-		storages[0] = new StatisticDiskDumper(AgentConfiguration.getStatisticsFile());
-		storages[1] = new MethodsMapDiskDumper(AgentConfiguration.getMethodsMapFile());
-		storages[2] = new JvmMonitoringDiskDumper(AgentConfiguration.getJvmMonitoringFile());
+		storages[0] = new StatisticDiskDumper();
+		storages[1] = new MethodsMapDiskDumper();
+		storages[2] = new JvmMonitoringDiskDumper();
 	}
 
 	@Override

@@ -18,6 +18,12 @@ public class AgentConfiguration {
 	private static Integer dumpInterval = null;
 	private static Integer timerInterval = null;
 
+	private static String excludes[] = null;
+	private static String ignoreExcludes[] = null;
+
+	private static String includes[] = null;
+	private static String ignoreIncludes[] = null;
+
 	static {
 		Properties p = System.getProperties();
 		Enumeration keys = p.keys();
@@ -38,6 +44,9 @@ public class AgentConfiguration {
 
 		getDumpInterval();
 		getTimerPrecision();
+
+		getExcludeClasses();
+		getIgnoreExcludeClasses();
 	}
 
 	public static int getDumpInterval() {
@@ -61,6 +70,54 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static boolean isClassExcluded(String className)
+	{
+		boolean skip = false;
+
+		if (excludes != null && excludes.length>0)
+		{
+			for (String exclude : excludes)
+			{
+				if (className.startsWith(exclude) || exclude.equalsIgnoreCase("*"))
+				{
+					skip = true;
+					break;
+				}
+			}
+
+			for (String ignoreExclude : ignoreExcludes)
+			{
+				if (className.startsWith(ignoreExclude))
+				{
+					skip = false;
+					break;
+				}
+			}
+		}
+
+		if(includes!=null && includes.length>0){
+			for (String include : includes)
+			{
+				if (className.startsWith(include) || include.equalsIgnoreCase("*"))
+				{
+					skip = false;
+					break;
+				}
+			}
+
+			for (String ignoreInclude : ignoreIncludes)
+			{
+				if (className.startsWith(ignoreInclude))
+				{
+					skip = false;
+					break;
+				}
+			}
+		}
+
+		return skip;
+	}
+
 	public static int getThreadJoinTimeout() {
 		return 10000;
 	}
@@ -81,15 +138,24 @@ public class AgentConfiguration {
 	}
 
 	public static String getMethodsMapFile() {
-		return "methods.data";
+		String result = System.getProperty("methods.file");
+		if(result==null || result.trim().length()==0)
+			result = "methods.data";
+		return result;
 	}
 
 	public static String getStatisticsFile() {
-		return "profile.data";
+		String result = System.getProperty("statistics.file");
+		if(result==null || result.trim().length()==0)
+			result = "profile.data";
+		return result;
 	}
 
 	public static String getJvmMonitoringFile() {
-		return "jvm.data";
+		String result = System.getProperty("jvm.file");
+		if(result==null || result.trim().length()==0)
+			result = "jvm.data";
+		return result;
 	}
 
 	public static String getSessionsFile() {
@@ -108,21 +174,59 @@ public class AgentConfiguration {
 	}
 
 	public static String[] getExcludeClasses() {
-		String excludes = properties.getProperty("agent.exclude");
-		excludes = excludes.trim();
-		if (StringUtils.isEmpty(excludes)) {
+
+		if(excludes!=null)
+			return excludes;
+
+		String values = properties.getProperty("agent.exclude");
+		values = values.trim();
+		if (StringUtils.isEmpty(values)) {
 			return new String[0];
 		}
-		return excludes.split(",");
+		excludes = values.split(",");
+		return excludes;
 	}
 
 	public static String[] getIgnoreExcludeClasses() {
-		String igonres = properties.getProperty("agent.exclude.ingore");
-		igonres = igonres.trim();
-		if (StringUtils.isEmpty(igonres)) {
+
+		if(ignoreExcludes!=null)
+			return ignoreExcludes;
+
+		String values = properties.getProperty("agent.exclude.ingore");
+		values = values.trim();
+		if (StringUtils.isEmpty(values)) {
 			return new String[0];
 		}
-		return igonres.split(",");
+		ignoreExcludes = values.split(",");
+		return ignoreExcludes;
+	}
+
+	public static String[] getIncludeClasses() {
+
+		if(includes!=null)
+			return includes;
+
+		String values = properties.getProperty("agent.include");
+		values = values.trim();
+		if (StringUtils.isEmpty(values)) {
+			return new String[0];
+		}
+		includes = values.split(",");
+		return includes;
+	}
+
+	public static String[] getIgnoreIncludeClasses() {
+
+		if(ignoreIncludes!=null)
+			return ignoreIncludes;
+
+		String values = properties.getProperty("agent.include.ingore");
+		values = values.trim();
+		if (StringUtils.isEmpty(values)) {
+			return new String[0];
+		}
+		ignoreIncludes = values.split(",");
+		return ignoreIncludes;
 	}
 
 	public static int getTimerPrecision() {
