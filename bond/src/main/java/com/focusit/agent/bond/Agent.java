@@ -138,7 +138,7 @@ public class Agent
             }
             catch (InterruptedException e)
             {
-                e.printStackTrace();
+                System.err.println("Error stopping dumpers: "+e);
             }
 
             try
@@ -148,7 +148,6 @@ public class Agent
             catch (Throwable e)
             {
                 System.err.println("Shutdown hook error: " + e.getMessage());
-                throw e;
             }
             }
         });

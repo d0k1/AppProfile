@@ -49,6 +49,11 @@ public final class SessionInfo implements Sample<SessionInfo> {
 	}
 
 	@Override
+	public void readFromBuffer(long[] buffer) {
+
+	}
+
+	@Override
 	public int sizeOfSample() {
 		return 8 * 3;
 	}

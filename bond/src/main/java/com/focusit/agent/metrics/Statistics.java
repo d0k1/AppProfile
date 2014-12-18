@@ -11,7 +11,7 @@ import com.focusit.agent.utils.common.FixedSamplesArray;
  */
 public class Statistics {
 	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
-	private final static int LIMIT = 6553600;
+	private final static int LIMIT = 1;//6553600;
 
 	private static final FixedSamplesArray<ExecutionInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
 		@Override
@@ -25,31 +25,20 @@ public class Statistics {
 		}
 	}, "Statistics");
 
-	public static void storeData(long methodId, long start, long stop) {
+	public static void storeData(long methodId, long start, long stop) throws InterruptedException {
 
 		if (data.isFull()) {
-			System.err.println("No memory to dump sample in " + data.getName());
-			return;
+			System.err.println("No memory to store sample in " + data.getName());
 		}
-		try {
 
-			data.getWriteLock().lock();
-			ExecutionInfo result = data.getItemToWrite();
-			result.threadId = Thread.currentThread().getId();
-			result.method = methodId;
-			result.start = start;
-			result.end = stop;
-
-		} finally {
-			data.getWriteLock().unlock();
-		}
+		data.writeItemFrom(Thread.currentThread().getId(), start, stop, methodId);
 	}
 
-	public static ExecutionInfo readData(ExecutionInfo info) {
+	public static ExecutionInfo readData(ExecutionInfo info) throws InterruptedException {
 		return data.readItemTo(info);
 	}
 
-	public static boolean hasMore() {
+	public static boolean hasMore() throws InterruptedException {
 		return data.hasMore();
 	}
 }

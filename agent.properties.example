@@ -1,9 +1,14 @@
 agent.enabled=true
 agent.transformer=javaassist
-agent.exclude=sun,com.sun,java,javax,sun.util,org.apache.juli,org.apache.catalina,org.apache.tomcat,com.focusit.agent,com.intellij
 agent.timer.interval=10
 agent.dump.interval=1
-agent.exclude.ingore=com.focusit.agent.example,java.sql
+
+#agent.exclude=sun,com.sun,java,javax,sun.util,org.apache.juli,org.apache.catalina,org.apache.tomcat,com.focusit.agent,com.intellij
+#agent.exclude.ignore=com.focusit.agent.example,java.sql
+
+agent.include=com.focusit.agent.example
+#agent.include.ignore=com.focusit.agent.example,java.sql
+
 methods.file=
 statistics.file=
 jvm.file=

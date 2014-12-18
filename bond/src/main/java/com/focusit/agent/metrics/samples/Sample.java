@@ -14,5 +14,7 @@ public interface Sample<T> {
 
 	void readFromBuffer(ByteBuffer buffer);
 
+	void readFromBuffer(long[] buffer);
+
 	int sizeOfSample();
 }

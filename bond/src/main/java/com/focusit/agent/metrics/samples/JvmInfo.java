@@ -132,8 +132,37 @@ public final class JvmInfo implements Sample<JvmInfo> {
 	}
 
 	@Override
+	public void readFromBuffer(long[] buffer) {
+		ipv4Addr1 = buffer[0];
+		ipv4Addr2 = buffer[1];
+		ipv4Addr3 = buffer[2];
+		ipv4Addr4 = buffer[3];
+		pid = buffer[4];
+		loadedClassCount = buffer[5];
+		heapCommited = buffer[6];
+		heapInit = buffer[7];
+		heapMax = buffer[8];
+		heapUsed = buffer[9];
+		freePhysMem = buffer[10];
+		freeSwap = buffer[11];
+		totalPhysMem = buffer[12];
+		totalSwap = buffer[13];
+		threadCount = buffer[14];
+		threadDaemonCount = buffer[15];
+		peakThreadCount = buffer[16];
+		totalStartedThreadCount = buffer[17];
+		lastTimeGc1 = buffer[18];
+		lastTimeGc2 = buffer[19];
+		totalCountGc1 = buffer[20];
+		totalCountGc2 = buffer[21];
+
+		processCpuLoad = Double.longBitsToDouble(buffer[22]);
+		systemCpuLoad = Double.longBitsToDouble(buffer[23]);
+	}
+
+	@Override
 	public int sizeOfSample() {
-		return 0;
+		return JvmInfo.sizeOf();
 	}
 
 	@Override

@@ -62,36 +62,31 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 //		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
-	private void doDump() {
+	private void doDump() throws InterruptedException {
 
 		boolean hasMore = Statistics.hasMore();
 		if (!hasMore)
 			return;
 
+		int sampleRead = 0;
+		for (int i = 0; i < samples && hasMore; i++) {
+			bytesBuffers[i].clear();
+			Statistics.readData(info);
+			info.writeToBuffer(bytesBuffers[i]);
+			samplesRead.incrementAndGet();
+			hasMore = Statistics.hasMore();
+			bytesBuffers[i].flip();
+			sampleRead++;
+		}
 		try {
-			readWriteLock.readLock().lock();
-			int sampleRead = 0;
-			for (int i = 0; i < samples && hasMore; i++) {
-				bytesBuffers[i].clear();
-				Statistics.readData(info);
-				info.writeToBuffer(bytesBuffers[i]);
-				samplesRead.incrementAndGet();
-				hasMore = Statistics.hasMore();
-				bytesBuffers[i].flip();
-				sampleRead++;
-			}
-			try {
-				channel.write(bytesBuffers, 0, sampleRead);
-			} catch (IOException e) {
-				System.err.println("Error statistics dump " + e);
-			}
-		}finally{
-			readWriteLock.readLock().unlock();
+			channel.write(bytesBuffers, 0, sampleRead);
+		} catch (IOException e) {
+			System.err.println("Error statistics dump " + e);
 		}
 	}
 
 	@Override
-	public final void dumpRest() {
+	public final void dumpRest() throws InterruptedException {
 		while(Statistics.hasMore()){
 			doDump();
 		}

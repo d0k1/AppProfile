@@ -56,6 +56,14 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	}
 
 	@Override
+	public void readFromBuffer(long[] buffer) {
+		threadId = buffer[0];
+		start = buffer[1];
+		end = buffer[2];
+		method = buffer[3];
+	}
+
+	@Override
 	public int sizeOfSample() {
 		return ExecutionInfo.sizeOf();
 	}

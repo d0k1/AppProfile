@@ -67,7 +67,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 //		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
-	private void doDump() {
+	private void doDump() throws InterruptedException {
 
 		boolean hasMore = JvmMonitoring.hasMore();
 		if (!hasMore)
@@ -96,7 +96,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	}
 
 	@Override
-	public final void dumpRest() {
+	public final void dumpRest() throws InterruptedException {
 		JvmMonitoring.getInstance().doMeasureAtExit();
 
 		while (JvmMonitoring.hasMore()) {

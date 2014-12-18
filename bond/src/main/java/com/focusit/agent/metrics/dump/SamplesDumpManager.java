@@ -25,7 +25,7 @@ public class SamplesDumpManager implements SamplesDataDumper {
 	}
 
 	@Override
-	public void dumpRest() {
+	public void dumpRest() throws InterruptedException {
 		for (SamplesDataDumper s : storages) {
 			s.dumpRest();
 

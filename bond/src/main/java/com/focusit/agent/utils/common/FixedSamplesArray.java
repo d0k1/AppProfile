@@ -2,9 +2,9 @@ package com.focusit.agent.utils.common;
 
 import com.focusit.agent.metrics.samples.Sample;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Common code to work with limited static arrays of measured samples
@@ -15,13 +15,28 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class FixedSamplesArray<T> {
 	private final Sample<T> data[];
 	private final int limit;
-	private final AtomicInteger position = new AtomicInteger(0);
-	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
+
+	/** items index for next take, poll, peek or remove */
+	int takeIndex=0;
+
+	/** Number of elements in the queue */
+	int count;
+
+	/** items index for next put, offer, or add */
+	int putIndex=0;
+
+//	private final AtomicInteger position = new AtomicInteger(0);
+	private final ReentrantLock lock = new ReentrantLock(true);
+	private final Condition notEmpty;
+	private final Condition notFull;
+
 	private final String name;
 
 	public FixedSamplesArray(int limit, ItemInitializer creator, String name) {
 		this.limit = limit;
 		this.name = name;
+		notEmpty = lock.newCondition();
+		notFull =  lock.newCondition();
 
 		// backing array initialization
 		data = creator.initData(limit);
@@ -39,11 +54,26 @@ public class FixedSamplesArray<T> {
 	 *
 	 * @return
 	 */
-	public T getItemToWrite() {
-		Sample<T> result = data[position.getAndIncrement()];
-
-		//LOG.finer("stored sample to " + name + " " + result);
-		return (T) result;
+	public void writeItemFrom(long ... fields) throws InterruptedException {
+		if (isFull()) {
+			System.err.println("No memory to dump sample in " + name);
+//			return;
+		}
+		final Lock lock = this.lock;
+		final Sample<T>[] data = this.data;
+		try {
+			lock.lockInterruptibly();
+			while (count == data.length)
+				notFull.await();
+			Sample<T> result = data[putIndex];
+			if (++putIndex == data.length)
+				putIndex = 0;
+			result.readFromBuffer(fields);
+			count++;
+		} finally {
+			notEmpty.signal();
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -60,38 +90,46 @@ public class FixedSamplesArray<T> {
 	 *
 	 * @param itemToCopyFrom
 	 */
-	public void writeItemFrom(Sample<T> itemToCopyFrom) {
+	public void writeItemFrom(Sample<T> itemToCopyFrom) throws InterruptedException {
 		if (isFull()) {
 			System.err.println("No memory to dump sample in " + name);
-			return;
 		}
+		final Lock lock = this.lock;
+		final Sample<T>[] data = this.data;
 		try {
-			getWriteLock().lock();
-
-			Sample<T> result = data[position.getAndIncrement()];
+			lock.lockInterruptibly();
+			while (count == data.length)
+				notFull.await();
+			Sample<T> result = data[putIndex];
+			if (++putIndex == data.length)
+				putIndex = 0;
 			result.copyDataFrom(itemToCopyFrom);
-
-			//LOG.finer("stored sample to " + name + " " + result);
+			count++;
 		} finally {
-			getWriteLock().unlock();
+			lock.unlock();
 		}
 	}
 
-	public T readItemTo(Sample<T> itemToReadTo) {
+	public T readItemTo(Sample<T> itemToReadTo) throws InterruptedException {
 		if (isEmpty()) {
 			System.err.println("No samples to read in " + name);
-			return null;
 		}
 
+		final Lock lock = this.lock;
+		final Sample<T>[] data = this.data;
 		try {
-			rwLock.readLock().lock();
-			Sample<T> result = data[position.decrementAndGet()];
+			lock.lockInterruptibly();
+			while (count == 0)
+				notEmpty.await();
+			Sample<T> result = data[takeIndex];
 			itemToReadTo.copyDataFrom(result);
 
-			//LOG.finer("Read sample from " + name);
+			if (++takeIndex == data.length)
+				takeIndex = 0;
+			count--;
 			return (T)itemToReadTo;
 		} finally {
-			rwLock.readLock().unlock();
+			lock.unlock();
 		}
 
 	}
@@ -119,8 +157,24 @@ public class FixedSamplesArray<T> {
 	 * Has array any data to read
 	 * @return
 	 */
-	public boolean hasMore() {
-		return position.get() > 0;
+	public boolean hasMore() throws InterruptedException {
+		final ReentrantLock lock = this.lock;
+		lock.lockInterruptibly();
+		try {
+			return count>0;
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public int itemsLeft() throws InterruptedException {
+		final ReentrantLock lock = this.lock;
+		lock.lockInterruptibly();
+		try {
+			return data.length - count;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -128,7 +182,7 @@ public class FixedSamplesArray<T> {
 	 *
 	 * @return
 	 */
-	public boolean isEmpty() {
+	public boolean isEmpty() throws InterruptedException {
 		return !hasMore();
 	}
 
@@ -137,16 +191,7 @@ public class FixedSamplesArray<T> {
 	 *
 	 * @return
 	 */
-	public boolean isFull() {
-		return position.get() == limit;
-	}
-
-	/**
-	 * Get write lock to use with manual data writing.
-	 * @see FixedSamplesArray#getItemToWrite()
-	 * @return
-	 */
-	public Lock getWriteLock(){
-		return rwLock.writeLock();
+	public boolean isFull() throws InterruptedException {
+		return itemsLeft()==0;
 	}
 }

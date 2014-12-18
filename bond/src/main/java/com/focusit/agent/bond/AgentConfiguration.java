@@ -47,6 +47,9 @@ public class AgentConfiguration {
 
 		getExcludeClasses();
 		getIgnoreExcludeClasses();
+
+		getIncludeClasses();
+		getIgnoreIncludeClasses();
 	}
 
 	public static int getDumpInterval() {
@@ -102,6 +105,9 @@ public class AgentConfiguration {
 				{
 					skip = false;
 					break;
+				} else {
+					if(!skip)
+						skip=true;
 				}
 			}
 
@@ -109,7 +115,7 @@ public class AgentConfiguration {
 			{
 				if (className.startsWith(ignoreInclude))
 				{
-					skip = false;
+					skip = true;
 					break;
 				}
 			}
@@ -119,7 +125,7 @@ public class AgentConfiguration {
 	}
 
 	public static int getThreadJoinTimeout() {
-		return 10000;
+		return 100000;
 	}
 	public static String getMongoDbHost() {
 		return "127.0.0.1";
@@ -179,6 +185,10 @@ public class AgentConfiguration {
 			return excludes;
 
 		String values = properties.getProperty("agent.exclude");
+		if(values==null){
+			excludes = new String[0];
+			return excludes;
+		}
 		values = values.trim();
 		if (StringUtils.isEmpty(values)) {
 			return new String[0];
@@ -192,7 +202,11 @@ public class AgentConfiguration {
 		if(ignoreExcludes!=null)
 			return ignoreExcludes;
 
-		String values = properties.getProperty("agent.exclude.ingore");
+		String values = properties.getProperty("agent.exclude.ignore");
+		if(values==null){
+			ignoreExcludes = new String[0];
+			return ignoreExcludes;
+		}
 		values = values.trim();
 		if (StringUtils.isEmpty(values)) {
 			return new String[0];
@@ -207,6 +221,10 @@ public class AgentConfiguration {
 			return includes;
 
 		String values = properties.getProperty("agent.include");
+		if(values==null){
+			includes = new String[0];
+			return includes;
+		}
 		values = values.trim();
 		if (StringUtils.isEmpty(values)) {
 			return new String[0];
@@ -220,7 +238,11 @@ public class AgentConfiguration {
 		if(ignoreIncludes!=null)
 			return ignoreIncludes;
 
-		String values = properties.getProperty("agent.include.ingore");
+		String values = properties.getProperty("agent.include.ignore");
+		if(values==null){
+			ignoreIncludes = new String[0];
+			return ignoreIncludes;
+		}
 		values = values.trim();
 		if (StringUtils.isEmpty(values)) {
 			return new String[0];

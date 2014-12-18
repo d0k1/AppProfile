@@ -16,4 +16,10 @@ public class ClassToInstrument {
 			i++;
 		}
 	}
+
+	public void bar2(){
+		for(int i=0;i<10;){
+			i++;
+		}
+	}
 }

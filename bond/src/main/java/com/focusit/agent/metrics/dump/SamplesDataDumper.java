@@ -5,7 +5,7 @@ package com.focusit.agent.metrics.dump;
  * Created by Denis V. Kirpichenkov on 09.12.14.
  */
 public interface SamplesDataDumper {
-	void dumpRest();
+	void dumpRest() throws InterruptedException;
 
 	void exit() throws InterruptedException;
 

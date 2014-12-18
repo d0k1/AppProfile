@@ -68,8 +68,8 @@ public class JvmMonitoring {
 				int interval = AgentConfiguration.getJvmMonitoringInterval();
 
 				while (!Thread.interrupted()) {
-					writeMeasure();
 					try {
+						writeMeasure();
 						Thread.sleep(interval);
 					} catch (InterruptedException e) {
 						break;
@@ -104,45 +104,32 @@ public class JvmMonitoring {
 
 	}
 
-	private void writeMeasure() {
-		try {
-			data.getWriteLock().lock();
-			JvmInfo info = data.getItemToWrite();
-			info.freePhysMem = osMBean.getFreePhysicalMemorySize();
-			info.freeSwap = osMBean.getFreeSwapSpaceSize();
-			info.loadedClassCount = classLoadingMXBean.getLoadedClassCount();
-			info.peakThreadCount = threadMBean.getPeakThreadCount();
-			info.pid = pid;
-			info.processCpuLoad = osMBean.getProcessCpuLoad();
-			info.systemCpuLoad = osMBean.getSystemCpuLoad();
-			info.threadCount = threadMBean.getThreadCount();
-			info.threadDaemonCount = threadMBean.getDaemonThreadCount();
-			info.totalPhysMem = osMBean.getTotalPhysicalMemorySize();
-			info.totalSwap = osMBean.getTotalSwapSpaceSize();
-			info.totalStartedThreadCount = threadMBean.getTotalStartedThreadCount();
-			info.heapCommited = memoryMBean.getHeapMemoryUsage().getCommitted();
-			info.heapInit = memoryMBean.getHeapMemoryUsage().getInit();
-			info.heapMax = memoryMBean.getHeapMemoryUsage().getMax();
-			info.heapUsed = memoryMBean.getHeapMemoryUsage().getUsed();
-
-			if (gc1 != null) {
-				info.lastTimeGc1 = gc1.getCollectionTime();
-				info.totalCountGc1 = gc1.getCollectionCount();
-			}
-
-			if (gc2 != null) {
-				info.lastTimeGc2 = gc2.getCollectionTime();
-				info.totalCountGc2 = gc2.getCollectionCount();
-			}
-
-			info.ipv4Addr1 = ips[0];
-			info.ipv4Addr2 = ips[1];
-			info.ipv4Addr3 = ips[2];
-			info.ipv4Addr4 = ips[3];
-
-		} finally {
-			data.getWriteLock().unlock();
+	private void writeMeasure() throws InterruptedException {
+		if (data.isFull()) {
+			System.err.println("No memory to store sample in " + data.getName());
 		}
+
+		long time1 = 0;
+		long time2 = 0;
+		long total1 = 0;
+		long total2 = 0;
+		if (gc1 != null) {
+			time1 = gc1.getCollectionTime();
+			total1 = gc1.getCollectionCount();
+		}
+
+		if (gc2 != null) {
+			time2 = gc2.getCollectionTime();
+			total2 = gc2.getCollectionCount();
+		}
+
+		data.writeItemFrom(ips[0], ips[1], ips[2], ips[3], pid, classLoadingMXBean.getLoadedClassCount(), memoryMBean.getHeapMemoryUsage().getCommitted(),
+			memoryMBean.getHeapMemoryUsage().getInit(), memoryMBean.getHeapMemoryUsage().getMax(),
+			memoryMBean.getHeapMemoryUsage().getUsed(), osMBean.getFreePhysicalMemorySize(),
+			osMBean.getFreeSwapSpaceSize(), osMBean.getTotalPhysicalMemorySize(), osMBean.getTotalSwapSpaceSize(),
+			threadMBean.getThreadCount(), threadMBean.getDaemonThreadCount(), threadMBean.getPeakThreadCount(),
+			threadMBean.getTotalStartedThreadCount(), time1, time2, total1, total2, Double.doubleToLongBits(osMBean.getProcessCpuLoad()),
+			Double.doubleToLongBits(osMBean.getSystemCpuLoad()));
 	}
 
 	private long fillPid() {
@@ -187,15 +174,15 @@ public class JvmMonitoring {
 		monitoringThread.join(10000);
 	}
 
-	public void doMeasureAtExit() {
+	public void doMeasureAtExit() throws InterruptedException {
 		writeMeasure();
 	}
 
-	public static boolean hasMore() {
+	public static boolean hasMore() throws InterruptedException {
 		return data.hasMore();
 	}
 
-	public static JvmInfo readData(JvmInfo info) {
+	public static JvmInfo readData(JvmInfo info) throws InterruptedException {
 		return data.readItemTo(info);
 	}
 }
