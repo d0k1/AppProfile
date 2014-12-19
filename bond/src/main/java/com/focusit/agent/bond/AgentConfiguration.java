@@ -198,7 +198,7 @@ public class AgentConfiguration {
 	}
 
 	public static int getDumpBatch(){
-		return 150000;
+		return 1000;
 	}
 
 	public static String[] getIgnoreExcludeClasses() {

@@ -26,7 +26,7 @@ public class FixedSamplesArray<T> {
 	int putIndex=0;
 
 //	private final AtomicInteger position = new AtomicInteger(0);
-	private final ReentrantLock lock = new ReentrantLock(true);
+	private final ReentrantLock lock = new ReentrantLock(false);
 	private final Condition notEmpty;
 	private final Condition notFull;
 
