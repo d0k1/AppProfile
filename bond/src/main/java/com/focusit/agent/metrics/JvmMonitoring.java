@@ -34,9 +34,9 @@ public class JvmMonitoring {
 	private GarbageCollectorMXBean gc1;
 	private GarbageCollectorMXBean gc2;
 
-	// Max samples in memory = 655360 * 176 (bytes per sample) = 125 829 120 bytes = 120 Mb
-	private final static int samples = 655360;
-	private final static FixedSamplesArray<JvmInfo> data = new FixedSamplesArray<>(samples, new FixedSamplesArray.ItemInitializer() {
+	// Max LIMIT in memory = 655360 * 176 (bytes per sample) = 125 829 120 bytes = 120 Mb
+	private final static int LIMIT = 655360;
+	private final static FixedSamplesArray<JvmInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
 		@Override
 		public Sample[] initData(int limit) {
 			return new JvmInfo[limit];
@@ -46,7 +46,7 @@ public class JvmMonitoring {
 		public Sample createItem() {
 			return new JvmInfo();
 		}
-	}, "JvmStat");
+	}, "JvmStat", LIMIT);
 
 	private final Thread monitoringThread;
 	private final long pid;

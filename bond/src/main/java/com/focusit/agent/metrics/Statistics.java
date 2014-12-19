@@ -1,5 +1,6 @@
 package com.focusit.agent.metrics;
 
+import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
@@ -11,7 +12,7 @@ import com.focusit.agent.utils.common.FixedSamplesArray;
  */
 public class Statistics {
 	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
-	private final static int LIMIT = 1;//6553600;
+	private final static int LIMIT = 6553600;
 
 	private static final FixedSamplesArray<ExecutionInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
 		@Override
@@ -23,14 +24,9 @@ public class Statistics {
 		public Sample createItem() {
 			return new ExecutionInfo();
 		}
-	}, "Statistics");
+	}, "Statistics", AgentConfiguration.getDumpBatch());
 
 	public static void storeData(long methodId, long start, long stop) throws InterruptedException {
-
-		if (data.isFull()) {
-			System.err.println("No memory to store sample in " + data.getName());
-		}
-
 		data.writeItemFrom(Thread.currentThread().getId(), start, stop, methodId);
 	}
 

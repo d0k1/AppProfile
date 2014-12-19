@@ -10,7 +10,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Jvm monitoring data disk writer
@@ -20,14 +19,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	public static final String JVM_MONITORING_DUMPING_THREAD = "Jvm monitoring dumping thread";
 	private static int sampleSize = JvmInfo.sizeOf();
-	private final int samples = 500;
+	private final int samples = AgentConfiguration.getDumpBatch();
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
 	private final JvmInfo info = new JvmInfo();
-	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
@@ -49,10 +47,8 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 					int interval = AgentConfiguration.getDumpInterval();
 					while (!Thread.interrupted()) {
 						try {
-							Thread.sleep(interval);
-							while (JvmMonitoring.hasMore()) {
-								doDump();
-							}
+							doDump(false);
+							Thread.yield();
 						} catch (InterruptedException e) {
 							break;
 						}
@@ -67,31 +63,37 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 //		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
-	private void doDump() throws InterruptedException {
+	private void doDump(boolean checkAvailability) throws InterruptedException {
+		int sampleRead = 0;
+		InterruptedException interrupted = null;
 
-		boolean hasMore = JvmMonitoring.hasMore();
-		if (!hasMore)
-			return;
+		for (int i = 0; i < samples; i++) {
 
-		try {
-			readWriteLock.readLock().lock();
-			int sampleRead = 0;
-			for (int i = 0; i < samples && hasMore; i++) {
-				bytesBuffers[i].clear();
-				JvmMonitoring.readData(info);
-				info.writeToBuffer(bytesBuffers[i]);
-				samplesRead.incrementAndGet();
-				hasMore = JvmMonitoring.hasMore();
-				bytesBuffers[i].flip();
-				sampleRead++;
+			if(checkAvailability) {
+				if (!JvmMonitoring.hasMore())
+					break;
 			}
+
+			bytesBuffers[i].clear();
 			try {
-				channel.write(bytesBuffers, 0, sampleRead);
-			} catch (IOException e) {
-				System.err.println("Error jvm monitoring dump " + e.getMessage());
+			JvmMonitoring.readData(info);
+			info.writeToBuffer(bytesBuffers[i]);
+			samplesRead.incrementAndGet();
+			bytesBuffers[i].flip();
+			sampleRead++;
+			} catch (InterruptedException e){
+				interrupted = e;
+				break;
 			}
-		} finally {
-			readWriteLock.readLock().unlock();
+		}
+		try {
+			if(sampleRead>0)
+				channel.write(bytesBuffers, 0, sampleRead);
+		} catch (IOException e) {
+			System.err.println("Error jvm monitoring dump " + e.getMessage());
+		}
+		if(interrupted!=null) {
+			throw interrupted;
 		}
 	}
 
@@ -100,7 +102,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 		JvmMonitoring.getInstance().doMeasureAtExit();
 
 		while (JvmMonitoring.hasMore()) {
-			doDump();
+			doDump(true);
 		}
 		try {
 			channel.close();

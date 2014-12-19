@@ -30,11 +30,14 @@ public class FixedSamplesArray<T> {
 	private final Condition notEmpty;
 	private final Condition notFull;
 
+	private final int batchSize;
+
 	private final String name;
 
-	public FixedSamplesArray(int limit, ItemInitializer creator, String name) {
+	public FixedSamplesArray(int limit, ItemInitializer creator, String name, int batchSize) {
 		this.limit = limit;
 		this.name = name;
+		this.batchSize = batchSize;
 		notEmpty = lock.newCondition();
 		notFull =  lock.newCondition();
 
@@ -55,14 +58,20 @@ public class FixedSamplesArray<T> {
 	 * @return
 	 */
 	public void writeItemFrom(long ... fields) throws InterruptedException {
-		if (isFull()) {
-			System.err.println("No memory to dump sample in " + name);
-//			return;
-		}
+//		if (isFull()) {
+//			System.err.println("No memory to dump sample in " + name);
+////			return;
+//		}
+		InterruptedException interrupted = null;
 		final Lock lock = this.lock;
 		final Sample<T>[] data = this.data;
 		try {
-			lock.lockInterruptibly();
+			try {
+				lock.lockInterruptibly();
+			} catch (InterruptedException e){
+				interrupted = e;
+				return;
+			}
 			while (count == data.length)
 				notFull.await();
 			Sample<T> result = data[putIndex];
@@ -70,9 +79,15 @@ public class FixedSamplesArray<T> {
 				putIndex = 0;
 			result.readFromBuffer(fields);
 			count++;
+
+			if(count>batchSize)
+				notEmpty.signal();
+
 		} finally {
-			notEmpty.signal();
-			lock.unlock();
+			if(interrupted==null)
+				lock.unlock();
+			else
+				throw interrupted;
 		}
 	}
 
@@ -91,13 +106,19 @@ public class FixedSamplesArray<T> {
 	 * @param itemToCopyFrom
 	 */
 	public void writeItemFrom(Sample<T> itemToCopyFrom) throws InterruptedException {
-		if (isFull()) {
-			System.err.println("No memory to dump sample in " + name);
-		}
+//		if (isFull()) {
+//			System.err.println("No memory to dump sample in " + name);
+//		}
+		InterruptedException interrupted = null;
 		final Lock lock = this.lock;
 		final Sample<T>[] data = this.data;
 		try {
-			lock.lockInterruptibly();
+			try {
+				lock.lockInterruptibly();
+			} catch (InterruptedException e){
+				interrupted = e;
+				return;
+			}
 			while (count == data.length)
 				notFull.await();
 			Sample<T> result = data[putIndex];
@@ -105,20 +126,31 @@ public class FixedSamplesArray<T> {
 				putIndex = 0;
 			result.copyDataFrom(itemToCopyFrom);
 			count++;
+
+			if(count>batchSize)
+				notEmpty.signal();
 		} finally {
-			lock.unlock();
+			if(interrupted==null)
+				lock.unlock();
+			else
+				throw interrupted;
 		}
 	}
 
 	public T readItemTo(Sample<T> itemToReadTo) throws InterruptedException {
-		if (isEmpty()) {
-			System.err.println("No samples to read in " + name);
-		}
-
+//		if (isEmpty()) {
+//			System.err.println("No samples to read in " + name);
+//		}
+		InterruptedException interrupted = null;
 		final Lock lock = this.lock;
 		final Sample<T>[] data = this.data;
 		try {
-			lock.lockInterruptibly();
+			try {
+				lock.lockInterruptibly();
+			} catch (InterruptedException e){
+				interrupted = e;
+				return null;
+			}
 			while (count == 0)
 				notEmpty.await();
 			Sample<T> result = data[takeIndex];
@@ -127,9 +159,16 @@ public class FixedSamplesArray<T> {
 			if (++takeIndex == data.length)
 				takeIndex = 0;
 			count--;
+
+			if(itemsLeft()>batchSize)
+				notFull.signal();
 			return (T)itemToReadTo;
 		} finally {
-			lock.unlock();
+			if(interrupted==null)
+				lock.unlock();
+			else{
+				throw interrupted;
+			}
 		}
 
 	}

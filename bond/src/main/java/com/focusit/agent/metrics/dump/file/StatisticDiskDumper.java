@@ -10,7 +10,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Simple profiling data dumper. Uses RandomAccessFile to backing storage
@@ -20,14 +19,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class StatisticDiskDumper implements SamplesDataDumper {
 	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
-	private final int samples = 500;
+	private final int samples = AgentConfiguration.getDumpBatch();
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
 	private final ExecutionInfo info = new ExecutionInfo();
-	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
@@ -46,10 +44,8 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 				int interval = AgentConfiguration.getDumpInterval();
 				while (!Thread.interrupted()) {
 					try {
-						Thread.sleep(interval);
-						while (Statistics.hasMore()) {
-							doDump();
-						}
+						doDump(false);
+						Thread.yield();
 					} catch (InterruptedException e) {
 						break;
 					}
@@ -62,33 +58,47 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 //		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
-	private void doDump() throws InterruptedException {
-
-		boolean hasMore = Statistics.hasMore();
-		if (!hasMore)
-			return;
+	private void doDump(boolean checkAvailability) throws InterruptedException {
 
 		int sampleRead = 0;
-		for (int i = 0; i < samples && hasMore; i++) {
+		InterruptedException interrupted = null;
+
+		for (int i = 0; i < samples; i++) {
+
+			if(checkAvailability) {
+				if (!Statistics.hasMore())
+					break;
+			}
+
 			bytesBuffers[i].clear();
-			Statistics.readData(info);
-			info.writeToBuffer(bytesBuffers[i]);
-			samplesRead.incrementAndGet();
-			hasMore = Statistics.hasMore();
-			bytesBuffers[i].flip();
-			sampleRead++;
+			try {
+				Statistics.readData(info);
+				info.writeToBuffer(bytesBuffers[i]);
+				samplesRead.incrementAndGet();
+				bytesBuffers[i].flip();
+				sampleRead++;
+			} catch (InterruptedException e){
+				interrupted = e;
+				break;
+			}
 		}
+
 		try {
-			channel.write(bytesBuffers, 0, sampleRead);
+			if(sampleRead>0)
+				channel.write(bytesBuffers, 0, sampleRead);
 		} catch (IOException e) {
 			System.err.println("Error statistics dump " + e);
+		}
+
+		if(interrupted!=null) {
+			throw interrupted;
 		}
 	}
 
 	@Override
 	public final void dumpRest() throws InterruptedException {
 		while(Statistics.hasMore()){
-			doDump();
+			doDump(true);
 		}
 		try {
 			channel.close();

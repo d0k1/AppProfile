@@ -24,7 +24,7 @@ public class ExampleManyStat {
 		for(long i=0;i<42000000;i++){
 			cls.bar2();
 
-			if(i%1000==0)
+			if(i%1000000==0)
 				System.out.println("Done: " + i + " of 42000000");
 
 			//Thread.yield();
