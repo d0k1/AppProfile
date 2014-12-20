@@ -80,7 +80,7 @@ public class FixedSamplesArray<T> {
 			result.readFromBuffer(fields);
 			count++;
 
-			if(count>batchSize)
+//			if(count>batchSize)
 				notEmpty.signal();
 
 		} finally {
@@ -127,7 +127,7 @@ public class FixedSamplesArray<T> {
 			result.copyDataFrom(itemToCopyFrom);
 			count++;
 
-			if(count>batchSize)
+//			if(count>batchSize)
 				notEmpty.signal();
 		} finally {
 			if(interrupted==null)
@@ -160,7 +160,7 @@ public class FixedSamplesArray<T> {
 				takeIndex = 0;
 			count--;
 
-			if(itemsLeft()>batchSize)
+//			if(itemsLeft()>batchSize)
 				notFull.signal();
 			return (T)itemToReadTo;
 		} finally {
