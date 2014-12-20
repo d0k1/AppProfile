@@ -72,8 +72,10 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return;
 			}
-			while (count == data.length)
+			while (count == data.length) {
+				System.err.println("Queue full");
 				notFull.await();
+			}
 			Sample<T> result = data[putIndex];
 			if (++putIndex == data.length)
 				putIndex = 0;
@@ -119,8 +121,10 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return;
 			}
-			while (count == data.length)
+			while (count == data.length) {
+				System.err.println("Queue full");
 				notFull.await();
+			}
 			Sample<T> result = data[putIndex];
 			if (++putIndex == data.length)
 				putIndex = 0;
@@ -151,8 +155,10 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return null;
 			}
-			while (count == 0)
+			while (count == 0) {
+				System.err.println("Queue empty");
 				notEmpty.await();
+			}
 			Sample<T> result = data[takeIndex];
 			itemToReadTo.copyDataFrom(result);
 
