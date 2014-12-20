@@ -2,6 +2,7 @@ package com.focusit.agent.utils.common;
 
 import com.focusit.agent.metrics.samples.Sample;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,13 +18,13 @@ public class FixedSamplesArray<T> {
 	private final int limit;
 
 	/** items index for next take, poll, peek or remove */
-	int takeIndex=0;
+	AtomicInteger takeIndex = new AtomicInteger(0);
 
 	/** Number of elements in the queue */
-	int count;
+	AtomicInteger count = new AtomicInteger(0);
 
 	/** items index for next put, offer, or add */
-	int putIndex=0;
+	AtomicInteger putIndex = new AtomicInteger(0);
 
 //	private final AtomicInteger position = new AtomicInteger(0);
 	private final ReentrantLock lock = new ReentrantLock(false);
@@ -72,14 +73,14 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return;
 			}
-			while (count == data.length) {
+			while (count.get() == data.length) {
 				notFull.await();
 			}
-			Sample<T> result = data[putIndex];
-			if (++putIndex == data.length)
-				putIndex = 0;
+			Sample<T> result = data[putIndex.get()];
+			if (putIndex.incrementAndGet() == data.length)
+				putIndex.set(0);
 			result.readFromBuffer(fields);
-			count++;
+			count.incrementAndGet();
 
 //			if(count>batchSize)
 				notEmpty.signal();
@@ -120,14 +121,14 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return;
 			}
-			while (count == data.length) {
+			while (count.get() == data.length) {
 				notFull.await();
 			}
-			Sample<T> result = data[putIndex];
-			if (++putIndex == data.length)
-				putIndex = 0;
+			Sample<T> result = data[putIndex.get()];
+			if (putIndex.incrementAndGet() == data.length)
+				putIndex.set(0);
 			result.copyDataFrom(itemToCopyFrom);
-			count++;
+			count.incrementAndGet();
 
 //			if(count>batchSize)
 				notEmpty.signal();
@@ -153,16 +154,16 @@ public class FixedSamplesArray<T> {
 				interrupted = e;
 				return null;
 			}
-			while (count == 0) {
+			while (count.get()==0) {
 				notEmpty.await();
 			}
 
-			Sample<T> result = data[takeIndex];
+			Sample<T> result = data[takeIndex.get()];
 			itemToReadTo.copyDataFrom(result);
 
-			if (++takeIndex == data.length)
-				takeIndex = 0;
-			count--;
+			if (takeIndex.incrementAndGet() == data.length)
+				takeIndex.set(0);
+			count.decrementAndGet();
 
 //			if(itemsLeft()>batchSize)
 				notFull.signal();
@@ -204,7 +205,7 @@ public class FixedSamplesArray<T> {
 		final ReentrantLock lock = this.lock;
 		lock.lockInterruptibly();
 		try {
-			return count>0;
+			return count.get()>0;
 		} finally {
 			lock.unlock();
 		}
@@ -214,7 +215,7 @@ public class FixedSamplesArray<T> {
 		final ReentrantLock lock = this.lock;
 		lock.lockInterruptibly();
 		try {
-			return data.length - count;
+			return data.length - count.get();
 		} finally {
 			lock.unlock();
 		}
