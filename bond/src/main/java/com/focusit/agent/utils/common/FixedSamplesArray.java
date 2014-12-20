@@ -73,7 +73,6 @@ public class FixedSamplesArray<T> {
 				return;
 			}
 			while (count == data.length) {
-				System.err.println("Queue full");
 				notFull.await();
 			}
 			Sample<T> result = data[putIndex];
@@ -122,7 +121,6 @@ public class FixedSamplesArray<T> {
 				return;
 			}
 			while (count == data.length) {
-				System.err.println("Queue full");
 				notFull.await();
 			}
 			Sample<T> result = data[putIndex];
@@ -156,9 +154,9 @@ public class FixedSamplesArray<T> {
 				return null;
 			}
 			while (count == 0) {
-				System.err.println("Queue empty");
 				notEmpty.await();
 			}
+
 			Sample<T> result = data[takeIndex];
 			itemToReadTo.copyDataFrom(result);
 
