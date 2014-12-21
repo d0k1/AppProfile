@@ -12,24 +12,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class MethodsMap {
-	private static final MethodsMap instance = new MethodsMap();
-	private final static int INITIAL_SIZE = 15000;
-	private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
-	private final List<String> methods;
-	private final ConcurrentHashMap<String, Long> methodIndexes;
-	private final AtomicLong lastIndex;
+	private static final int INITIAL_SIZE = 15000;
+	private static final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
+	private static final List<String> methods = new ArrayList<>(INITIAL_SIZE);;
+	private static final ConcurrentHashMap<String, Long> methodIndexes = new ConcurrentHashMap<>(INITIAL_SIZE);;
+	private static final AtomicLong lastIndex = new AtomicLong(0);
 
-	private MethodsMap() {
-		methods = new ArrayList<>(INITIAL_SIZE);
-		methodIndexes = new ConcurrentHashMap<>(INITIAL_SIZE);
-		lastIndex = new AtomicLong(0);
-	}
-
-	public static MethodsMap getInstance(){
-		return instance;
-	}
-
-	public long addMethod(String method){
+	public static long addMethod(String method){
 		try {
 			rwLock.writeLock().lock();
 
@@ -50,7 +39,7 @@ public class MethodsMap {
 		}
 	}
 
-	public long getMethodIndex(String method){
+	public static long getMethodIndex(String method){
 		try{
 			rwLock.readLock().lock();
 
@@ -61,11 +50,11 @@ public class MethodsMap {
 		}
 	}
 
-	public long getLastIndex(){
+	public static long getLastIndex(){
 		return lastIndex.get();
 	}
 
-	public String getMethod(int index){
+	public static String getMethod(int index){
 		try{
 			rwLock.readLock().lock();
 

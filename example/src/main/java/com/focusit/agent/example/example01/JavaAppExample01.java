@@ -38,9 +38,9 @@ public class JavaAppExample01 {
 //
 //			new ClassToInstrument().foo();
 			new ClassToInstrument().bar2();
-			new ClassToInstrument().bar2();
-			new ClassToInstrument().bar2();
-			new ClassToInstrument().bar2();
+//			new ClassToInstrument().bar2();
+//			new ClassToInstrument().bar2();
+//			new ClassToInstrument().bar2();
 		} catch (Throwable e) {
 			System.err.println("Error: " + e.getMessage());
 		}

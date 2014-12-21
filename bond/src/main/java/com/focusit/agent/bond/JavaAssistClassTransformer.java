@@ -1,10 +1,11 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.metrics.MethodsMap;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
+import javassist.*;
+import javassist.expr.ExprEditor;
+import javassist.expr.MethodCall;
+import javassist.expr.NewArray;
+import javassist.expr.NewExpr;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -46,6 +47,41 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		}
 	}
 
+	private boolean modifyBehavoiur(CtBehavior method) throws CannotCompileException {
+		// skip empty and abstract methods
+		if (method.isEmpty())
+			return false;
+
+		String methodName = method.getLongName();
+		long methodId = MethodsMap.addMethod(methodName);
+		//LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
+
+		method.addLocalVariable("__metricStartTime", CtClass.longType);
+		String before = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
+		String after = "com.focusit.agent.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());";
+		method.insertBefore(before);
+		method.insertAfter(after);
+
+		method.instrument(new ExprEditor(){
+			@Override
+			public void edit(NewArray a) throws CannotCompileException {
+				super.edit(a);
+			}
+
+			@Override
+			public void edit(NewExpr e) throws CannotCompileException {
+				super.edit(e);
+			}
+
+			@Override
+			public void edit(MethodCall m) throws CannotCompileException {
+				super.edit(m);
+			}
+		});
+
+		return true;
+	}
+
 	@Override
 	public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 
@@ -62,6 +98,8 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 
 		//LOG.finer("Instrumenting "+className);
 
+//		System.out.println("Instrumenting "+className);
+
 		String methodName = "";
 		try {
 
@@ -76,21 +114,18 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 			}
 			boolean isClassModified = false;
 
+			for(CtConstructor constructor:ctClass.getConstructors()){
+				if(modifyBehavoiur(constructor)) {
+					constructor.getMethodInfo().rebuildStackMapIf6(classPool, ctClass.getClassFile());
+					isClassModified = true;
+				}
+			}
+
 			for (CtMethod method : ctClass.getDeclaredMethods()) {
-
-				// skip empty and abstract methods
-				if (method.isEmpty())
-					continue;
-
-				methodName = method.getLongName();
-				long methodId = MethodsMap.getInstance().addMethod(methodName);
-				//LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
-
-				method.addLocalVariable("__metricStartTime", CtClass.longType);
-				String getTime = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
-				method.insertBefore(getTime);
-				method.insertAfter("com.focusit.agent.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());");
-				isClassModified = true;
+				if(modifyBehavoiur(method)) {
+					method.getMethodInfo().rebuildStackMapIf6(classPool, ctClass.getClassFile());
+					isClassModified = true;
+				}
 			}
 
 			if (isClassModified) {

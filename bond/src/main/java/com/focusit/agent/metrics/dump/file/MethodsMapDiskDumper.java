@@ -23,7 +23,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
 	private final Thread dumper;
-	private final MethodsMap map = MethodsMap.getInstance();
+//	private final MethodsMap map = MethodsMap.getInstance();
 	private final Charset cs = Charset.forName("UTF-8");
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
@@ -42,7 +42,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 					while (!Thread.interrupted()) {
 
 						try {
-							while(lastIndex<map.getLastIndex()){
+							while(lastIndex<MethodsMap.getLastIndex()){
 								doDump();
 							}
 							Thread.sleep(interval);
@@ -70,7 +70,7 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 
 	@Override
 	public final void dumpRest() {
-		while(lastIndex<map.getLastIndex()){
+		while(lastIndex<MethodsMap.getLastIndex()){
 			doDump();
 		}
 		try {
@@ -85,10 +85,10 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 		try {
 			readWriteLock.readLock().lock();
 
-			if (lastIndex >= map.getLastIndex())
+			if (lastIndex >= MethodsMap.getLastIndex())
 				return;
 
-			byte bytes[] = map.getMethod((int) lastIndex).getBytes(cs);
+			byte bytes[] = MethodsMap.getMethod((int) lastIndex).getBytes(cs);
 			int length = bytes.length;
 			try {
 

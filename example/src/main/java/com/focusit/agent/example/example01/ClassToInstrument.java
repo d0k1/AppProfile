@@ -4,6 +4,11 @@ package com.focusit.agent.example.example01;
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
 public class ClassToInstrument {
+	public ClassToInstrument(){
+		int i = 0;
+		i++;
+	}
+
 	public void foo(){
 		for(int j=0;j<1000;){
 			j++;
