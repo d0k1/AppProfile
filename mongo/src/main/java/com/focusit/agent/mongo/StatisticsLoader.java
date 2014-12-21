@@ -37,8 +37,8 @@ public class StatisticsLoader implements MongoLoader {
 
 				BasicDBObject executionInfo = new BasicDBObject("sessionId", sessionId)
 					.append("threadId", info.threadId)
-					.append("start", info.start)
-					.append("end", info.end)
+					.append("eventId", info.eventId)
+					.append("time", info.time)
 					.append("method", info.method);
 
 				collection.insert(executionInfo);

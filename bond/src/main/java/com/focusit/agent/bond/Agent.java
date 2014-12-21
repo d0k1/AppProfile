@@ -36,7 +36,6 @@ public class Agent
             System.out.println("Loading bond agent");
 
             startSensors();
-
             startDumping();
 
             AgentConfiguration.Transformer transformer = AgentConfiguration.getAgentClassTransformer();

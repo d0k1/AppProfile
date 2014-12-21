@@ -56,11 +56,10 @@ public class JavaAssistClassTransformer implements ClassFileTransformer {
 		long methodId = MethodsMap.addMethod(methodName);
 		//LOG.finer(String.format("Instrumenting method %s with index %s", methodName, methodId));
 
-		method.addLocalVariable("__metricStartTime", CtClass.longType);
-		String before = "__metricStartTime = com.focusit.agent.bond.time.GlobalTime.getCurrentTime();";
-		String after = "com.focusit.agent.metrics.Statistics.storeData(" + methodId + "L, __metricStartTime, com.focusit.agent.bond.time.GlobalTime.getCurrentTime());";
+		String before = "com.focusit.agent.metrics.Statistics.storeEnter("+ methodId + "L);";
+		String after = "com.focusit.agent.metrics.Statistics.storeLeave("+ methodId + "L);";
 		method.insertBefore(before);
-		method.insertAfter(after);
+		method.insertAfter(after, true);
 
 		method.instrument(new ExprEditor(){
 			@Override

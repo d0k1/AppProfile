@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.lang.Thread.sleep;
 
 /**
- * Thread providing time. Used to avoid multiple getting system time
+ * Thread providing eventId. Used to avoid multiple getting system eventId
  * Created by Denis V. Kirpichenkov on 25.11.14.
  */
 public class GlobalTime {

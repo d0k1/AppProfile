@@ -13,14 +13,14 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	public long threadId = -1;
 
 	/**
-	 * nanos at start
+	 * event eventId
 	 */
-	public long start = -1;
+	public long eventId = -1;
 
 	/**
 	 * nanos at exit
 	 */
-	public long end = -1;
+	public long time = -1;
 
 	/**
 	 * method map index
@@ -35,31 +35,31 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	public Sample<ExecutionInfo> copyDataFrom(Sample<ExecutionInfo> sample) {
 
 		this.threadId = ((ExecutionInfo) sample).threadId;
-		this.start = ((ExecutionInfo) sample).start;
-		this.end = ((ExecutionInfo) sample).end;
+		this.eventId = ((ExecutionInfo) sample).eventId;
+		this.time = ((ExecutionInfo) sample).time;
 		this.method = ((ExecutionInfo) sample).method;
 		return this;
 	}
 
 	public void writeToBuffer(ByteBuffer out){
 		out.putLong(threadId);
-		out.putLong(start);
-		out.putLong(end);
+		out.putLong(eventId);
+		out.putLong(time);
 		out.putLong(method);
 	}
 
 	public void readFromBuffer(ByteBuffer in){
 		threadId = in.getLong();
-		start = in.getLong();
-		end = in.getLong();
+		eventId = in.getLong();
+		time = in.getLong();
 		method = in.getLong();
 	}
 
 	@Override
 	public void readFromBuffer(long[] buffer) {
 		threadId = buffer[0];
-		start = buffer[1];
-		end = buffer[2];
+		eventId = buffer[1];
+		time = buffer[2];
 		method = buffer[3];
 	}
 
@@ -72,8 +72,8 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	public String toString() {
 		return "ExecutionInfo{" +
 			"threadId=" + threadId +
-			", start=" + start +
-			", end=" + end +
+			", eventId=" + eventId +
+			", time=" + time +
 			", method=" + method +
 			'}';
 	}

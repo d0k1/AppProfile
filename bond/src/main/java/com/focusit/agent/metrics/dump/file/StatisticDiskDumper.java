@@ -9,10 +9,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Simple profiling data dumper. Uses RandomAccessFile to backing storage
@@ -31,9 +28,6 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 	private final ExecutionInfo info = new ExecutionInfo();
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
-
-	private final ReentrantLock interruptLock = new ReentrantLock(false);
-	private final Condition readyToInterrupt = interruptLock.newCondition();
 
 	public StatisticDiskDumper() throws IOException {
 		aFile = new RandomAccessFile(AgentConfiguration.getStatisticsFile(), "rw");
@@ -91,13 +85,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 
 		try {
 			if(sampleRead>0) {
-				try {
-					interruptLock.lock();
-					channel.write(bytesBuffers, 0, sampleRead);
-					readyToInterrupt.signal();
-				} finally {
-					interruptLock.unlock();
-				}
+				channel.write(bytesBuffers, 0, sampleRead);
 			}
 		} catch (IOException e) {
 			System.err.println("Error statistics dump " + e);
@@ -123,13 +111,7 @@ public class StatisticDiskDumper implements SamplesDataDumper {
 
 	@Override
 	public final void exit() throws InterruptedException {
-		try {
-			interruptLock.lockInterruptibly();
-			readyToInterrupt.await(5, TimeUnit.SECONDS);
-			dumper.interrupt();
-		} finally {
-			interruptLock.unlock();
-		}
+		dumper.interrupt();
 		dumper.join(AgentConfiguration.getThreadJoinTimeout());
 	}
 

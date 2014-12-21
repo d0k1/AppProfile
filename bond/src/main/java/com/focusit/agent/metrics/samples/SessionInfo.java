@@ -3,7 +3,7 @@ package com.focusit.agent.metrics.samples;
 import java.nio.ByteBuffer;
 
 /**
- * Hold profiling session start time
+ * Hold profiling session eventId eventId
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
 public final class SessionInfo implements Sample<SessionInfo> {

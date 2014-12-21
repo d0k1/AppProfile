@@ -1,7 +1,7 @@
 package com.focusit.agent.metrics;
 
 /**
- * Class to hold information about prifiling session start time
+ * Class to hold information about prifiling session eventId eventId
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
 public class SessionManager {

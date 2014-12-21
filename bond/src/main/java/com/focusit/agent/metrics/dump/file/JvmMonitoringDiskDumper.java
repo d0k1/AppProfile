@@ -9,10 +9,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Jvm monitoring data disk writer
@@ -31,9 +28,6 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	private final JvmInfo info = new JvmInfo();
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
-
-	private final ReentrantLock interruptLock = new ReentrantLock(false);
-	private final Condition readyToInterrupt = interruptLock.newCondition();
 
 	public JvmMonitoringDiskDumper() throws IOException {
 //		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
@@ -93,13 +87,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 			}
 		}
 		try {
-			try {
-				interruptLock.lock();
-				channel.write(bytesBuffers, 0, sampleRead);
-				readyToInterrupt.signal();
-			} finally {
-				interruptLock.unlock();
-			}
+			channel.write(bytesBuffers, 0, sampleRead);
 		} catch (IOException e) {
 			System.err.println("Error jvm monitoring dump " + e.getMessage());
 		}
@@ -125,13 +113,7 @@ public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 
 	@Override
 	public final void exit() throws InterruptedException {
-		try {
-			interruptLock.lockInterruptibly();
-			readyToInterrupt.await(5, TimeUnit.SECONDS);
-			dumper.interrupt();
-		} finally {
-			interruptLock.unlock();
-		}
+		dumper.interrupt();
 		dumper.join(AgentConfiguration.getThreadJoinTimeout());
 	}
 

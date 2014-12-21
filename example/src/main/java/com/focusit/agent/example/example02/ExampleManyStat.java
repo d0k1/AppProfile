@@ -19,7 +19,7 @@ public class ExampleManyStat {
 			e.printStackTrace();
 		}
 	}
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		ClassToInstrument cls = new ClassToInstrument();
 		for(long i=0;i<42000000;i++){
 			cls.bar2();

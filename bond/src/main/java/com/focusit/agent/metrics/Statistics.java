@@ -1,6 +1,7 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.bond.AgentConfiguration;
+import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
@@ -26,8 +27,16 @@ public class Statistics {
 		}
 	}, "Statistics", AgentConfiguration.getDumpBatch());
 
-	public static void storeData(long methodId, long start, long stop) throws InterruptedException {
-		data.writeItemFrom(Thread.currentThread().getId(), start, stop, methodId);
+	public static void storeEnter(long methodId) throws InterruptedException {
+		data.writeItemFrom(Thread.currentThread().getId(), 0, GlobalTime.getCurrentTime(), methodId);
+	}
+
+	public static void storeLeave(long methodId) throws InterruptedException {
+		data.writeItemFrom(Thread.currentThread().getId(), 1, GlobalTime.getCurrentTime(), methodId);
+	}
+
+	public static void storeLeaveException(long methodId) throws InterruptedException {
+		data.writeItemFrom(Thread.currentThread().getId(), 2, GlobalTime.getCurrentTime(), methodId);
 	}
 
 	public static ExecutionInfo readData(ExecutionInfo info) throws InterruptedException {
