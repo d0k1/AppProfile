@@ -29,7 +29,18 @@ public class AsmClassTransformer implements ClassFileTransformer {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw, className);
 		ClassReader cr = new ClassReader(classfileBuffer);
-		cr.accept(mcw, 0);
+//		ClassVisitor cv = new CheckClassAdapter(mcw);
+//		cr.accept(cv, ClassReader.SKIP_FRAMES);
+		cr.accept(mcw, ClassReader.SKIP_FRAMES);
+
+//		StringWriter sw = new StringWriter();
+//		PrintWriter pw = new PrintWriter(sw);
+//		CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, pw);
+//
+//		if(sw.toString().length()>0){
+//			System.err.println(sw.toString());
+//		}
+
 		return cw.toByteArray();
 	}
 
@@ -54,7 +65,8 @@ public class AsmClassTransformer implements ClassFileTransformer {
 			builder.append(className).append(".").append(name).append(desc);
 			long methodId = MethodsMap.addMethod(builder.toString());
 			builder.setLength(0);
-			return new ModifierMethodWriter(Opcodes.ASM5, mv, name, className, methodId);//new TryFinallyAdapter(Opcodes.ASM5, mv, access, name, desc, methodId);
+			return new ModifierMethodWriter(Opcodes.ASM5, mv, name, className, methodId, desc);
+//			return new TryFinallyAdapter(Opcodes.ASM5, mv, access, name, desc, methodId);
 		}
 
 	}
@@ -62,6 +74,8 @@ public class AsmClassTransformer implements ClassFileTransformer {
 	static class TryFinallyAdapter extends AdviceAdapter{
 		private final String name;
 		private final long methodId;
+		private Label startFinally = new Label();
+
 		protected TryFinallyAdapter(int api, MethodVisitor mv, int access, String name, String desc, long methodId) {
 			super(api, mv, access, name, desc);
 			this.name = name;
@@ -70,115 +84,124 @@ public class AsmClassTransformer implements ClassFileTransformer {
 
 		@Override
 		protected void onMethodEnter() {
-			super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			super.visitLdcInsn("Method " + methodDesc  + " Enter "+methodId);
-			super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			mv.visitLdcInsn("Method " + methodDesc + " Enter " + methodId);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+		}
+
+		private void onFinally(int opcode) {
+			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			mv.visitLdcInsn("Method " + methodDesc + " Exit " + methodId);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+		}
+		public void visitMaxs(int maxStack, int maxLocals) {
+			Label endFinally = new Label();
+			mv.visitTryCatchBlock(startFinally,
+				endFinally, endFinally, null);
+			mv.visitLabel(endFinally);
+			onFinally(ATHROW);
+			mv.visitInsn(ATHROW);
+			mv.visitMaxs(maxStack, maxLocals);
+		}
+
+		@Override
+		public void visitCode() {
+			super.visitCode();
+			mv.visitLabel(startFinally);
 		}
 
 		@Override
 		protected void onMethodExit(int opcode) {
-			super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			super.visitLdcInsn("Method " + methodDesc  + " Leave "+methodId);
-			super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+			if(opcode!=ATHROW) {
+				onFinally(opcode);
+			}
 		}
 	}
 
-	public static class ModifierMethodWriter extends MethodVisitor {
+	static class ModifierMethodWriter extends MethodVisitor implements Opcodes {
 
-		// methodName to make sure adding try catch block for the specific
-		// method.
 		private final String methodName;
 		private final String className;
 		private final long methodId;
+		private final String methodDesc;
 
-		// below label variables are for adding try/catch blocks in instrumented
-		// code.
-		private Label lTryBlockStart;
-		private Label lTryBlockEnd;
-		private Label lCatchBlockStart;
-		private Label lCatchBlockEnd;
+		private Label startFinally = new Label();
 
-		/**
-		 * constructor for accepting methodVisitor object and methodName
-		 *  @param api : the ASM API version implemented by this visitor
-		 * @param mv : MethodVisitor obj
-		 * @param methodName : methodName to make sure adding try catch block for the specific method.
-		 * @param methodId
-		 */
-		public ModifierMethodWriter(int api, MethodVisitor mv, String methodName, String className, long methodId) {
+
+		public ModifierMethodWriter(int api, MethodVisitor mv, String methodName, String className, long methodId, String methodDesc) {
 			super(api, mv);
 			this.methodName = methodName;
 			this.className = className;
 			this.methodId = methodId;
+			this.methodDesc = methodDesc;
 		}
 
-		// We want to add try/catch block for the entire code in the method
-		// so adding the try/catch when the method is started visiting the code.
+
 		@Override
 		public void visitCode() {
 			super.visitCode();
 
-			lTryBlockStart = new Label();
-			lTryBlockEnd = new Label();
-			lCatchBlockStart = new Label();
-			lCatchBlockEnd = new Label();
+			onTry();
 
-			visitLdcInsn(methodId);
-			visitMethodInsn(Opcodes.INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeEnter", "(J)V", false);
+			mv.visitLabel(startFinally);
+		}
 
-//			visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-//			visitLdcInsn("Method " + methodName + " Enter " + methodId);
-//			visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-//
-			// set up try-catch block for RuntimeException
-			visitTryCatchBlock(lTryBlockStart, lTryBlockEnd, lCatchBlockStart, null);
-
-			// started the try block
-			visitLabel(lTryBlockStart);
+		protected void onMethodExit(int opcode) {
+			if(opcode!=ATHROW) {
+				onFinally(opcode);
+			}
 		}
 
 		@Override
 		public void visitInsn(int opcode) {
 			switch(opcode)
 			{
-				case Opcodes.IRETURN:
-				case Opcodes.LRETURN:
-				case Opcodes.FRETURN:
-				case Opcodes.DRETURN:
-				case Opcodes.ARETURN:
-				case Opcodes.RETURN:
-
-					visitLdcInsn(methodId);
-					visitMethodInsn(Opcodes.INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
-//					super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-//					super.visitLdcInsn("Method " + methodName  + " Leave "+methodId);
-//					super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+				case RETURN:
+				case IRETURN:
+				case FRETURN:
+				case ARETURN:
+				case LRETURN:
+				case DRETURN:
+				case ATHROW:
+					onMethodExit(opcode);
 					break;
 			}
 			super.visitInsn(opcode);
 		}
 
+		private void onTry(){
+			mv.visitLdcInsn(methodId);
+			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
+//			printEnter();
+		}
+
+		private void onFinally(int opcode) {
+			mv.visitLdcInsn(methodId);
+			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
+//			printExit();
+		}
+
+		private void printExit(){
+			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			mv.visitLdcInsn("Method " + className + "." + methodName + " Leave " + methodId);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+		}
+
+		private void printEnter(){
+			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			mv.visitLdcInsn("Method " + className+"."+methodName + " Enter " + methodId);
+			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+		}
 		@Override
 		public void visitMaxs(int maxStack, int maxLocals) {
 
-			visitLabel(lTryBlockEnd);
-
-
-			visitJumpInsn(Opcodes.GOTO, lCatchBlockEnd);
-
-			visitLabel(lCatchBlockStart);
-
-			visitLdcInsn(methodId);
-			visitMethodInsn(Opcodes.INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeaveException", "(J)V", false);
-//			super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-//			super.visitLdcInsn("Method " + methodName  + " Leave "+methodId);
-//			super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-
-			visitInsn(Opcodes.ATHROW);
-
-			visitLabel(lCatchBlockEnd);
-
-			super.visitMaxs(maxStack, maxLocals);
+			Label endFinally = new Label();
+			mv.visitTryCatchBlock(startFinally,
+				endFinally, endFinally, null);
+			mv.visitLabel(endFinally);
+			onFinally(Opcodes.ATHROW);
+			mv.visitInsn(Opcodes.ATHROW);
+			mv.visitMaxs(maxStack, maxLocals);
 		}
 
 	}

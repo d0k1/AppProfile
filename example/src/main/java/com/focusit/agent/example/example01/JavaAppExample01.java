@@ -35,9 +35,10 @@ public class JavaAppExample01 {
 //					System.out.println("Executed");
 //				}
 //			}
-//
+
 //			new ClassToInstrument().foo();
-			new ClassToInstrument().bar2();
+			TestInterface intref = new ClassToInstrument();
+			intref.bar2();
 //			new ClassToInstrument().bar2();
 //			new ClassToInstrument().bar2();
 //			new ClassToInstrument().bar2();
