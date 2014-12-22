@@ -328,7 +328,7 @@ elif [ "$1" = "run" ]; then
 
 elif [ "$1" = "start" ] ; then
 
-JAVA_OPTS=" -Dagent.config=/tmp/agent.properties -Dagent.jar=/tmp/bond.jar -javaagent:/tmp/bond.jar $JAVA_OPTS"
+JAVA_OPTS=" -Dagent.config=/tmp/agent.properties -Dagent.jar=/tmp/bond.jar -javaagent:/tmp/bond.jar -XX:-UseSplitVerifier $JAVA_OPTS"
 
   if [ ! -z "$CATALINA_PID" ]; then
     if [ -f "$CATALINA_PID" ]; then

@@ -11,5 +11,14 @@ public abstract class AbstractTest implements TestInterface {
 		}
 	}
 
+//	public void finallyTest(){
+//		try{
+//			int i=0;
+//			i++;
+//		} finally {
+//			Statistics.
+//		}
+//	}
+
 	public abstract void bar();
 }

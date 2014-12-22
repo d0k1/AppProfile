@@ -171,13 +171,17 @@ public class AsmClassTransformer implements ClassFileTransformer {
 
 		private void onTry(){
 			mv.visitLdcInsn(methodId);
-			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
+			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeEnter", "(J)V", false);
 //			printEnter();
 		}
 
 		private void onFinally(int opcode) {
 			mv.visitLdcInsn(methodId);
-			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
+			if(opcode==ATHROW){
+				mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeaveException", "(J)V", false);
+			} else {
+				mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
+			}
 //			printExit();
 		}
 
@@ -201,6 +205,8 @@ public class AsmClassTransformer implements ClassFileTransformer {
 			mv.visitLabel(endFinally);
 			onFinally(Opcodes.ATHROW);
 			mv.visitInsn(Opcodes.ATHROW);
+			mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+			mv.visitInsn(RETURN);
 			mv.visitMaxs(maxStack, maxLocals);
 		}
 
