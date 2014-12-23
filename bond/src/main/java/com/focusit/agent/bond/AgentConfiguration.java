@@ -292,6 +292,6 @@ public class AgentConfiguration {
 	}
 
 	public static int getJvmMonitoringInterval() {
-		return 2000;
+		return 1000;
 	}
 }
