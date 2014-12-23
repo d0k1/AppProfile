@@ -9,6 +9,10 @@ agent.dump.interval=1
 agent.include=com.focusit.agent.example
 #agent.include.ignore=com.focusit.agent.example,java.sql
 
+agent.jvm.monitoring.interval=500
+agent.dump.jvm.batch=50
+agent.dump.statistics.batch=1000
+
 methods.file=
 statistics.file=
 jvm.file=

@@ -25,7 +25,7 @@ public class Statistics {
 		public Sample createItem() {
 			return new ExecutionInfo();
 		}
-	}, "Statistics", AgentConfiguration.getDumpBatch());
+	}, "Statistics", AgentConfiguration.getStatisticsDumpBatch());
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		data.writeItemFrom(Thread.currentThread().getId(), 0, GlobalTime.getCurrentTime(), methodId);

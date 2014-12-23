@@ -1,6 +1,7 @@
 package com.focusit.agent.mongo;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 
@@ -24,6 +25,9 @@ public class MethodMapLoader implements MongoLoader {
 		DBCollection collection = bondDb.getCollection(MongoConfiguration.getMethodsMapCollection());
 
 		StringBuilder buffer = new StringBuilder();
+
+		BulkWriteOperation ops = collection.initializeUnorderedBulkOperation();
+
 		try (FileInputStream fis = new FileInputStream(file)) {
 			char buf[] = new char[1024];
 
@@ -39,7 +43,7 @@ public class MethodMapLoader implements MongoLoader {
 							BasicDBObject methodInfo = new BasicDBObject("sessionId", sessionId)
 								.append("index", index++).append("method", method);
 
-							collection.insert(methodInfo);
+							ops.insert(methodInfo);
 
 							buffer.setLength(0);
 						}
@@ -50,7 +54,9 @@ public class MethodMapLoader implements MongoLoader {
 			BasicDBObject methodInfo = new BasicDBObject("sessionId", sessionId)
 				.append("index", index++).append("method", method);
 
-			collection.insert(methodInfo);
+			ops.insert(methodInfo);
+
+			ops.execute();
 
 			LOG.info("Loaded " + index + " records of methods map");
 

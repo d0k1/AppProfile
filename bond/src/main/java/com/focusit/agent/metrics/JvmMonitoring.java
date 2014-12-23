@@ -1,6 +1,7 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.bond.AgentConfiguration;
+import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.JvmInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
@@ -129,7 +130,7 @@ public class JvmMonitoring {
 			osMBean.getFreeSwapSpaceSize(), osMBean.getTotalPhysicalMemorySize(), osMBean.getTotalSwapSpaceSize(),
 			threadMBean.getThreadCount(), threadMBean.getDaemonThreadCount(), threadMBean.getPeakThreadCount(),
 			threadMBean.getTotalStartedThreadCount(), time1, time2, total1, total2, Double.doubleToLongBits(osMBean.getProcessCpuLoad()),
-			Double.doubleToLongBits(osMBean.getSystemCpuLoad()));
+			Double.doubleToLongBits(osMBean.getSystemCpuLoad()), GlobalTime.getCurrentTime());
 	}
 
 	private long fillPid() {

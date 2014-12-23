@@ -11,7 +11,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 
 	public static int sizeOf() {
 		// 8 byte per field * 24 fields
-		return 8 * 24;
+		return 8 * 25;
 	}
 
 	public long ipv4Addr1 = -1;
@@ -38,6 +38,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 	public long lastTimeGc2;
 	public long totalCountGc1;
 	public long totalCountGc2;
+	public long time;
 
 	@Override
 	public Sample<JvmInfo> copyDataFrom(Sample<JvmInfo> sample) {
@@ -68,7 +69,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 
 		processCpuLoad = in.processCpuLoad;
 		systemCpuLoad = in.systemCpuLoad;
-
+		time = in.time;
 		return this;
 	}
 
@@ -99,6 +100,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 
 		out.putLong(Double.doubleToLongBits(processCpuLoad));
 		out.putLong(Double.doubleToLongBits(systemCpuLoad));
+		out.putLong(time);
 	}
 
 	@Override
@@ -128,7 +130,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 
 		processCpuLoad = Double.longBitsToDouble(in.getLong());
 		systemCpuLoad = Double.longBitsToDouble(in.getLong());
-
+		time = in.getLong();
 	}
 
 	@Override
@@ -158,6 +160,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 
 		processCpuLoad = Double.longBitsToDouble(buffer[22]);
 		systemCpuLoad = Double.longBitsToDouble(buffer[23]);
+		time = buffer[24];
 	}
 
 	@Override
@@ -192,6 +195,7 @@ public final class JvmInfo implements Sample<JvmInfo> {
 			", lastTimeGc2=" + lastTimeGc2 +
 			", totalCountGc1=" + totalCountGc1 +
 			", totalCountGc2=" + totalCountGc2 +
+			", time=" + time +
 			'}';
 	}
 }

@@ -24,6 +24,9 @@ public class AgentConfiguration {
 	private static String includes[] = null;
 	private static String ignoreIncludes[] = null;
 
+	private static int statisticsDumpBatch = -1;
+	private static int jvmDumpBatch = -1;
+
 	static {
 		Properties p = System.getProperties();
 		Enumeration keys = p.keys();
@@ -197,10 +200,47 @@ public class AgentConfiguration {
 		return excludes;
 	}
 
-	public static int getDumpBatch(){
-		return 1000;
+	public static int getStatisticsDumpBatch(){
+		if(statisticsDumpBatch>0)
+			return statisticsDumpBatch;
+
+		int result = 1000;
+		try {
+
+			String batch = properties.getProperty("agent.dump.statistics.batch");
+			if (!StringUtils.isEmpty(batch)) {
+				try {
+					result = Integer.parseInt(batch);
+				} catch (NumberFormatException e) {
+					result = 1000;
+				}
+			}
+		} finally {
+			statisticsDumpBatch = result;
+			return statisticsDumpBatch;
+		}
 	}
 
+	public static int getJvmDumpBatch(){
+		if(jvmDumpBatch>0)
+			return jvmDumpBatch;
+
+		int result = 1000;
+		try {
+
+			String batch = properties.getProperty("agent.dump.jvm.batch");
+			if (!StringUtils.isEmpty(batch)) {
+				try {
+					result = Integer.parseInt(batch);
+				} catch (NumberFormatException e) {
+					result = 1000;
+				}
+			}
+		} finally {
+			jvmDumpBatch = result;
+			return jvmDumpBatch;
+		}
+	}
 	public static String[] getIgnoreExcludeClasses() {
 
 		if(ignoreExcludes!=null)
@@ -292,6 +332,19 @@ public class AgentConfiguration {
 	}
 
 	public static int getJvmMonitoringInterval() {
-		return 1000;
+		int result = 1000;
+		try {
+
+			String batch = properties.getProperty("agent.jvm.monitoring.interval");
+			if (!StringUtils.isEmpty(batch)) {
+				try {
+					result = Integer.parseInt(batch);
+				} catch (NumberFormatException e) {
+					result = 1000;
+				}
+			}
+		} finally {
+			return result;
+		}
 	}
 }

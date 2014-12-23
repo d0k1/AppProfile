@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class JvmMonitoringDiskDumper implements SamplesDataDumper {
 	public static final String JVM_MONITORING_DUMPING_THREAD = "Jvm monitoring dumping thread";
 	private static int sampleSize = JvmInfo.sizeOf();
-	private final int samples = AgentConfiguration.getDumpBatch();
+	private final int samples = AgentConfiguration.getJvmDumpBatch();
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 

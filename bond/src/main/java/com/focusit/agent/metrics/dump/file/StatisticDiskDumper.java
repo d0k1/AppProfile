@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StatisticDiskDumper implements SamplesDataDumper {
 	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
-	private final int samples = AgentConfiguration.getDumpBatch();
+	private final int samples = AgentConfiguration.getStatisticsDumpBatch();
 	private final Thread dumper;
 	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
 

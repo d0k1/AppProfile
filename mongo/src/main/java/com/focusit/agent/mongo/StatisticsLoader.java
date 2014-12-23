@@ -2,12 +2,14 @@ package com.focusit.agent.mongo;
 
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
 /**
@@ -22,30 +24,50 @@ public class StatisticsLoader implements MongoLoader {
 		String file = MongoConfiguration.getStatisticsFile();
 		DBCollection collection = bondDb.getCollection(MongoConfiguration.getStatisticsCollection());
 
-		try (FileInputStream fis = new FileInputStream(file)) {
-			ByteBuffer buffer = ByteBuffer.allocate(ExecutionInfo.sizeOf());
+		int samples = 4000000;
+		ByteBuffer buffer = ByteBuffer.allocate(samples*ExecutionInfo.sizeOf());
 
-			int content;
-			long index = 0;
-			while ((content = fis.read(buffer.array())) != -1) {
-				if (content < ExecutionInfo.sizeOf()) {
-					throw new IOException("Error reading JvmInfo");
+		try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+
+			try(FileChannel ch = raf.getChannel()){
+				int content;
+				long index = 0;
+
+				while ((content = ch.read(buffer)) != -1) {
+					if (content < ExecutionInfo.sizeOf()) {
+						throw new IOException("Error reading JvmInfo");
+					}
+
+					int count = content / ExecutionInfo.sizeOf();
+
+					ExecutionInfo info = new ExecutionInfo();
+
+					buffer.flip();
+					BulkWriteOperation ops = collection.initializeUnorderedBulkOperation();
+					for (int i = 0; i < count; i++) {
+
+						info.readFromBuffer(buffer);
+
+						BasicDBObject executionInfo = new BasicDBObject("sessionId", sessionId)
+							.append("sample", index+i)
+							.append("threadId", info.threadId)
+							.append("eventId", info.eventId)
+							.append("time", info.time)
+							.append("method", info.method);
+
+						ops.insert(executionInfo);
+					}
+
+					ops.execute();
+					index += count;
+					buffer.clear();
+
+					LOG.info("Inserted " + index + " records of profiling statistics");
 				}
 
-				ExecutionInfo info = new ExecutionInfo();
-				info.readFromBuffer(buffer);
-
-				BasicDBObject executionInfo = new BasicDBObject("sessionId", sessionId)
-					.append("threadId", info.threadId)
-					.append("eventId", info.eventId)
-					.append("time", info.time)
-					.append("method", info.method);
-
-				collection.insert(executionInfo);
-				index++;
+				LOG.info("Loaded " + index + " records of profiling statistics");
 			}
 
-			LOG.info("Loaded " + index + " records of profiling statistics");
 
 		} catch (IOException e) {
 			LOG.severe("Error loading jvm monitoring " + e.getMessage());
