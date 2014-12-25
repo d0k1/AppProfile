@@ -10,14 +10,21 @@ import static java.lang.Thread.sleep;
  */
 public class GlobalTime {
 	private static final AtomicLong time = new AtomicLong(0L);
+	private static final AtomicLong timestamp = new AtomicLong(0L);
 	private final int interval;
 
 	public GlobalTime(int interval) {
 		this.interval = interval;
+		time.set(System.nanoTime());
+		timestamp.set(System.currentTimeMillis());
 	}
 
 	public static long getCurrentTime() {
 		return time.get();
+	}
+
+	public static long getCurrentTimeInMillis() {
+		return timestamp.get();
 	}
 
 	public void start() {
@@ -25,8 +32,9 @@ public class GlobalTime {
 			@Override
 			public void run() {
 				while (!Thread.interrupted()) {
-					long temp_time = time.get();
-					time.compareAndSet(temp_time, System.nanoTime());
+
+					time.set(System.nanoTime());
+					timestamp.set(System.currentTimeMillis());
 					try {
 						sleep(interval);
 					} catch (InterruptedException e) {

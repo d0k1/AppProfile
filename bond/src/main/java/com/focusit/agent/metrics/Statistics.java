@@ -28,15 +28,15 @@ public class Statistics {
 	}, "Statistics", AgentConfiguration.getStatisticsDumpBatch());
 
 	public static void storeEnter(long methodId) throws InterruptedException {
-		data.writeItemFrom(Thread.currentThread().getId(), 0, GlobalTime.getCurrentTime(), methodId);
+		data.writeItemFrom(Thread.currentThread().getId(), 0, GlobalTime.getCurrentTime(), methodId, GlobalTime.getCurrentTimeInMillis());
 	}
 
 	public static void storeLeave(long methodId) throws InterruptedException {
-		data.writeItemFrom(Thread.currentThread().getId(), 1, GlobalTime.getCurrentTime(), methodId);
+		data.writeItemFrom(Thread.currentThread().getId(), 1, GlobalTime.getCurrentTime(), methodId, GlobalTime.getCurrentTimeInMillis());
 	}
 
 	public static void storeLeaveException(long methodId) throws InterruptedException {
-		data.writeItemFrom(Thread.currentThread().getId(), 2, GlobalTime.getCurrentTime(), methodId);
+		data.writeItemFrom(Thread.currentThread().getId(), 2, GlobalTime.getCurrentTime(), methodId, GlobalTime.getCurrentTimeInMillis());
 	}
 
 	public static ExecutionInfo readData(ExecutionInfo info) throws InterruptedException {

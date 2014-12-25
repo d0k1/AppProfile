@@ -27,8 +27,10 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	 */
 	public long method = -1;
 
+	public long timestamp;
+
 	public static int sizeOf(){
-		return 4 * 8; // 4 field, each field - 8 bytes
+		return 5 * 8; // 4 field, each field - 8 bytes
 	}
 
 	@Override
@@ -38,6 +40,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		this.eventId = ((ExecutionInfo) sample).eventId;
 		this.time = ((ExecutionInfo) sample).time;
 		this.method = ((ExecutionInfo) sample).method;
+		this.timestamp = ((ExecutionInfo) sample).timestamp;
 		return this;
 	}
 
@@ -46,6 +49,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		out.putLong(eventId);
 		out.putLong(time);
 		out.putLong(method);
+		out.putLong(timestamp);
 	}
 
 	public void readFromBuffer(ByteBuffer in){
@@ -53,6 +57,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		eventId = in.getLong();
 		time = in.getLong();
 		method = in.getLong();
+		timestamp = in.getLong();
 	}
 
 	@Override
@@ -61,6 +66,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		eventId = buffer[1];
 		time = buffer[2];
 		method = buffer[3];
+		timestamp = buffer[4];
 	}
 
 	@Override
@@ -75,6 +81,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 			", eventId=" + eventId +
 			", time=" + time +
 			", method=" + method +
+			", timestamp=" + timestamp +
 			'}';
 	}
 }

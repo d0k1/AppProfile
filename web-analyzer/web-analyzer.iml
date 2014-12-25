@@ -16,6 +16,7 @@
       <configuration>
         <fileset id="fileset" name="Spring Application Context" removed="false">
           <file>file://$MODULE_DIR$/src/main/java/com/focusit/agent/analyzer/Application.java</file>
+          <file>file://$MODULE_DIR$/src/main/java/com/focusit/agent/analyzer/configuration/MongoConfiguration.java</file>
         </fileset>
       </configuration>
     </facet>
@@ -79,5 +80,6 @@
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-mongodb:1.6.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-commons:1.9.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:jcl-over-slf4j:1.7.7" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:springloaded:1.2.0.RELEASE" level="project" />
   </component>
 </module>

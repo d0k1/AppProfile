@@ -130,7 +130,7 @@ public class JvmMonitoring {
 			osMBean.getFreeSwapSpaceSize(), osMBean.getTotalPhysicalMemorySize(), osMBean.getTotalSwapSpaceSize(),
 			threadMBean.getThreadCount(), threadMBean.getDaemonThreadCount(), threadMBean.getPeakThreadCount(),
 			threadMBean.getTotalStartedThreadCount(), time1, time2, total1, total2, Double.doubleToLongBits(osMBean.getProcessCpuLoad()),
-			Double.doubleToLongBits(osMBean.getSystemCpuLoad()), GlobalTime.getCurrentTime());
+			Double.doubleToLongBits(osMBean.getSystemCpuLoad()), GlobalTime.getCurrentTime(), GlobalTime.getCurrentTimeInMillis());
 	}
 
 	private long fillPid() {
