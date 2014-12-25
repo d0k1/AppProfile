@@ -6,7 +6,6 @@ import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.logging.Logger;
 
 /**
@@ -31,7 +30,7 @@ public class Main {
 		long nextSession = sessions.getCount() + 1;
 
 		BasicDBObject sessionInfo = new BasicDBObject("sessionId", nextSession)
-			.append("date", new Date().getTime());
+			.append("date", System.currentTimeMillis());
 
 		sessions.insert(sessionInfo);
 

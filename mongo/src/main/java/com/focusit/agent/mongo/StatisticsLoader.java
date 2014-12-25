@@ -49,11 +49,12 @@ public class StatisticsLoader implements MongoLoader {
 						info.readFromBuffer(buffer);
 
 						BasicDBObject executionInfo = new BasicDBObject("sessionId", sessionId)
-							.append("sample", index+i)
+							.append("sample", index + i)
 							.append("threadId", info.threadId)
 							.append("eventId", info.eventId)
+							.append("method", info.method)
 							.append("time", info.time)
-							.append("method", info.method);
+							.append("timestamp", info.timestamp);
 
 						ops.insert(executionInfo);
 					}

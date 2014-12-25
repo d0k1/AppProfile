@@ -85,7 +85,8 @@ public class JvmMonitoringLoader implements MongoLoader {
 							.append("lastTimeGc2", info.lastTimeGc2)
 							.append("totalCountGc1", info.totalCountGc1)
 							.append("totalCountGc2", info.totalCountGc2)
-							.append("time", info.time);
+							.append("time", info.time)
+							.append("timestamp", info.timestamp);
 
 						ops.insert(jvmInfo);
 					}
