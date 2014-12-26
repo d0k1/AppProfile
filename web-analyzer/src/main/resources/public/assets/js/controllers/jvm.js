@@ -2,12 +2,28 @@
  * Created by doki on 01.07.14.
  */
 
-var jvmControllers = angular.module('jvmControllers', ['services', 'chartjs']);
+var jvmControllers = angular.module('jvmControllers', ['services', 'chartjs', 'ngResource']);
 
-jvmControllers.controller('jvmController', function($scope){
+jvmControllers.factory("allheap", function($resource) {
+                         return $resource("/jvm/:sessionId/heap");
+                       });
+
+jvmControllers.factory("lastheap", function($resource) {
+                         return $resource("/jvm/:sessionId/heap/last/:seconds");
+                       });
+
+jvmControllers.controller('jvmController', function($scope, allheap, lastheap){
 	$scope.title = 'JVM Monitoring'
 
-	$scope.someData = {}
+	$scope.someData = {datasets:[]}
+
+	allheap.get({ sessionId: 1 }, function(data) {
+        for(var sample in data){
+
+        }
+      });
+
+
 	//$scope.someData = {
 	//	labels: [
 	//		'Apr',
