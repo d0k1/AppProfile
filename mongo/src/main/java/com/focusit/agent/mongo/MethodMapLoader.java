@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 /**
- * Move to mongo profiling method map
+ * Move to netty profiling method map
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
 public class MethodMapLoader implements MongoLoader {

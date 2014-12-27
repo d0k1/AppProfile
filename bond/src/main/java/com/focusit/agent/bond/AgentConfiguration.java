@@ -315,9 +315,43 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static DumpType getDumpType(){
+		String dumpType = properties.getProperty("agent.dumptype");
+		if(dumpType!=null && dumpType.trim().length()>0){
+			return DumpType.valueOf(dumpType);
+		}
+		return DumpType.disk;
+	}
+
 	public enum Transformer {
 		asm, javaassist, cglib
 	}
+
+	public static String getNettyDumpHost(){
+		return "localhost";
+	}
+
+	public static String getNettyDumpJvmPort(){
+		return "16000";
+	}
+
+	public static String getNettyDumpOSPort(){
+		return "16001";
+	}
+
+	public static String getNettyDumpMethodMapPort(){
+		return "16002";
+	}
+
+	public static String getNettyDumpStatisticsPort(){
+		return "16003";
+	}
+
+	public static String getNettyDumpId(){
+		return "app";
+	}
+
+	public enum DumpType {netty, disk}
 
 	public static URL getAgentLog4jProps() {
 		return ClassLoader.getSystemClassLoader().getResource("log4j.properties");

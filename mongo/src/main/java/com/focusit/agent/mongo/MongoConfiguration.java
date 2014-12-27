@@ -1,7 +1,7 @@
 package com.focusit.agent.mongo;
 
 /**
- * Properties to mongo data loaders
+ * Properties to netty data loaders
  * <p/>
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */

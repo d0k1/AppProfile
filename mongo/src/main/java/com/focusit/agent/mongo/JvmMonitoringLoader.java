@@ -16,7 +16,7 @@ import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
 /**
- * Move to mongo jvm monitoring data
+ * Move to netty jvm monitoring data
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
 public class JvmMonitoringLoader implements MongoLoader {

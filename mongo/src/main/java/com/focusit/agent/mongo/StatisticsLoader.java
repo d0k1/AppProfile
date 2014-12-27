@@ -13,7 +13,7 @@ import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
 /**
- * Class to load dumped profiler statistics into mongo collection
+ * Class to load dumped profiler statistics into netty collection
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
 public class StatisticsLoader implements MongoLoader {

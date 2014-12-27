@@ -1,8 +1,10 @@
 package com.focusit.agent.metrics.dump;
 
+import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
+import com.focusit.agent.metrics.dump.netty.JvmMonitoringNettyDumper;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -16,12 +18,30 @@ public class SamplesDumpManager implements SamplesDataDumper {
 
 	private final static Logger LOG = Logger.getLogger(SamplesDumpManager.class.getName());
 
-	private SamplesDataDumper storages[] = new SamplesDataDumper[3];
+	private SamplesDataDumper storages[];
 
-	public SamplesDumpManager() throws IOException {
+	public void startDiskDumpers() throws IOException {
+		storages = new SamplesDataDumper[3];
+
 		storages[0] = new StatisticDiskDumper();
 		storages[1] = new MethodsMapDiskDumper();
 		storages[2] = new JvmMonitoringDiskDumper();
+	}
+
+	public void startNettyDumpers() throws IOException, InterruptedException {
+		storages = new SamplesDataDumper[3];
+
+		storages[0] = new StatisticDiskDumper();
+		storages[1] = new MethodsMapDiskDumper();
+		storages[2] = new JvmMonitoringNettyDumper();
+	}
+
+	public SamplesDumpManager() throws IOException, InterruptedException {
+		if(AgentConfiguration.getDumpType()== AgentConfiguration.DumpType.disk){
+			startDiskDumpers();
+		}else if(AgentConfiguration.getDumpType()== AgentConfiguration.DumpType.netty){
+			startNettyDumpers();
+		}
 	}
 
 	@Override

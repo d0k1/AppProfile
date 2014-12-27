@@ -9,7 +9,7 @@ import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
 /**
- * Main class to profiling data mongo writer
+ * Main class to profiling data netty writer
  * <p/>
  * Created by Denis V. Kirpichenkov on 14.12.14.
  */
@@ -20,7 +20,7 @@ public class Main {
 	private static final MongoLoader loaders[] = {new JvmMonitoringLoader(), new MethodMapLoader(), new StatisticsLoader()};
 
 	public static void main(String[] args) throws UnknownHostException {
-		LOG.info("Moving data to mongo");
+		LOG.info("Moving data to netty");
 
 		MongoClient client = new MongoClient(MongoConfiguration.getHost(), Integer.parseInt(MongoConfiguration.getPort()));
 		DB bondDb = client.getDB(MongoConfiguration.getDbname());

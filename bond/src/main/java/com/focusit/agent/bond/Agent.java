@@ -19,8 +19,7 @@ public class Agent
     private static Instrumentation agentInstrumentation = null;
 
     public static void agentmain(String agentArguments, Instrumentation instrumentation) throws IOException,
-            UnmodifiableClassException
-    {
+        UnmodifiableClassException, InterruptedException {
         try
         {
             agentInstrumentation = instrumentation;
@@ -67,8 +66,7 @@ public class Agent
     }
 
     public static void premain(String agentArguments, Instrumentation instrumentation) throws IOException,
-            UnmodifiableClassException
-    {
+        UnmodifiableClassException, InterruptedException {
         try
         {
             agentmain(agentArguments, instrumentation);
@@ -118,8 +116,7 @@ public class Agent
         }
     }
 
-    private static void startDumping() throws IOException
-    {
+    private static void startDumping() throws IOException, InterruptedException {
         GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
         gt.start();
 

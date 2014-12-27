@@ -47,7 +47,7 @@ public class JvmMonitoring {
 		public Sample createItem() {
 			return new JvmInfo();
 		}
-	}, "JvmStat", LIMIT);
+	}, "JvmStat", AgentConfiguration.getJvmDumpBatch());
 
 	private final Thread monitoringThread;
 	private final long pid;
