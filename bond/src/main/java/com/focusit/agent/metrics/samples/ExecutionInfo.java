@@ -1,5 +1,7 @@
 package com.focusit.agent.metrics.samples;
 
+import io.netty.buffer.ByteBuf;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -58,6 +60,24 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		time = in.getLong();
 		method = in.getLong();
 		timestamp = in.getLong();
+	}
+
+	@Override
+	public void writeToBuffer(ByteBuf out) {
+		out.writeLong(threadId);
+		out.writeLong(eventId);
+		out.writeLong(time);
+		out.writeLong(method);
+		out.writeLong(timestamp);
+	}
+
+	@Override
+	public void readFromBuffer(ByteBuf in) {
+		threadId = in.readLong();
+		eventId = in.readLong();
+		time = in.readLong();
+		method = in.readLong();
+		timestamp = in.readLong();
 	}
 
 	@Override

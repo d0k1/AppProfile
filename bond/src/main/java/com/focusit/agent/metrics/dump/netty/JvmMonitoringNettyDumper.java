@@ -5,16 +5,14 @@ import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import com.focusit.agent.metrics.samples.JvmInfo;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,17 +23,16 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 	private static int sampleSize = JvmInfo.sizeOf();
 	private final int samples = AgentConfiguration.getJvmDumpBatch();
 	private final Thread dumper;
-	private final ByteBuffer bytesBuffers[] = new ByteBuffer[samples];
+	private final ByteBuf bytesBuffers[] = new ByteBuf[samples];
 
-//	private final RandomAccessFile aFile;
-//	private final FileChannel channel;
 	private final JvmInfo info = new JvmInfo();
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
 	private static final int port = Integer.parseInt(AgentConfiguration.getNettyDumpJvmPort());
+	private static ChannelFuture lastWrite = null;
 
-	EventLoopGroup workerGroup = new NioEventLoopGroup();
+	EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-jvm-worker"));
 	ChannelFuture f;
 
 	public JvmMonitoringNettyDumper() throws IOException, InterruptedException {
@@ -44,23 +41,18 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 		b.group(workerGroup); // (2)
 		b.channel(NioSocketChannel.class); // (3)
 		b.option(ChannelOption.SO_KEEPALIVE, true); // (4)
+		b.option(ChannelOption.TCP_NODELAY, true);
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			public void initChannel(SocketChannel ch) throws Exception {
-//					ch.pipeline().addLast(new TimeClientHandler());
+				ch.pipeline().addLast(getHandler());
 			}
 		});
-
-		// Start the client.
 		f = b.connect(AgentConfiguration.getNettyDumpHost(), port).sync(); // (5)
 
-//		channel = FileChannel.open(FileSystems.getDefault().getPath(file), EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
-//		aFile = new RandomAccessFile(AgentConfiguration.getJvmMonitoringFile(), "rw");
-//		channel = aFile.getChannel();
-//		channel.truncate(0);
 
 		for(int i=0;i<samples;i++){
-			bytesBuffers[i] = ByteBuffer.allocate(sampleSize);
+			bytesBuffers[i] = Unpooled.unreleasableBuffer(Unpooled.wrappedBuffer(new byte[sampleSize]));
 		}
 
 		dumper = new Thread(new Runnable() {
@@ -81,7 +73,10 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 			}
 		}, getName());
 		dumper.setDaemon(true);
-//		dumper.setPriority(Thread.MAX_PRIORITY);
+	}
+
+	private ChannelHandler getHandler() {
+		return new ChannelHandlerAdapter();
 	}
 
 	private void doDump(boolean checkAvailability) throws InterruptedException {
@@ -100,7 +95,6 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 				JvmMonitoring.readData(info);
 				info.writeToBuffer(bytesBuffers[i]);
 				samplesRead.incrementAndGet();
-				bytesBuffers[i].flip();
 				sampleRead++;
 			} catch (InterruptedException e){
 				interrupted = e;
@@ -109,9 +103,20 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 		}
 
 		for(int i=0;i<sampleRead;i++) {
-			f.channel().write(bytesBuffers[i].array());
+			if(!f.channel().isWritable()){
+				System.err.println("Error: netty jvm monitoring channel is not writeable");
+				break;
+			}
+			//nettyBuffer.resetWriterIndex();
+			bytesBuffers[i].resetReaderIndex();
+			lastWrite = f.channel().write(bytesBuffers[i]);
+			//nettyBuffer.clear();
 		}
 		f.channel().flush();
+		if(lastWrite!=null){
+			lastWrite.sync();
+			lastWrite = null;
+		}
 		if(interrupted!=null) {
 			throw interrupted;
 		}
@@ -125,8 +130,9 @@ public class JvmMonitoringNettyDumper implements SamplesDataDumper {
 			doDump(true);
 		}
 
+		f.channel().close();
 		f.channel().closeFuture().sync();
-		workerGroup.shutdownGracefully();
+		workerGroup.shutdownGracefully().sync();
 	}
 
 	@Override

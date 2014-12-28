@@ -1,7 +1,7 @@
-package com.focusit.agent.analyzer.data.netty.jvm;
+package com.focusit.agent.analyzer.data.netty.statistics;
 
 import com.focusit.agent.analyzer.data.netty.NettyData;
-import com.focusit.agent.metrics.samples.JvmInfo;
+import com.focusit.agent.metrics.samples.ExecutionInfo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -12,42 +12,42 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 
 /**
- * Created by Denis V. Kirpichenkov on 28.12.14.
+ * Created by Denis V. Kirpichenkov on 29.12.14.
  */
-public class NettyJvmData extends NettyData {
+public class NettyStatisticsData  extends NettyData {
 	@Override
 	protected int getPort() {
-		return 16000;
+		return 16003;
 	}
 
 	@Override
 	protected String getName() {
-		return "jvm";
+		return "statistics";
 	}
 
 	@Override
 	public ChannelHandler getHandler() {
-		return new JvmDataServerHandler();
+		return new ExecutionDataServerHandler();
 	}
 
 	@Override
 	public ChannelHandler[] getDecoder() {
-		return new JvmDataDecoder[]{new JvmDataDecoder()};
+		return new ExecutionDataDecoder[]{new ExecutionDataDecoder()};
 	}
 
-	class JvmDataDecoder extends ReplayingDecoder<Void>{
+	class ExecutionDataDecoder extends ReplayingDecoder<Void> {
 
 		@Override
 		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-			while(in.isReadable(JvmInfo.sizeOf())){
-				JvmInfo info = new JvmInfo();
+			while(in.isReadable(ExecutionInfo.sizeOf())){
+				ExecutionInfo info = new ExecutionInfo();
 				info.readFromBuffer(in);
 				out.add(info);
 			}
 		}
 	}
 
-	class JvmDataServerHandler extends ChannelHandlerAdapter {
+	class ExecutionDataServerHandler extends ChannelHandlerAdapter {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {

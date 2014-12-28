@@ -23,7 +23,6 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 	private final RandomAccessFile aFile;
 	private final FileChannel channel;
 	private final Thread dumper;
-//	private final MethodsMap map = MethodsMap.getInstance();
 	private final Charset cs = Charset.forName("UTF-8");
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
@@ -59,7 +58,6 @@ public class MethodsMapDiskDumper implements SamplesDataDumper {
 		}, getName());
 
 		dumper.setDaemon(true);
-//		dumper.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	@Override

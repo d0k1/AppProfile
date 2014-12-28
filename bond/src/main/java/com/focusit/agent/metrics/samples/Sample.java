@@ -1,5 +1,7 @@
 package com.focusit.agent.metrics.samples;
 
+import io.netty.buffer.ByteBuf;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -13,6 +15,10 @@ public interface Sample<T> {
 	void writeToBuffer(ByteBuffer buffer);
 
 	void readFromBuffer(ByteBuffer buffer);
+
+	void writeToBuffer(ByteBuf buffer);
+
+	void readFromBuffer(ByteBuf buffer);
 
 	void readFromBuffer(long[] buffer);
 

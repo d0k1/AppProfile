@@ -1,5 +1,7 @@
 package com.focusit.agent.metrics.samples;
 
+import io.netty.buffer.ByteBuf;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -135,6 +137,68 @@ public final class JvmInfo implements Sample<JvmInfo> {
 		systemCpuLoad = Double.longBitsToDouble(in.getLong());
 		time = in.getLong();
 		timestamp = in.getLong();
+	}
+
+	@Override
+	public void writeToBuffer(ByteBuf out) {
+		out.writeLong(ipv4Addr1);
+		out.writeLong(ipv4Addr2);
+		out.writeLong(ipv4Addr3);
+		out.writeLong(ipv4Addr4);
+		out.writeLong(pid);
+		out.writeLong(loadedClassCount);
+		out.writeLong(heapCommited);
+		out.writeLong(heapInit);
+		out.writeLong(heapMax);
+		out.writeLong(heapUsed);
+		out.writeLong(freePhysMem);
+		out.writeLong(freeSwap);
+		out.writeLong(totalPhysMem);
+		out.writeLong(totalSwap);
+		out.writeLong(threadCount);
+		out.writeLong(threadDaemonCount);
+		out.writeLong(peakThreadCount);
+		out.writeLong(totalStartedThreadCount);
+		out.writeLong(lastTimeGc1);
+		out.writeLong(lastTimeGc2);
+		out.writeLong(totalCountGc1);
+		out.writeLong(totalCountGc2);
+
+		out.writeLong(Double.doubleToLongBits(processCpuLoad));
+		out.writeLong(Double.doubleToLongBits(systemCpuLoad));
+		out.writeLong(time);
+		out.writeLong(timestamp);
+	}
+
+	@Override
+	public void readFromBuffer(ByteBuf in) {
+		ipv4Addr1 = in.readLong();
+		ipv4Addr2 = in.readLong();
+		ipv4Addr3 = in.readLong();
+		ipv4Addr4 = in.readLong();
+		pid = in.readLong();
+		loadedClassCount = in.readLong();
+		heapCommited = in.readLong();
+		heapInit = in.readLong();
+		heapMax = in.readLong();
+		heapUsed = in.readLong();
+		freePhysMem = in.readLong();
+		freeSwap = in.readLong();
+		totalPhysMem = in.readLong();
+		totalSwap = in.readLong();
+		threadCount = in.readLong();
+		threadDaemonCount = in.readLong();
+		peakThreadCount = in.readLong();
+		totalStartedThreadCount = in.readLong();
+		lastTimeGc1 = in.readLong();
+		lastTimeGc2 = in.readLong();
+		totalCountGc1 = in.readLong();
+		totalCountGc2 = in.readLong();
+
+		processCpuLoad = Double.longBitsToDouble(in.readLong());
+		systemCpuLoad = Double.longBitsToDouble(in.readLong());
+		time = in.readLong();
+		timestamp = in.readLong();
 	}
 
 	@Override

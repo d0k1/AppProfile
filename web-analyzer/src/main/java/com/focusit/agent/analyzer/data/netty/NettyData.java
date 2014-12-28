@@ -1,45 +1,41 @@
 package com.focusit.agent.analyzer.data.netty;
 
+import com.focusit.agent.metrics.dump.netty.NettyThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.ReplayingDecoder;
 
 /**
  * Created by Denis V. Kirpichenkov on 28.12.14.
  */
 public abstract class NettyData implements Runnable {
-	//private final int port = 16000;
 	private ChannelFuture f;
-	private ChannelHandler handler;
 
 	protected abstract int getPort();
 
+	protected abstract String getName();
+
 	public void run() {
 
-		EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
-		EventLoopGroup workerGroup = new NioEventLoopGroup();
+		EventLoopGroup bossGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-"+getName()+"-boss"));
+		EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-"+getName()+"-worker"));
 		try {
-			ServerBootstrap b = new ServerBootstrap(); // (2)
+			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup)
-				.channel(NioServerSocketChannel.class) // (3)
+				.channel(NioServerSocketChannel.class)
 				.childHandler(new ChannelInitializer<SocketChannel>() { // (4)
 					@Override
 					public void initChannel(SocketChannel ch) throws Exception {
-						ch.pipeline().addLast(getDecoder(), getHandler());
+						ch.pipeline().addLast(getDecoder()).addLast(getHandler());
 					}
 				})
-				.option(ChannelOption.SO_BACKLOG, 128)          // (5)
-				.childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
+				.option(ChannelOption.SO_BACKLOG, 128)
+				.childOption(ChannelOption.SO_KEEPALIVE, true);
 
-			// Bind and start to accept incoming connections.
-				f = b.bind(getPort()).sync(); // (7)
+				f = b.bind(getPort()).sync();
 
-			// Wait until the server socket is closed.
-			// In this example, this does not happen, but you can do that to gracefully
-			// shut down your server.
 			f.channel().closeFuture().sync();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -54,5 +50,5 @@ public abstract class NettyData implements Runnable {
 
 	public abstract ChannelHandler getHandler();
 
-	public abstract ReplayingDecoder getDecoder();
+	public abstract ChannelHandler[] getDecoder();
 }
