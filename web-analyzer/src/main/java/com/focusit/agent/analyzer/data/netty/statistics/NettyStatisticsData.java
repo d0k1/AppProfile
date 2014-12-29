@@ -39,11 +39,9 @@ public class NettyStatisticsData  extends NettyData {
 
 		@Override
 		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-			while(in.isReadable(ExecutionInfo.sizeOf())){
-				ExecutionInfo info = new ExecutionInfo();
-				info.readFromBuffer(in);
-				out.add(info);
-			}
+			ExecutionInfo info = new ExecutionInfo();
+			info.readFromBuffer(in);
+			out.add(info);
 		}
 	}
 

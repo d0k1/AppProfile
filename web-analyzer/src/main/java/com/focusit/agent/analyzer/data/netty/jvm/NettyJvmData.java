@@ -39,11 +39,9 @@ public class NettyJvmData extends NettyData {
 
 		@Override
 		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-			while(in.isReadable(JvmInfo.sizeOf())){
-				JvmInfo info = new JvmInfo();
-				info.readFromBuffer(in);
-				out.add(info);
-			}
+			JvmInfo info = new JvmInfo();
+			info.readFromBuffer(in);
+			out.add(info);
 		}
 	}
 

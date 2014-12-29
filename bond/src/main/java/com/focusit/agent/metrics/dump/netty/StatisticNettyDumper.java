@@ -129,9 +129,8 @@ public class StatisticNettyDumper implements SamplesDataDumper {
 			doDump(true);
 		}
 
-		f.channel().close();
-		f.channel().closeFuture().sync();
-		workerGroup.shutdownGracefully().sync();
+		f.channel().close().sync();
+		workerGroup.shutdownGracefully();
 	}
 
 	@Override
