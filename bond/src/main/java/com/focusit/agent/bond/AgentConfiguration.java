@@ -347,8 +347,8 @@ public class AgentConfiguration {
 		return "16003";
 	}
 
-	public static String getNettyDumpId(){
-		return "app";
+	public static long getAppId(){
+		return 1L;
 	}
 
 	public enum DumpType {netty, disk}

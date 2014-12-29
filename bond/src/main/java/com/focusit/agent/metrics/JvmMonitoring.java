@@ -27,7 +27,7 @@ import java.util.List;
 public class JvmMonitoring {
 
 	private static final JvmMonitoring instance = new JvmMonitoring();
-
+	private static final long appId = AgentConfiguration.getAppId();
 	private final OperatingSystemMXBean osMBean;
 	private final ThreadMXBean threadMBean;
 	private final ClassLoadingMXBean classLoadingMXBean;
@@ -130,7 +130,7 @@ public class JvmMonitoring {
 			osMBean.getFreeSwapSpaceSize(), osMBean.getTotalPhysicalMemorySize(), osMBean.getTotalSwapSpaceSize(),
 			threadMBean.getThreadCount(), threadMBean.getDaemonThreadCount(), threadMBean.getPeakThreadCount(),
 			threadMBean.getTotalStartedThreadCount(), time1, time2, total1, total2, Double.doubleToLongBits(osMBean.getProcessCpuLoad()),
-			Double.doubleToLongBits(osMBean.getSystemCpuLoad()), GlobalTime.getCurrentTime(), GlobalTime.getCurrentTimeInMillis());
+			Double.doubleToLongBits(osMBean.getSystemCpuLoad()), GlobalTime.getCurrentTime(), GlobalTime.getCurrentTimeInMillis(), appId);
 	}
 
 	private long fillPid() {

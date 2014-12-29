@@ -4,10 +4,8 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
-import com.focusit.agent.metrics.dump.netty.StatisticNettyDumper;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Facade storage implementation.
@@ -15,8 +13,6 @@ import java.util.logging.Logger;
  * Created by Denis V. Kirpichenkov on 09.12.14.
  */
 public class SamplesDumpManager implements SamplesDataDumper {
-
-	private final static Logger LOG = Logger.getLogger(SamplesDumpManager.class.getName());
 
 	private SamplesDataDumper storages[];
 
@@ -31,7 +27,7 @@ public class SamplesDumpManager implements SamplesDataDumper {
 	public void startNettyDumpers() throws IOException, InterruptedException {
 		storages = new SamplesDataDumper[3];
 
-		storages[0] = new StatisticNettyDumper();
+		storages[0] = new StatisticDiskDumper();
 		storages[1] = new MethodsMapDiskDumper();
 		storages[2] = new JvmMonitoringDiskDumper();
 	}
