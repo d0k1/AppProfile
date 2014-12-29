@@ -15,6 +15,8 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 28.12.14.
  */
 public class NettyJvmData extends NettyData {
+	private final JvmDataImport dataImport;
+
 	@Override
 	protected int getPort() {
 		return 16000;
@@ -23,6 +25,10 @@ public class NettyJvmData extends NettyData {
 	@Override
 	protected String getName() {
 		return "jvm";
+	}
+
+	public NettyJvmData(JvmDataImport dataImport){
+		this.dataImport = dataImport;
 	}
 
 	@Override
@@ -49,7 +55,8 @@ public class NettyJvmData extends NettyData {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
-			System.err.println(msg.getClass().getName());
+			JvmInfo sample = (JvmInfo) msg;
+			dataImport.importSample(sample.appId, sample);
 			ReferenceCountUtil.release(msg);
 		}
 

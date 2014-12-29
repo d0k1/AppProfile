@@ -23,4 +23,6 @@ public interface Sample<T> {
 	void readFromBuffer(long[] buffer);
 
 	int sizeOfSample();
+
+	long getAppId();
 }

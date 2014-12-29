@@ -246,6 +246,11 @@ public final class JvmInfo implements Sample<JvmInfo> {
 	}
 
 	@Override
+	public long getAppId() {
+		return appId;
+	}
+
+	@Override
 	public String toString() {
 		return "JvmInfo{" +
 			"ipv4Addr1=" + ipv4Addr1 +

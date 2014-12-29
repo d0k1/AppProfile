@@ -4,6 +4,9 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
+import com.focusit.agent.metrics.dump.netty.JvmMonitoringNettyDumper;
+import com.focusit.agent.metrics.dump.netty.MethodsMapNettyDumper;
+import com.focusit.agent.metrics.dump.netty.StatisticNettyDumper;
 
 import java.io.IOException;
 
@@ -27,9 +30,9 @@ public class SamplesDumpManager implements SamplesDataDumper {
 	public void startNettyDumpers() throws IOException, InterruptedException {
 		storages = new SamplesDataDumper[3];
 
-		storages[0] = new StatisticDiskDumper();
-		storages[1] = new MethodsMapDiskDumper();
-		storages[2] = new JvmMonitoringDiskDumper();
+		storages[0] = new StatisticNettyDumper();
+		storages[1] = new MethodsMapNettyDumper();
+		storages[2] = new JvmMonitoringNettyDumper();
 	}
 
 	public SamplesDumpManager() throws IOException, InterruptedException {

@@ -4,14 +4,16 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.MethodsMap;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.codec.MessageToMessageEncoder;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -43,7 +45,7 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			public void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast(new StringEncoder(), getHandler());
+				ch.pipeline().addLast(new MethodsMapSampleEncoder(), getHandler());
 			}
 		});
 		f = b.connect(AgentConfiguration.getNettyDumpHost(), port).sync(); // (5)
@@ -111,7 +113,7 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 			if (lastIndex >= MethodsMap.getLastIndex())
 				return;
 
-				lastWrite = f.channel().write(MethodsMap.getMethod((int) lastIndex)+'\0');
+				lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
 				lastIndex++;
 				samplesRead.incrementAndGet();
 		}finally{
@@ -132,5 +134,46 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 	@Override
 	public String getName() {
 		return METHOD_MAP_DUMPING_THREAD;
+	}
+
+	public static class MethodsMapSample{
+		public final long appId;
+		public final long index;
+		public final String method;
+
+		@Override
+		public String toString() {
+			return "MethodsMapSample{" +
+				"appId=" + appId +
+				", index=" + index +
+				", method='" + method + '\'' +
+				'}';
+		}
+
+		public MethodsMapSample(long appId, long index, String method) {
+			this.appId = appId;
+			this.index = index;
+			this.method = method;
+		}
+
+		public MethodsMapSample(long index, String method) {
+			this.appId = AgentConfiguration.getAppId();
+			this.index = index;
+			this.method = method;
+		}
+	}
+
+	private class MethodsMapSampleEncoder extends MessageToMessageEncoder<MethodsMapSample> {
+		private final Charset charset = Charset.forName("UTF-8");
+		@Override
+		protected void encode(ChannelHandlerContext ctx, MethodsMapSample msg, List<Object> out) throws Exception {
+			byte data[] = msg.method.getBytes(charset);
+			ByteBuf buffer = ctx.alloc().heapBuffer(data.length+8+8+4);
+			buffer.writeLong(msg.appId);
+			buffer.writeLong(msg.index);
+			buffer.writeInt(data.length);
+			buffer.writeBytes(data);
+			out.add(buffer);
+		}
 	}
 }

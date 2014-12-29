@@ -103,6 +103,11 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	}
 
 	@Override
+	public long getAppId() {
+		return appId;
+	}
+
+	@Override
 	public String toString() {
 		return "ExecutionInfo{" +
 			"threadId=" + threadId +

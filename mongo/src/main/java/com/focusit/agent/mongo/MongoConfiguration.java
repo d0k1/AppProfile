@@ -28,7 +28,7 @@ public class MongoConfiguration {
 	}
 
 	public static String getStatisticsCollection() {
-		return "statistics";
+			return "statistics";
 	}
 
 	public static String getMethodsMapCollection() {

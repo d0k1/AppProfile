@@ -15,6 +15,12 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 29.12.14.
  */
 public class NettyStatisticsData  extends NettyData {
+	private final StatisticsImport dataImport;
+
+	public NettyStatisticsData(StatisticsImport dataImport){
+		this.dataImport = dataImport;
+	}
+
 	@Override
 	protected int getPort() {
 		return 16003;
@@ -49,7 +55,8 @@ public class NettyStatisticsData  extends NettyData {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
-			System.err.println(msg.getClass().getName());
+			ExecutionInfo sample = (ExecutionInfo) msg;
+			dataImport.importSample(sample.appId, sample);
 			ReferenceCountUtil.release(msg);
 		}
 

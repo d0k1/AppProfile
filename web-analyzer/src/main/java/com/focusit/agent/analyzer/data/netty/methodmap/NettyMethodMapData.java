@@ -1,18 +1,27 @@
 package com.focusit.agent.analyzer.data.netty.methodmap;
 
 import com.focusit.agent.analyzer.data.netty.NettyData;
+import com.focusit.agent.metrics.dump.netty.MethodsMapNettyDumper;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.util.ReferenceCountUtil;
+
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Created by Denis V. Kirpichenkov on 28.12.14.
  */
 public class NettyMethodMapData extends NettyData {
+	private final MethodMapImport dataImport;
+
+	public NettyMethodMapData(MethodMapImport dataImport){
+		this.dataImport = dataImport;
+	}
+
 	@Override
 	protected int getPort() {
 		return 16002;
@@ -28,7 +37,8 @@ public class NettyMethodMapData extends NettyData {
 		return new ChannelHandlerAdapter(){
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-				System.err.println((String)msg);
+				MethodsMapNettyDumper.MethodsMapSample sample = (MethodsMapNettyDumper.MethodsMapSample)msg;
+				dataImport.importSample(sample.appId, sample);
 				ReferenceCountUtil.release(msg);
 			}
 
@@ -42,7 +52,21 @@ public class NettyMethodMapData extends NettyData {
 
 	@Override
 	public ChannelHandler[] getDecoder() {
-		return new ChannelHandler[]{new DelimiterBasedFrameDecoder(16535, Delimiters.nulDelimiter()), new StringDecoder()};
+		return new ChannelHandler[]{new MethodsMapSampleDecoder()};
 	}
 
+	private class MethodsMapSampleDecoder extends ReplayingDecoder<Void> {
+		private final Charset charset = Charset.forName("UTF-8");
+
+		@Override
+		protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+			long appId = msg.readLong();
+			long index = msg.readLong();
+			int dataSize = msg.readInt();
+			byte data[] = new byte[dataSize];
+			msg.readBytes(data);
+
+			out.add(new MethodsMapNettyDumper.MethodsMapSample(appId, index, new String(data, charset)));
+		}
+	}
 }

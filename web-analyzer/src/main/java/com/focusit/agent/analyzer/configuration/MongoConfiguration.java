@@ -55,4 +55,9 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 	public DBCollection getDbCollectionJvm() throws Exception {
 		return mongoDbFactory().getDb().getCollection(JVM_COLLECTION);
 	}
+
+	@Bean
+	public com.mongodb.DB getDb() throws Exception {
+		return mongoDbFactory().getDb();
+	}
 }

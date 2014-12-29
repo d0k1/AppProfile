@@ -44,10 +44,6 @@ public abstract class NettyData implements Runnable {
 		bossGroup.shutdownGracefully();
 	}
 
-	public void stop() throws InterruptedException {
-
-	}
-
 	public abstract ChannelHandler getHandler();
 
 	public abstract ChannelHandler[] getDecoder();
