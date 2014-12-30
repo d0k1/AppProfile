@@ -14,8 +14,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class DataImport<S> {
 	private final DB db;
 	private final static String SESSIONS_COLLECTION="sessions";
-	private ConcurrentHashMap<Long, Long> sessionIds = new ConcurrentHashMap<>();
-	private ReentrantLock lock = new ReentrantLock(true);
+	private final static ConcurrentHashMap<Long, Long> sessionIds = new ConcurrentHashMap<>();
+	private static final ReentrantLock lock = new ReentrantLock(true);
 
 	public DataImport(DB db){
 		this.db = db;
@@ -51,6 +51,8 @@ public abstract class DataImport<S> {
 			if(cursor==null || cursor.count()==0){
 				session.append("sessionId", 1L);
 				sessions.insert(session);
+				sessionIds.put(appId, 1L);
+				System.out.println("Class: "+this.getClass().getName()+": appId: "+appId+"! sessionId: 1");
 				return 1L;
 			}
 
@@ -60,6 +62,7 @@ public abstract class DataImport<S> {
 			session.append("sessionId", nextSessionId);
 			sessions.insert(session);
 
+			System.out.println("Class: "+this.getClass().getName()+": appId: "+appId+"; sessionId: "+nextSessionId);
 			sessionIds.put(appId, nextSessionId);
 			return nextSessionId;
 		} finally {
