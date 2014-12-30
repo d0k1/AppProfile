@@ -21,13 +21,13 @@ public class JvmController {
 	@Inject
 	JvmDao dao;
 
-	@RequestMapping(value = "/{sessionId}/heap/last/{seconds}", method = RequestMethod.GET)
-	public Collection<HeapSample> heapLast(@PathVariable("sessionId") String sessionId, @PathVariable("seconds") String seconds){
-		return dao.getLastHeapData(Long.parseLong(sessionId), Long.parseLong(seconds));
+	@RequestMapping(value = "/{appId}/{sessionId}/heap/last/{seconds}", method = RequestMethod.GET)
+	public Collection<HeapSample> heapLast(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("seconds") String seconds){
+		return dao.getLastHeapData(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(seconds));
 	}
 
-	@RequestMapping(value = "/{sessionId}/cpu/last/{seconds}", method = RequestMethod.GET)
-	public Collection<CpuSample> cpuLast(@PathVariable("sessionId") String sessionId, @PathVariable("seconds") String seconds){
-		return dao.getLastCpuData(Long.parseLong(sessionId), Long.parseLong(seconds));
+	@RequestMapping(value = "/{appId}/{sessionId}/cpu/last/{seconds}", method = RequestMethod.GET)
+	public Collection<CpuSample> cpuLast(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("seconds") String seconds){
+		return dao.getLastCpuData(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(seconds));
 	}
 }

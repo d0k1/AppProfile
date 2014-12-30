@@ -26,6 +26,7 @@ public class AgentConfiguration {
 
 	private static int statisticsDumpBatch = -1;
 	private static int jvmDumpBatch = -1;
+	private static long appId = -1L;
 
 	static {
 		Properties p = System.getProperties();
@@ -53,6 +54,8 @@ public class AgentConfiguration {
 
 		getIncludeClasses();
 		getIgnoreIncludeClasses();
+
+		getAppId();
 	}
 
 	public static int getDumpInterval() {
@@ -348,7 +351,23 @@ public class AgentConfiguration {
 	}
 
 	public static long getAppId(){
-		return 1L;
+		if(appId>0)
+			return appId;
+
+		long result = 1L;
+		try {
+			String id = properties.getProperty("agent.appId");
+			if (!StringUtils.isEmpty(id)) {
+				try {
+					result = Integer.parseInt(id);
+				} catch (NumberFormatException e) {
+					result = 1L;
+				}
+			}
+		} finally {
+			appId = result;
+			return result;
+		}
 	}
 
 	public enum DumpType {netty, disk}

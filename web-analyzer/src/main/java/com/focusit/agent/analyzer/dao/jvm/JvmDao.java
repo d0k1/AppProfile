@@ -24,11 +24,11 @@ public class JvmDao {
 	@Inject
 	DBCollection jvm;
 
-	public Collection<HeapSample> getLastHeapData(long sessionId, long seconds){
+	public Collection<HeapSample> getLastHeapData(long appId, long sessionId, long seconds){
 		Collection<HeapSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
-		BasicDBObject query = new BasicDBObject("sessionId", sessionId);
+		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
 
 		Long maxTimestamp = null;
 
@@ -51,11 +51,11 @@ public class JvmDao {
 		return result;
 	}
 
-	public Collection<CpuSample> getLastCpuData(long sessionId, long seconds){
+	public Collection<CpuSample> getLastCpuData(long appId, long sessionId, long seconds){
 		Collection<CpuSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
-		BasicDBObject query = new BasicDBObject("sessionId", sessionId);
+		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
 
 		Long maxTimestamp = null;
 

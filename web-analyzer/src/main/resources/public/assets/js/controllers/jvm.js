@@ -4,15 +4,24 @@
 
 var jvmControllers = angular.module('jvmControllers', ['services', 'highcharts-ng', 'ngResource']);
 
+jvmControllers.factory("appIds", function($resource) {
+	return $resource("/sessions/apps");
+});
+
+jvmControllers.factory("sessionIds", function($resource) {
+	return $resource("/sessions/:appId");
+});
+
+
 jvmControllers.factory("lastcpu", function($resource) {
-                         return $resource("/jvm/:sessionId/cpu/last/:seconds");
+                         return $resource("/jvm/:appId/:sessionId/cpu/last/:seconds");
                        });
 
 jvmControllers.factory("lastheap", function($resource) {
-                         return $resource("/jvm/:sessionId/heap/last/:seconds");
+                         return $resource("/jvm/:appId/:sessionId/heap/last/:seconds");
                        });
 
-jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap){
+jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, lastcpu, lastheap, $interval){
 	$scope.title = 'JVM Monitoring'
 
 	$scope.cpuChartSeries = [
@@ -20,26 +29,57 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap){
 		{"name": "System cpu usage", "data": []},
 	];
 
-	lastcpu.query({ sessionId: 1, seconds: 300 }, function(data) {
-
-		for(var i=data.length-1;i>=0;i--){
-			$scope.cpuChartSeries[0].data.push([new Date(data[i].timestamp).toLocaleString(), data[i].process])
-			$scope.cpuChartSeries[1].data.push([new Date(data[i].timestamp).toLocaleString(), data[i].system])
-		}
-	});
-
 	$scope.heapChartSeries = [
 		{"name": "Heap used", "data": []},
 		{"name": "Heap commited", "data": []},
 	];
 
-	lastheap.query({ sessionId: 1, seconds: 300 }, function(data) {
+	$scope.apps = [];
+	$scope.sessions = [];
 
-        for(var i=data.length-1;i>=0;i--){
-	        $scope.heapChartSeries[0].data.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapUsed / (1024.0*1024.0))])
-	        $scope.heapChartSeries[1].data.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapCommited / (1024.0*1024.0))])
-        }
-      });
+	$scope.appId = -1;
+	$scope.sessionId = -1;
+
+	function loadApps(){
+		appIds.query(function(data){
+			for(var i=0;i<data.length;i++){
+				$scope.apps.push(data[i]);
+			}
+		});
+	}
+
+	function loadSessions(){
+		sessionIds.query({appId: $scope.appId}, function(data){
+			for(var i=0;i<data.length;i++){
+				$scope.sessions.push(data[i]);
+			}
+		});
+	}
+
+	function loadData(){
+		lastcpu.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: 60 }, function(data) {
+			var data0 = []
+			var data1 = []
+			for(var i=data.length-1;i>=0;i--){
+				data0.push([new Date(data[i].timestamp).toLocaleString(), data[i].process])
+				data1.push([new Date(data[i].timestamp).toLocaleString(), data[i].system])
+			}
+			$scope.cpuChartSeries[0].data = data0;
+			$scope.cpuChartSeries[1].data = data1;
+		});
+
+		lastheap.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: 60 }, function(data) {
+			var data0 = []
+			var data1 = []
+
+			for(var i=data.length-1;i>=0;i--){
+				data0.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapUsed / (1024.0*1024.0))])
+				data1.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapCommited / (1024.0*1024.0))])
+			}
+			$scope.heapChartSeries[0].data = data0;
+			$scope.heapChartSeries[1].data = data1;
+		});
+	}
 
 	$scope.heapChartConfig = {
 		options: {
@@ -85,4 +125,18 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap){
 		size: {}
 	}
 
+	loadApps();
+	$scope.loadSessions = function(){loadSessions()}
+	$scope.loadData = function(){loadData()};
+
+	$scope.start = function(){
+		$interval(function(){loadData()}, 1000, 0);
+	}
+
+	$scope.stop = function(){
+		$interval.cancel();
+	}
+
+
+	//loadData($scope);
 });

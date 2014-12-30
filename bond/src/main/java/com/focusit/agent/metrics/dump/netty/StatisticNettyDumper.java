@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Created by Denis V. Kirpichenkov on 09.12.14.
  */
 public class StatisticNettyDumper implements SamplesDataDumper {
-	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat dumping thread";
+	public static final String PROFILING_STAT_DUMPING_THREAD = "Profiling stat netty dumping thread";
 	private static int sampleSize = ExecutionInfo.sizeOf();
 	private final int samples = AgentConfiguration.getStatisticsDumpBatch();
 	private final Thread dumper;
