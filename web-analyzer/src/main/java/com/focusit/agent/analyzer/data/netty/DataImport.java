@@ -29,7 +29,7 @@ public abstract class DataImport<S> {
 		return db.getCollection(name);
 	}
 
-	private final long  getSessionIdByAppId(long appId){
+	protected final long  getSessionIdByAppId(long appId){
 		if(sessionIds.get(appId)!=null)
 			return sessionIds.get(appId);
 
