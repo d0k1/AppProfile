@@ -77,4 +77,40 @@ public class JvmDao {
 		}
 		return result;
 	}
+
+	public Collection<HeapSample> getHeapData(long appId, long sessionId, long timestapmMin, long timestapmMax){
+		Collection<HeapSample> result = new ArrayList<>();
+
+		BasicDBObject sort = new BasicDBObject("timestamp", -1);
+		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+		query.append("timestamp", new BasicDBObject("$lte", timestapmMax).append("$gte", timestapmMin));
+
+		try(DBCursor cursor = jvm.find(query)){
+			try(DBCursor sorted = cursor.sort(sort)) {
+				while (sorted.hasNext()) {
+					DBObject info = sorted.next();
+					result.add(new HeapSample((Long) info.get("heapInit"), (Long) info.get("heapUsed"), (Long) info.get("heapCommited"), (Long) info.get("heapMax"), (Long) info.get("timestamp")));
+				}
+			}
+		}
+		return result;
+	}
+
+	public Collection<CpuSample> getCpuData(long appId, long sessionId, long timestapmMin, long timestapmMax){
+		Collection<CpuSample> result = new ArrayList<>();
+
+		BasicDBObject sort = new BasicDBObject("timestamp", -1);
+		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+		query.append("timestamp", new BasicDBObject("$lte", timestapmMax).append("$gte", timestapmMin));
+
+		try(DBCursor cursor = jvm.find(query)){
+			try(DBCursor sorted = cursor.sort(sort)) {
+				while (sorted.hasNext()) {
+					DBObject info = sorted.next();
+					result.add(new CpuSample((Double) info.get("processCpuLoad"), (Double) info.get("systemCpuLoad"), (Long) info.get("timestamp")));
+				}
+			}
+		}
+		return result;
+	}
 }

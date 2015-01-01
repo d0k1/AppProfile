@@ -2,6 +2,13 @@
 
 AppId: <select ng-model="appId" ng-options="x.id as x.id for x in apps" ng-change="loadSessions()"></select>
 SessionId: <select ng-model="sessionId" ng-options="x.sessionId as x.sessionId for x in sessions" ng-change="loadData()"></select>
+<div>
+	<div>Data from <span>{{maxTime}}</span></div>
+	<div>Data to <span>{{minTime}}</span></div>
+	<button type="button" data-ng-click="prev()">prev</button>
+	<button type="button" data-ng-click="next()">next</button>
+	<button type="button" data-ng-click="lastData()">last</button>
+</div>
 <button type="button" data-ng-click="start()">Start autoupdate</button>
 <button type="button" data-ng-click="stop()">Stop autoupdate</button>
 

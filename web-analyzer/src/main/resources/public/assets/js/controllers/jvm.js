@@ -21,7 +21,15 @@ jvmControllers.factory("lastheap", function($resource) {
                          return $resource("/jvm/:appId/:sessionId/heap/last/:seconds");
                        });
 
-jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, lastcpu, lastheap, $interval){
+jvmControllers.factory("cpu", function($resource) {
+	return $resource("/jvm/:appId/:sessionId/cpu/:max/:min");
+});
+
+jvmControllers.factory("heap", function($resource) {
+	return $resource("/jvm/:appId/:sessionId/heap/:max/:min");
+});
+
+jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, lastcpu, lastheap, $interval, cpu, heap){
 	$scope.title = 'JVM Monitoring'
 
 	$scope.cpuChartSeries = [
@@ -40,6 +48,12 @@ jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, 
 	$scope.appId = -1;
 	$scope.sessionId = -1;
 
+	$scope.timestampMin = -1;
+	$scope.timestampMax = -1;
+
+	$scope.lastSeconds = 30;
+	$scope.timeStepSeconds = 15;
+
 	function loadApps(){
 		appIds.query(function(data){
 			for(var i=0;i<data.length;i++){
@@ -56,28 +70,45 @@ jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, 
 		});
 	}
 
+	function loadCpuData(data){
+		var data0 = []
+		var data1 = []
+
+		if(data.length>0){
+			$scope.timestampMax = data[0].timestamp;
+			$scope.timestampMin = data[data.length - 1].timestamp;
+			$scope.minTime = new Date($scope.timestampMin).toString("hh:mm:ss dd.mm.yyyy")
+			$scope.maxTime = new Date($scope.timestampMax).toString("hh:mm:ss dd.mm.yyyy");
+		}
+
+		for(var i=data.length-1;i>=0;i--){
+			data0.push([new Date(data[i].timestamp).toLocaleString(), data[i].process])
+			data1.push([new Date(data[i].timestamp).toLocaleString(), data[i].system])
+		}
+		$scope.cpuChartSeries[0].data = data0;
+		$scope.cpuChartSeries[1].data = data1;
+
+	}
+
+	function loadHeapData(data){
+		var data0 = []
+		var data1 = []
+
+		for(var i=data.length-1;i>=0;i--){
+			data0.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapUsed / (1024.0*1024.0))])
+			data1.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapCommited / (1024.0*1024.0))])
+		}
+		$scope.heapChartSeries[0].data = data0;
+		$scope.heapChartSeries[1].data = data1;
+	}
+
 	function loadData(){
-		lastcpu.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: 60 }, function(data) {
-			var data0 = []
-			var data1 = []
-			for(var i=data.length-1;i>=0;i--){
-				data0.push([new Date(data[i].timestamp).toLocaleString(), data[i].process])
-				data1.push([new Date(data[i].timestamp).toLocaleString(), data[i].system])
-			}
-			$scope.cpuChartSeries[0].data = data0;
-			$scope.cpuChartSeries[1].data = data1;
+		lastcpu.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: $scope.lastSeconds }, function(data) {
+			loadCpuData(data)
 		});
 
-		lastheap.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: 60 }, function(data) {
-			var data0 = []
-			var data1 = []
-
-			for(var i=data.length-1;i>=0;i--){
-				data0.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapUsed / (1024.0*1024.0))])
-				data1.push([new Date(data[i].timestamp).toLocaleString(), Math.round(data[i].heapCommited / (1024.0*1024.0))])
-			}
-			$scope.heapChartSeries[0].data = data0;
-			$scope.heapChartSeries[1].data = data1;
+		lastheap.query({appId:$scope.appId, sessionId: $scope.sessionId, seconds: $scope.lastSeconds }, function(data) {
+			loadHeapData(data)
 		});
 	}
 
@@ -128,6 +159,32 @@ jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, 
 	loadApps();
 	$scope.loadSessions = function(){loadSessions()}
 	$scope.loadData = function(){loadData()};
+
+	$scope.lastData = function(){
+		loadData();
+	}
+
+	$scope.prev = function(){
+		$interval.cancel();
+		cpu.query({appId:$scope.appId, sessionId: $scope.sessionId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
+			loadCpuData(data)
+		});
+
+		heap.query({appId:$scope.appId, sessionId: $scope.sessionId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
+			loadHeapData(data)
+		});
+	}
+
+	$scope.next = function(){
+		$interval.cancel();
+		cpu.query({appId:$scope.appId, sessionId: $scope.sessionId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
+			loadCpuData(data)
+		});
+
+		heap.query({appId:$scope.appId, sessionId: $scope.sessionId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
+			loadHeapData(data)
+		});
+	}
 
 	$scope.start = function(){
 		$interval(function(){loadData()}, 1000, 0);

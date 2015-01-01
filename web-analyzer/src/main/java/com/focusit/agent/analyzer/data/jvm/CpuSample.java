@@ -6,11 +6,11 @@ package com.focusit.agent.analyzer.data.jvm;
 public class CpuSample {
 	public final double process;
 	public final double system;
-	public final long time;
+	public final long timestamp;
 
-	public CpuSample(double process, double system, long time) {
+	public CpuSample(double process, double system, long timestamp) {
 		this.process = process;
 		this.system = system;
-		this.time = time;
+		this.timestamp = timestamp;
 	}
 }
