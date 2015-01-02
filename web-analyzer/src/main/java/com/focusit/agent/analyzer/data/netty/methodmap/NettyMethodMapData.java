@@ -6,9 +6,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.util.ReferenceCountUtil;
 
+import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -35,6 +37,11 @@ public class NettyMethodMapData extends NettyData {
 	@Override
 	public ChannelHandler getHandler() {
 		return new ChannelHandlerAdapter(){
+			@Override
+			public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
+				super.connect(ctx, remoteAddress, localAddress, promise);
+			}
+
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 				MethodsMapNettyDumper.MethodsMapSample sample = (MethodsMapNettyDumper.MethodsMapSample)msg;

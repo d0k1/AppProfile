@@ -1,7 +1,7 @@
 /**
  * Created by doki on 10.06.14.
  */
-var app = angular.module('bondApp', ['ngRoute', 'sessionsControllers', 'jvmControllers', 'threadsControllers', 'methodsControllers', 'configuration', 'services']);
+var app = angular.module('bondApp', ['ngRoute', 'sessionsControllers', 'jvmControllers', 'threadsControllers', 'methodsControllers', 'configuration', 'dataview']);
 
 app.config(['$routeProvider',
 	function($routeProvider) {
@@ -26,12 +26,22 @@ app.config(['$routeProvider',
 		});
 	}]);
 
-app.run(function ($rootScope, urls) {
-	$rootScope.urls = urls
-});
-
-app.controller('menuController', function($scope, urls){
+app.controller('menuController', function($scope, urls, $location, $route){
 	$scope.item = 0
 	$scope.urls = urls
+
+	var url = $location.url();
+	if(url.indexOf(urls.sessions)==0){
+		$scope.item = 0;
+	}
+	if(url.indexOf(urls.methods)==0){
+		$scope.item = 1;
+	}
+	if(url.indexOf(urls.threads)==0){
+		$scope.item = 2;
+	}
+	if(url.indexOf(urls.jvm)==0){
+		$scope.item = 3;
+	}
 });
 

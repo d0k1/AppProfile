@@ -58,6 +58,10 @@ public class AgentConfiguration {
 		getAppId();
 	}
 
+	public static String getNettySessionPort(){
+		return "15999";
+	};
+
 	public static int getDumpInterval() {
 		if(dumpInterval!=null)
 			return dumpInterval;

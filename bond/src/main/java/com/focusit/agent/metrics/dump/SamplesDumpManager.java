@@ -1,6 +1,7 @@
 package com.focusit.agent.metrics.dump;
 
 import com.focusit.agent.bond.AgentConfiguration;
+import com.focusit.agent.metrics.SessionManager;
 import com.focusit.agent.metrics.dump.file.JvmMonitoringDiskDumper;
 import com.focusit.agent.metrics.dump.file.MethodsMapDiskDumper;
 import com.focusit.agent.metrics.dump.file.StatisticDiskDumper;
@@ -28,6 +29,9 @@ public class SamplesDumpManager implements SamplesDataDumper {
 	}
 
 	public void startNettyDumpers() throws IOException, InterruptedException {
+		SessionManager manager = new SessionManager();
+		manager.start();
+
 		storages = new SamplesDataDumper[3];
 
 		storages[0] = new StatisticNettyDumper();

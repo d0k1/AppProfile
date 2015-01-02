@@ -4,6 +4,7 @@ import com.focusit.agent.analyzer.data.netty.jvm.JvmDataImport;
 import com.focusit.agent.analyzer.data.netty.jvm.NettyJvmData;
 import com.focusit.agent.analyzer.data.netty.methodmap.MethodMapImport;
 import com.focusit.agent.analyzer.data.netty.methodmap.NettyMethodMapData;
+import com.focusit.agent.analyzer.data.netty.session.NettySessionStart;
 import com.focusit.agent.analyzer.data.netty.statistics.NettyStatisticsData;
 import com.focusit.agent.analyzer.data.netty.statistics.StatisticsImport;
 import com.focusit.agent.metrics.dump.netty.NettyThreadFactory;
@@ -28,8 +29,10 @@ public class Application extends SpringBootServletInitializer {
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
 
 		ExecutorService service = Executors.newFixedThreadPool(4, new NettyThreadFactory("NettyExecutorService"));
+		MethodMapImport methodMapImport = new MethodMapImport(ctx.getBean(DB.class));
+		service.submit(new NettySessionStart(methodMapImport));
+		service.submit(new NettyMethodMapData(methodMapImport));
 		service.submit(new NettyJvmData(new JvmDataImport(ctx.getBean(DB.class))));
-		service.submit(new NettyMethodMapData(new MethodMapImport(ctx.getBean(DB.class))));
 		service.submit(new NettyStatisticsData(new StatisticsImport(ctx.getBean(DB.class))));
 	}
 }

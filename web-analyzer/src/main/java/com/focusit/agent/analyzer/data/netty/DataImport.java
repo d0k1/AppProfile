@@ -29,6 +29,16 @@ public abstract class DataImport<S> {
 		return db.getCollection(name);
 	}
 
+	public void startNewSession(long appId){
+		try {
+			sessionIds.remove(appId);
+			lock.lock();
+			getSessionIdByAppId(appId);
+		} finally {
+			lock.unlock();
+		}
+	}
+
 	protected final long  getSessionIdByAppId(long appId){
 		if(sessionIds.get(appId)!=null)
 			return sessionIds.get(appId);
