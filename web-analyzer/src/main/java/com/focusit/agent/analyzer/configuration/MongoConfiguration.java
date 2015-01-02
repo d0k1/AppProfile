@@ -28,7 +28,7 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 
 	public static final String SESSIONS_COLLECTION = "sessions";
 	public static final String JVM_COLLECTION = "jvmmonitoring";
-	public static final String METHODSMAP_COLLECTION = "methodmaps";
+	public static final String METHODSMAP_COLLECTION = "methodsmap";
 	public static final String STATISTICS_COLLECTION = "statistics";
 
 	@Override

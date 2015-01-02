@@ -42,7 +42,11 @@ public class SessionDao {
 		try(DBCursor cursor = sessions.find()){
 			while(cursor.hasNext()){
 				DBObject session = cursor.next();
-				result.add(new AppInfo((Long)session.get("appId"),(Long)session.get("appId")));
+				AppInfo info = new AppInfo((Long)session.get("appId"),(Long)session.get("appId"));
+
+				if(!result.contains(info)) {
+					result.add(info);
+				}
 			}
 		}
 		return result;

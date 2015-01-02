@@ -2,16 +2,7 @@
  * Created by doki on 01.07.14.
  */
 
-var jvmControllers = angular.module('jvmControllers', ['services', 'highcharts-ng', 'ngResource']);
-
-jvmControllers.factory("appIds", function($resource) {
-	return $resource("/sessions/apps");
-});
-
-jvmControllers.factory("sessionIds", function($resource) {
-	return $resource("/sessions/:appId");
-});
-
+var jvmControllers = angular.module('jvmControllers', ['dataview', 'highcharts-ng', 'ngResource']);
 
 jvmControllers.factory("lastcpu", function($resource) {
                          return $resource("/jvm/:appId/:sessionId/cpu/last/:seconds");
@@ -29,7 +20,7 @@ jvmControllers.factory("heap", function($resource) {
 	return $resource("/jvm/:appId/:sessionId/heap/:max/:min");
 });
 
-jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, lastcpu, lastheap, $interval, cpu, heap){
+jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $interval, cpu, heap, dataview){
 	$scope.title = 'JVM Monitoring'
 
 	$scope.cpuChartSeries = [
@@ -45,8 +36,8 @@ jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, 
 	$scope.apps = [];
 	$scope.sessions = [];
 
-	$scope.appId = -1;
-	$scope.sessionId = -1;
+	$scope.appId = dataview.appId;
+	$scope.sessionId = dataview.sessionId;
 
 	$scope.timestampMin = -1;
 	$scope.timestampMax = -1;
@@ -156,9 +147,13 @@ jvmControllers.controller('jvmController', function($scope, appIds, sessionIds, 
 		size: {}
 	}
 
-	loadApps();
-	$scope.loadSessions = function(){loadSessions()}
-	$scope.loadData = function(){loadData()};
+	//loadApps();
+	//$scope.loadSessions = function(){loadSessions()}
+	//$scope.loadData = function(){loadData()};
+
+	if($scope.appId>0 && $scope.sessionId>0){
+		loadData();
+	}
 
 	$scope.lastData = function(){
 		loadData();
