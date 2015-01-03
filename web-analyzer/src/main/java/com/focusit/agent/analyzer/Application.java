@@ -30,9 +30,13 @@ public class Application extends SpringBootServletInitializer {
 
 		ExecutorService service = Executors.newFixedThreadPool(4, new NettyThreadFactory("NettyExecutorService"));
 		MethodMapImport methodMapImport = new MethodMapImport(ctx.getBean(DB.class));
-		service.submit(new NettySessionStart(methodMapImport));
+		JvmDataImport jvmDataImport = new JvmDataImport(ctx.getBean(DB.class));
+		StatisticsImport statisticsImport = new StatisticsImport(ctx.getBean(DB.class));
+
+		service.submit(new NettySessionStart(methodMapImport, jvmDataImport, statisticsImport));
+
 		service.submit(new NettyMethodMapData(methodMapImport));
-		service.submit(new NettyJvmData(new JvmDataImport(ctx.getBean(DB.class))));
-		service.submit(new NettyStatisticsData(new StatisticsImport(ctx.getBean(DB.class))));
+		service.submit(new NettyJvmData(jvmDataImport));
+		service.submit(new NettyStatisticsData(statisticsImport));
 	}
 }

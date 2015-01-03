@@ -29,7 +29,7 @@ public abstract class DataImport<S> {
 		return db.getCollection(name);
 	}
 
-	public void startNewSession(long appId){
+	protected final void newSession(long appId){
 		try {
 			sessionIds.remove(appId);
 			lock.lock();
@@ -37,6 +37,9 @@ public abstract class DataImport<S> {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public void startNewSession(long appId){
 	}
 
 	protected final long  getSessionIdByAppId(long appId){

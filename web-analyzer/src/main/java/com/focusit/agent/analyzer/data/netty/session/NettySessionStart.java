@@ -1,7 +1,7 @@
 package com.focusit.agent.analyzer.data.netty.session;
 
+import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.netty.NettyData;
-import com.focusit.agent.analyzer.data.netty.methodmap.MethodMapImport;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -15,9 +15,9 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 02.01.15.
  */
 public class NettySessionStart extends NettyData {
-	private final MethodMapImport dataImport;
+	private final DataImport dataImport[];
 
-	public NettySessionStart(MethodMapImport dataImport){
+	public NettySessionStart(DataImport ... dataImport){
 		this.dataImport = dataImport;
 	}
 
@@ -37,7 +37,10 @@ public class NettySessionStart extends NettyData {
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 				Long appId = (Long) msg;
-				dataImport.startNewSession(appId);
+
+				for(DataImport onStart:dataImport) {
+					onStart.startNewSession(appId);
+				}
 				ReferenceCountUtil.release(msg);
 			}
 		};

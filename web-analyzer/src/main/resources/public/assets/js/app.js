@@ -1,18 +1,18 @@
 /**
  * Created by doki on 10.06.14.
  */
-var app = angular.module('bondApp', ['ngRoute', 'sessionsControllers', 'jvmControllers', 'threadsControllers', 'methodsControllers', 'configuration', 'dataview']);
+var app = angular.module('bondApp', ['ngRoute', 'sessionsControllers', 'jvmControllers', 'systemControllers', 'profilerControllers', 'configuration', 'dataview']);
 
 app.config(['$routeProvider',
 	function($routeProvider) {
 		$routeProvider.
-			when('/methods', {
-				templateUrl: '/assets/templates/methods.html',
-				controller: 'methodsController'
+			when('/profiler', {
+				templateUrl: '/assets/templates/profiler.html',
+				controller: 'profilerController'
 			}).
-			when('/threads', {
-				templateUrl: '/assets/templates/threads.html',
-				controller: 'threadsController'
+			when('/system', {
+				templateUrl: '/assets/templates/system.html',
+				controller: 'systemController'
 			}).
 			when('/jvm', {
 				templateUrl: '/assets/templates/jvm.html',

@@ -28,12 +28,12 @@ public class LongRunExample {
 			@Override
 			public void run() {
 				while(!Thread.interrupted()) {
-					if (i++ >= 100)
+					if (i++ >= 7)
 						break;
 
 					new ClassToInstrument().foo();
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -41,6 +41,25 @@ public class LongRunExample {
 			}
 		});
 
+		Thread thread2 = new Thread(new Runnable() {
+			private int i = 0;
+			@Override
+			public void run() {
+				while(!Thread.interrupted()) {
+					if (i++ >= 5)
+						break;
+
+					new ClassToInstrument().foo();
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+
+		thread2.start();
 		thread.start();
 
 		thread.join();

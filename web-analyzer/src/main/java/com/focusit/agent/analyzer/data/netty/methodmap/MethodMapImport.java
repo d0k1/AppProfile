@@ -13,6 +13,11 @@ public class MethodMapImport extends DataImport<MethodsMapNettyDumper.MethodsMap
 	private static final String COLLECTION_NAME = "methodsmap";
 	DBCollection collection;
 
+	@Override
+	public void startNewSession(long appId) {
+		newSession(appId);
+	}
+
 	public MethodMapImport(DB db) {
 		super(db);
 		collection = getCollection(COLLECTION_NAME);
@@ -24,5 +29,4 @@ public class MethodMapImport extends DataImport<MethodsMapNettyDumper.MethodsMap
 			.append("index", sample.index).append("method", sample.method);
 		collection.insert(methodInfo);
 	}
-
 }

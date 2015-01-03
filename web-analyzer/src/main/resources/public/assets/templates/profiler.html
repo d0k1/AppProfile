@@ -1,0 +1,32 @@
+<h2>{{title}}</h2>
+
+<div>
+	<div>appId <span>{{appId}}</span></div>
+	<div>sessionId <span>{{sessionId}}</span></div>
+	<button type="button" data-ng-click="analyze()">Analyze</button>
+</div>
+
+<div>
+	<table class="table">
+		<thead>
+			<tr>
+				<td>Method</td>
+				<td>Nanos</td>
+				<td>Millis</td>
+				<td>Info</td>
+			</tr>
+		</thead>
+		<tbody class=".table-striped">
+			<tr ng-repeat="method in methods">
+				<td>{{method.methodName}}</td>
+				<td>{{method.finishTime-method.startTime}}</td>
+				<td>{{method.finishtimestamp-method.starttimestamp}}</td>
+				<td><button type="button" ng-click="selectMethod(method)">more</button></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div ng-show="currentMethod!=null">
+	<h2>123</h2>
+</div>

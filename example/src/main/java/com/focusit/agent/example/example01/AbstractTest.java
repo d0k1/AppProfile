@@ -5,7 +5,7 @@ package com.focusit.agent.example.example01;
  */
 public abstract class AbstractTest implements TestInterface {
 	public void foo(){
-		for(int j=0;j<1000;){
+		for(int j=0;j<100;){
 			j++;
 			bar();
 		}

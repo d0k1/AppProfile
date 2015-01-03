@@ -1,17 +1,16 @@
 package com.focusit.agent.analyzer.dao.statistics;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
-import com.focusit.agent.analyzer.data.statistics.MethodSample;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
+import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
+import com.focusit.agent.analyzer.data.statistics.ThreadSample;
+import com.mongodb.*;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 /**
  * Created by Denis V. Kirpichenkov on 24.12.14.
@@ -27,21 +26,64 @@ public class StatisticsDao {
 	@Inject
 	DBCollection methodmaps;
 
-	public Collection<MethodSample> getMethods(long appId, long sessionId) {
-		Collection<MethodSample> result = new ArrayList<>();
+	@Inject
+	DB db;
 
-		BasicDBObject sort = new BasicDBObject("index", 1);
-		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+	public Collection<MethodCallSample> getMethods(long appId, long sessionId) {
+		Collection<MethodCallSample> result = new ArrayList<>();
 
-		try (DBCursor cursor = methodmaps.find(query)) {
-			try (DBCursor sorted = cursor.sort(sort)) {
-				while(sorted.hasNext()) {
-					DBObject method = sorted.next();
-					result.add(new MethodSample((Long) method.get("index"), (String) method.get("method")));
-				}
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("parents", new BasicDBObject("$size", 0));
+
+		try (DBCursor cursor = statistics.find(query)) {
+			while(cursor.hasNext()) {
+				DBObject method = cursor.next();
+				result.add(dbobject2MethodCall(method));
 			}
 		}
 
 		return result;
+	}
+
+	public Collection<ThreadSample> getThreads(long appId, long sessionId) {
+		Collection<ThreadSample> result = new ArrayList<>();
+
+		return result;
+	}
+
+	private MethodCallSample dbobject2MethodCall(DBObject object){
+		MethodCallSample sample = new MethodCallSample((String)object.get("_id"),(Long)object.get("threadId"), (Long)object.get("methodId"), (String)object.get("methodName"));
+		sample.startTime = (Long)object.get("startTime");
+		sample.finishTime = (Long)object.get("finishTime");
+		sample.starttimestamp = (Long)object.get("starttimestamp");
+		sample.finishtimestamp = (Long)object.get("finishtimestamp");
+		BasicDBList parents = (BasicDBList)object.get("parents");
+
+		for(Object parent:parents){
+			sample.parents.add(parent.toString());
+		}
+
+		return sample;
+	}
+
+	public boolean analyzeSession(long appId, long sessionId){
+		HashMap<Long, String> methods = new HashMap<>();
+		BasicDBObject filter = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+		try (DBCursor cursor = statistics.find(filter, new BasicDBObject("methodId", 1))){
+			while(cursor.hasNext()) {
+				DBObject item = cursor.next();
+				long methodId = (Long) item.get("methodId");
+				String methodName = methods.get(methodId);
+				if (methodName == null) {
+					DBObject methodNameData = methodmaps.findOne(filter.append("index", methodId), new BasicDBObject("method", 1));
+					if (methodNameData != null) {
+						methodName = (String) methodNameData.get("method");
+						methods.put(methodId, methodName);
+					}
+				}
+
+				statistics.update(new BasicDBObject("_id", item.get("_id")), new BasicDBObject("$set", new BasicDBObject("methodName", methodName)));
+			}
+		}
+		return true;
 	}
 }

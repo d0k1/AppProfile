@@ -30,8 +30,8 @@
 	<script src="/assets/js/highcharts-ng.js"></script>
 	<script src="/assets/js/app.js"></script>
 	<script src="/assets/js/controllers/sessions.js"></script>
-	<script src="/assets/js/controllers/methods.js"></script>
-	<script src="/assets/js/controllers/threads.js"></script>
+	<script src="/assets/js/controllers/profiler.js"></script>
+	<script src="/assets/js/controllers/system.js"></script>
 	<script src="/assets/js/controllers/jvm.js"></script>
 	<script src="/assets/js/dataview.js"></script>
 	<script src="/assets/js/configuration.js"></script>
@@ -45,8 +45,8 @@
 			<div style="height: 50px;"></div>
 			<ul class="nav nav-pills nav-stacked" id="mavigationTabs">
 				<li ng-class="{active:item==0}"><a ng-href="\#{{urls.sessions}}" ng-click="item = 0">Start</a></li>
-				<li ng-class="{active:item==1}"><a ng-href="\#{{urls.methods}}" ng-click="item = 1">Method</a></li>
-				<li ng-class="{active:item==2}"><a ng-href="\#{{urls.threads}}" ng-click="item = 2">Threads</a></li>
+				<li ng-class="{active:item==1}"><a ng-href="\#{{urls.methods}}" ng-click="item = 1">Profiler</a></li>
+				<li ng-class="{active:item==2}"><a ng-href="\#{{urls.threads}}" ng-click="item = 2">System</a></li>
 				<li ng-class="{active:item==3}"><a ng-href="\#{{urls.jvm}}" ng-click="item = 3">Jvm</a></li>
 			</ul>
 		</div>

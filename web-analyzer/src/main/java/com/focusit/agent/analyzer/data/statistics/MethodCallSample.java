@@ -1,20 +1,26 @@
 package com.focusit.agent.analyzer.data.statistics;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Denis V. Kirpichenkov on 03.01.15.
  */
 public class MethodCallSample {
+	public final String _id;
 	public final long threadId;
-	public final String name;
-	public final long index;
-	public final long startTime;
-	public final long finishTime;
+	public final long methodId;
+	public final String methodName;
+	public long starttimestamp = -1;
+	public long finishtimestamp = -1;
+	public long startTime = -1;
+	public long finishTime = -1;
+	public final List<String> parents = new ArrayList<>();
 
-	public MethodCallSample(long threadId, String name, long index, long startTime, long finishTime) {
+	public MethodCallSample(String id, long threadId, long methodId, String methodName) {
+		_id = id;
 		this.threadId = threadId;
-		this.name = name;
-		this.index = index;
-		this.startTime = startTime;
-		this.finishTime = finishTime;
+		this.methodId = methodId;
+		this.methodName = methodName;
 	}
 }

@@ -1,8 +1,8 @@
 package com.focusit.agent.analyzer.controllers;
 
 import com.focusit.agent.analyzer.dao.statistics.StatisticsDao;
-import com.focusit.agent.analyzer.data.jvm.HeapSample;
-import com.focusit.agent.analyzer.data.statistics.MethodSample;
+import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
+import com.focusit.agent.analyzer.data.statistics.ThreadSample;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,8 +21,18 @@ public class StatisticsController {
 	StatisticsDao dao;
 
 	@RequestMapping(value = "/{appId}/{sessionId}/methods", method = RequestMethod.GET)
-	public Collection<MethodSample> methods(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	public Collection<MethodCallSample> methods(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
 		return dao.getMethods(Long.parseLong(appId), Long.parseLong(sessionId));
+	}
+
+	@RequestMapping(value = "/{appId}/{sessionId}/threads", method = RequestMethod.GET)
+	public Collection<ThreadSample> threads(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+		return dao.getThreads(Long.parseLong(appId), Long.parseLong(sessionId));
+	}
+
+	@RequestMapping(value = "/{appId}/{sessionId}/analyze", method = RequestMethod.GET)
+	public boolean analyze(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+		return dao.analyzeSession(Long.parseLong(appId), Long.parseLong(sessionId));
 	}
 
 }
