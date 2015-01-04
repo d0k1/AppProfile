@@ -1,4 +1,7 @@
 <h2>{{title}}</h2>
 
-AppId: <select ng-model="appId" ng-options="x.id as x.id for x in apps" ng-change="loadSessions()"></select>
-SessionId: <select ng-model="sessionId" ng-options="x.sessionId as x.sessionId for x in sessions" ng-change="updateGlobals()"></select>
+<appsessionrec on-data-view-updated="onDataViewUpdated"></appsessionrec>
+
+<div>
+	Session info: jvmSamples: {{session.jvmSamples}}, methods: {{session.methods}}, statistics: {{session.statisticsSamples}}, records {{session.records}}
+</div>

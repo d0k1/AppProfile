@@ -2,6 +2,7 @@ package com.focusit.agent.analyzer.dao.sessions;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.sessions.AppInfo;
+import com.focusit.agent.analyzer.data.sessions.RecordInfo;
 import com.focusit.agent.analyzer.data.sessions.SessionInfo;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -25,6 +26,10 @@ public class SessionDao {
 	DBCollection sessions;
 
 	@Inject
+	@Named(MongoConfiguration.RECORDS_COLLECTION)
+	DBCollection records;
+
+	@Inject
 	@Named(MongoConfiguration.JVM_COLLECTION)
 	DBCollection jvm;
 
@@ -42,7 +47,7 @@ public class SessionDao {
 		try(DBCursor cursor = sessions.find()){
 			while(cursor.hasNext()){
 				DBObject session = cursor.next();
-				AppInfo info = new AppInfo((Long)session.get("appId"),(Long)session.get("appId"));
+				AppInfo info = new AppInfo((Long)session.get("appId"),String.valueOf((Long)session.get("appId")));
 
 				if(!result.contains(info)) {
 					result.add(info);
@@ -62,9 +67,25 @@ public class SessionDao {
 
 				BasicDBObject countQuery = new BasicDBObject("appId", appId).append("sessionId", session.get("sessionId"));
 				long jvmCount = jvm.find(countQuery).count();
-				long methodsCount = jvm.find(countQuery).count();
-				long statisticsCount = jvm.find(countQuery).count();
-				result.add(new SessionInfo((Long)session.get("sessionId"), jvmCount, statisticsCount, methodsCount, (Long)session.get("date")));
+				long methodsCount = methods.find(countQuery).count();
+				long statisticsCount = statistics.find(countQuery).count();
+				long recordsCount = records.find(countQuery).count();
+				result.add(new SessionInfo((Long)session.get("sessionId"), jvmCount, statisticsCount, methodsCount, recordsCount, (Long)session.get("date")));
+			}
+		}
+		return result;
+	}
+
+	public Collection<RecordInfo> getRecords(long appId, long sessionId) {
+		Collection<RecordInfo> result = new ArrayList<>();
+
+		result.add(new RecordInfo(-1, "All records"));
+
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+		try(DBCursor cursor = records.find(query)){
+			while(cursor.hasNext()){
+				DBObject session = cursor.next();
+				result.add(new RecordInfo((Long)session.get("recordId"), String.valueOf((Long)session.get("recordId"))));
 			}
 		}
 		return result;

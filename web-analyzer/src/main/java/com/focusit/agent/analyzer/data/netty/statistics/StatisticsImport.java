@@ -1,37 +1,40 @@
 package com.focusit.agent.analyzer.data.netty.statistics;
 
+import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import org.bson.types.ObjectId;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Denis V. Kirpichenkov on 30.12.14.
  */
+@Component
 public class StatisticsImport extends DataImport<ExecutionInfo> {
 	private static final String COLLECTION_NAME = "statistics";
-	DBCollection collection;
 
-	ConcurrentHashMap<Long, HashMap<Long, HashMap<Long, LinkedList<MethodCallSample>>>> callSites = new ConcurrentHashMap<>();
+	@Named(MongoConfiguration.STATISTICS_COLLECTION)
+	@Inject
+	DBCollection statistics;
 
-	public StatisticsImport(DB db) {
-		super(db);
-		collection = getCollection(COLLECTION_NAME);
-	}
+	// appId // sessionId // threadId
+	Map<Long, Map<Long, Map<Long, LinkedList<MethodCallSample>>>> callSites = new ConcurrentHashMap<>();
 
 	@Override
-	public void startNewSession(long appId) {
+	public void onSessionStart(long appId) {
 		long sessionId = getSessionIdByAppId(appId);
-		HashMap<Long, HashMap<Long, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
+		Map<Long, Map<Long, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
 		if(sessionIdCalls==null) {
-			sessionIdCalls = new HashMap<>();
+			sessionIdCalls = new ConcurrentHashMap<>();
 			callSites.put(appId, sessionIdCalls);
 		}
 
@@ -40,16 +43,18 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 				sessionIdCalls.remove(sessionId-1);
 			}
 		}
-		sessionIdCalls.put(sessionId, new HashMap<Long, LinkedList<MethodCallSample>>());
+		sessionIdCalls.put(sessionId, new ConcurrentHashMap<Long, LinkedList<MethodCallSample>>());
 	}
 
 	@Override
-	protected void importSampleInt(long appId, long sessionId, ExecutionInfo info) {
-		processExecutionInfo(appId, sessionId, info);
+	protected void importSampleInt(long appId, long sessionId, long recId, ExecutionInfo info) {
+		if(isProfilingEnabled(appId)) {
+			processExecutionInfo(appId, sessionId, recId, info);
+		}
 	}
 
-	private void processExecutionInfo(long appId, long sessionId, ExecutionInfo info){
-		HashMap<Long, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
+	private void processExecutionInfo(long appId, long sessionId, long recId, ExecutionInfo info){
+		Map<Long, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
 
 		long threadId = (Long) info.threadId;
 		long event = (Long) info.eventId;
@@ -80,7 +85,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			MethodCallSample sample = samples.removeLast();
 			sample.finishTime = time;
 			sample.finishtimestamp = timestamp;
-			insertMethodCallSample(collection, sample, appId, sessionId);
+			insertMethodCallSample(statistics, sample, appId, sessionId, recId);
 		} else if(event==0){
 			MethodCallSample parent = samples.getLast();
 			MethodCallSample sample = new MethodCallSample(new ObjectId().toString(), threadId, methodId, null);
@@ -92,10 +97,10 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	}
 
-	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId) {
+	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId, long recId) {
 		BasicDBObject method = new BasicDBObject("_id", sample._id).append("threadId", sample.threadId).append("methodId", sample.methodId).append("methodName", sample.methodName)
 			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("starttimestamp", sample.starttimestamp)
-			.append("finishtimestamp", sample.finishtimestamp).append("appId", appId).append("sessionId", sessionId);
+			.append("finishtimestamp", sample.finishtimestamp).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
 
 		String parents[] = new String[sample.parents.size()];
 		int i = 0;

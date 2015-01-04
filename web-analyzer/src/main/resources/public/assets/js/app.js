@@ -1,7 +1,7 @@
 /**
  * Created by doki on 10.06.14.
  */
-var app = angular.module('bondApp', ['ngRoute', 'sessionsControllers', 'jvmControllers', 'systemControllers', 'profilerControllers', 'configuration', 'dataview']);
+var app = angular.module('bondApp', ['ngRoute', 'appsessionrec', 'sessionsControllers', 'jvmControllers', 'systemControllers', 'profilerControllers', 'configuration', 'dataview']);
 
 app.config(['$routeProvider',
 	function($routeProvider) {

@@ -8,6 +8,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
+ * Base class to interact with agent through netty
  * Created by Denis V. Kirpichenkov on 28.12.14.
  */
 public abstract class NettyData implements Runnable {
