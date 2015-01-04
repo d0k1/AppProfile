@@ -44,11 +44,19 @@ public class NettySessionManager {
 	private DataImport[] importToNotify;
 
 	public void setAutomonitoring(boolean automonitoring) {
-		automonitoring = automonitoring;
+		this.automonitoring = automonitoring;
 	}
 
 	public void setAutoprofiling(boolean autoprofiling) {
-		autoprofiling = autoprofiling;
+		this.autoprofiling = autoprofiling;
+	}
+
+	public boolean isAutomonitoring() {
+		return automonitoring;
+	}
+
+	public boolean isAutoprofiling() {
+		return autoprofiling;
 	}
 
 	public void setImportsToNotify(DataImport...imports) {

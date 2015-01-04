@@ -5,11 +5,11 @@
 var profilersControllers = angular.module('profilerControllers', ['appsessionrec','dataview', 'ngResource']);
 
 profilersControllers.factory("methods", function($resource) {
-	return $resource("/profiler/:appId/:sessionId/methods");
+	return $resource("/profiler/:appId/:sessionId/:recId/methods");
 });
 
 profilersControllers.factory("analyze", function($resource) {
-	return $resource("/profiler/:appId/:sessionId/analyze");
+	return $resource("/profiler/:appId/:sessionId/:recId/analyze");
 });
 
 profilersControllers.controller('profilerController', function($scope, dataview, methods, analyze){
@@ -19,14 +19,14 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 	$scope.currentMethod = null;
 
 	function processSessionData(){
-		analyze.get({appId: $scope.appId, sessionId: $scope.sessionId}, function(data){
+		analyze.get({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
 		});
 	}
 
 	function loadMethods(){
 		$scope.recId = dataview.recId;
 
-		methods.query({appId: dataview.appId, sessionId: dataview.sessionId}, function(data){
+		methods.query({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
 			$scope.methods = []
 			for(var i=0;i<data.length;i++){
 				$scope.methods.push(data[i]);

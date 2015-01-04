@@ -2,7 +2,6 @@ package com.focusit.agent.analyzer.dao.statistics;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
-import com.focusit.agent.analyzer.data.statistics.ThreadSample;
 import com.mongodb.*;
 import org.springframework.stereotype.Repository;
 
@@ -29,10 +28,16 @@ public class StatisticsDao {
 	@Inject
 	DB db;
 
-	public Collection<MethodCallSample> getMethods(long appId, long sessionId) {
+	public Collection<MethodCallSample> getMethods(long appId, long sessionId, long recId) {
 		Collection<MethodCallSample> result = new ArrayList<>();
 
-		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("parents", new BasicDBObject("$size", 0));
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
+
+		query.append("parents", new BasicDBObject("$size", 0));
 
 		try (DBCursor cursor = statistics.find(query)) {
 			while(cursor.hasNext()) {
@@ -40,12 +45,6 @@ public class StatisticsDao {
 				result.add(dbobject2MethodCall(method));
 			}
 		}
-
-		return result;
-	}
-
-	public Collection<ThreadSample> getThreads(long appId, long sessionId) {
-		Collection<ThreadSample> result = new ArrayList<>();
 
 		return result;
 	}
@@ -65,16 +64,21 @@ public class StatisticsDao {
 		return sample;
 	}
 
-	public boolean analyzeSession(long appId, long sessionId){
+	public boolean analyzeSession(long appId, long recId, long sessionId){
 		HashMap<Long, String> methods = new HashMap<>();
-		BasicDBObject filter = new BasicDBObject("appId", appId).append("sessionId", sessionId);
-		try (DBCursor cursor = statistics.find(filter, new BasicDBObject("methodId", 1))){
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
+
+		try (DBCursor cursor = statistics.find(query, new BasicDBObject("methodId", 1))){
 			while(cursor.hasNext()) {
 				DBObject item = cursor.next();
 				long methodId = (Long) item.get("methodId");
 				String methodName = methods.get(methodId);
 				if (methodName == null) {
-					DBObject methodNameData = methodmaps.findOne(filter.append("index", methodId), new BasicDBObject("method", 1));
+					DBObject methodNameData = methodmaps.findOne(query.append("index", methodId), new BasicDBObject("method", 1));
 					if (methodNameData != null) {
 						methodName = (String) methodNameData.get("method");
 						methods.put(methodId, methodName);

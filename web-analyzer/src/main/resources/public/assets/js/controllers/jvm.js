@@ -5,19 +5,19 @@
 var jvmControllers = angular.module('jvmControllers', ['dataview', 'highcharts-ng', 'ngResource']);
 
 jvmControllers.factory("lastcpu", function($resource) {
-                         return $resource("/jvm/:appId/:sessionId/cpu/last/:seconds");
+                         return $resource("/jvm/:appId/:sessionId/:recId/cpu/last/:seconds");
                        });
 
 jvmControllers.factory("lastheap", function($resource) {
-                         return $resource("/jvm/:appId/:sessionId/heap/last/:seconds");
+                         return $resource("/jvm/:appId/:sessionId/:recId/heap/last/:seconds");
                        });
 
 jvmControllers.factory("cpu", function($resource) {
-	return $resource("/jvm/:appId/:sessionId/cpu/:max/:min");
+	return $resource("/jvm/:appId/:sessionId/:recId/cpu/:max/:min");
 });
 
 jvmControllers.factory("heap", function($resource) {
-	return $resource("/jvm/:appId/:sessionId/heap/:max/:min");
+	return $resource("/jvm/:appId/:sessionId/:recId/heap/:max/:min");
 });
 
 jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $interval, cpu, heap, dataview){
@@ -74,11 +74,11 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 	function loadData(){
 		$scope.recId = dataview.recId;
 
-		lastcpu.query({appId:dataview.appId, sessionId: dataview.sessionId, seconds: $scope.lastSeconds }, function(data) {
+		lastcpu.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, seconds: $scope.lastSeconds }, function(data) {
 			loadCpuData(data)
 		});
 
-		lastheap.query({appId:dataview.appId, sessionId: dataview.sessionId, seconds: $scope.lastSeconds }, function(data) {
+		lastheap.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, seconds: $scope.lastSeconds }, function(data) {
 			loadHeapData(data)
 		});
 	}
@@ -141,13 +141,12 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 
 	$scope.prev = function(){
 		$interval.cancel();
-		$scope.recId = dataview.recId;
 
-		cpu.query({appId:dataview.appId, sessionId: dataview.sessionId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
+		cpu.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
 			loadCpuData(data)
 		});
 
-		heap.query({appId:dataview.appId, sessionId: dataview.sessionId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
+		heap.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, max: $scope.timestampMax-$scope.timeStepSeconds*1000, min:$scope.timestampMin-$scope.timeStepSeconds*1000}, function(data) {
 			loadHeapData(data)
 		});
 	}
@@ -156,11 +155,11 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 		$interval.cancel();
 		$scope.recId = dataview.recId;
 
-		cpu.query({appId:dataview.appId, sessionId: dataview.sessionId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
+		cpu.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
 			loadCpuData(data)
 		});
 
-		heap.query({appId:dataview.appId, sessionId: dataview.sessionId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
+		heap.query({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId, max: $scope.timestampMax+$scope.timeStepSeconds*1000, min:$scope.timestampMin+$scope.timeStepSeconds*1000}, function(data) {
 			loadHeapData(data)
 		});
 	}

@@ -24,11 +24,15 @@ public class JvmDao {
 	@Inject
 	DBCollection jvm;
 
-	public Collection<HeapSample> getLastHeapData(long appId, long sessionId, long seconds){
+	public Collection<HeapSample> getLastHeapData(long appId, long sessionId, long recId, long seconds){
 		Collection<HeapSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
 		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
 
 		Long maxTimestamp = null;
 
@@ -51,11 +55,15 @@ public class JvmDao {
 		return result;
 	}
 
-	public Collection<CpuSample> getLastCpuData(long appId, long sessionId, long seconds){
+	public Collection<CpuSample> getLastCpuData(long appId, long sessionId, long recId, long seconds){
 		Collection<CpuSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
 		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
 
 		Long maxTimestamp = null;
 
@@ -78,11 +86,14 @@ public class JvmDao {
 		return result;
 	}
 
-	public Collection<HeapSample> getHeapData(long appId, long sessionId, long timestapmMin, long timestapmMax){
+	public Collection<HeapSample> getHeapData(long appId, long sessionId, long recId, long timestapmMin, long timestapmMax){
 		Collection<HeapSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
 		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
 		query.append("timestamp", new BasicDBObject("$lte", timestapmMax).append("$gte", timestapmMin));
 
 		try(DBCursor cursor = jvm.find(query)){
@@ -96,11 +107,14 @@ public class JvmDao {
 		return result;
 	}
 
-	public Collection<CpuSample> getCpuData(long appId, long sessionId, long timestapmMin, long timestapmMax){
+	public Collection<CpuSample> getCpuData(long appId, long sessionId, long recId, long timestapmMin, long timestapmMax){
 		Collection<CpuSample> result = new ArrayList<>();
 
 		BasicDBObject sort = new BasicDBObject("timestamp", -1);
 		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
 		query.append("timestamp", new BasicDBObject("$lte", timestapmMax).append("$gte", timestapmMin));
 
 		try(DBCursor cursor = jvm.find(query)){
