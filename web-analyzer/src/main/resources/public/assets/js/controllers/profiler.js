@@ -5,7 +5,7 @@
 var profilersControllers = angular.module('profilerControllers', ['appsessionrec', 'dataview', 'ngResource']);
 
 profilersControllers.factory("methods", function($resource) {
-	return $resource("/profiler/:appId/:sessionId/:recId/methods");
+	return $resource("/profiler/:appId/:sessionId/:recId/methods", {}, {getByParents:{method:'POST', isArray:true}});
 });
 
 profilersControllers.factory("analyze", function($resource) {
@@ -27,12 +27,35 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 	function loadMethods(){
 		$scope.recId = dataview.recId;
 
-		methods.query({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
-			$scope.methods = []
-			for(var i=0;i<data.length;i++){
-				$scope.methods.push(data[i]);
+		if($scope.stack.length==0) {
+			methods.query({
+				appId: dataview.appId,
+				sessionId: dataview.sessionId,
+				recId: dataview.recId
+			}, function (data) {
+				prepareData(data)
+			});
+		} else {
+			var stackIds = [];
+			for(var i=0;i<$scope.stack.length;i++){
+				stackIds.push($scope.stack[i]._id);
 			}
-		});
+
+			methods.getByParents({
+				appId: dataview.appId,
+				sessionId: dataview.sessionId,
+				recId: dataview.recId
+			}, stackIds, function(data){
+				prepareData(data);
+			});
+		}
+	}
+
+	function prepareData(data){
+		$scope.methods = []
+		for (var i = 0; i < data.length; i++) {
+			$scope.methods.push(data[i]);
+		}
 	}
 
 	if($scope.appId>0 && $scope.sessionId>0){
@@ -48,8 +71,18 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 		loadMethods();
 	}
 
+	$scope.upStack = function(){
+		$scope.stack.pop();
+		loadMethods();
+	}
+
+	$scope.onDataViewUpdated = function(){
+		loadMethods();
+	}
+
 	$scope.selectMethod = function(method){
-		$scope.currentMethod = method;
+		$scope.stack.push(method);
+		loadMethods();
 	}
 
 });

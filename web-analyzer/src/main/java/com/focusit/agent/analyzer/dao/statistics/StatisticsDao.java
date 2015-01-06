@@ -91,7 +91,24 @@ public class StatisticsDao {
 		return true;
 	}
 
-	public Collection<MethodCallSample> getMethodsByParent(long appId, long sessionId, long recId, String parent) {
-		return null;
+	public Collection<MethodCallSample> getMethodsByParents(long appId, long sessionId, long recId, String[] parents) {
+		Collection<MethodCallSample> result = new ArrayList<>();
+
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
+
+		query.append("parents", new BasicDBObject("$all", parents));
+
+		try (DBCursor cursor = statistics.find(query)) {
+			while(cursor.hasNext()) {
+				DBObject method = cursor.next();
+				result.add(dbobject2MethodCall(method));
+			}
+		}
+
+		return result;
 	}
 }

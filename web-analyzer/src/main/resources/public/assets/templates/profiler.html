@@ -1,9 +1,11 @@
-<h2>{{title}}</h2>
+<div class="page-header"><h2>{{title}}</h2></div>
 
 <appsessionrec on-data-view-updated="onDataViewUpdated"></appsessionrec>
 <button type="button" data-ng-click="analyze()">Analyze</button>
 <div>
 	<div ng-show="stack.length>0">
+		<button type="button" ng-click="resetStack()">reset</button>
+		<button type="button" ng-click="upStack()">up</button>
 		<table class="table">
 			<thead>
 				<tr>

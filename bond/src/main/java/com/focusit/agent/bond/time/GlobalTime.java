@@ -3,6 +3,7 @@ package com.focusit.agent.bond.time;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.Thread.sleep;
+import static java.lang.Thread.yield;
 
 /**
  * Thread providing eventId. Used to avoid multiple getting system eventId
@@ -36,7 +37,11 @@ public class GlobalTime {
 					time.set(System.nanoTime());
 					timestamp.set(System.currentTimeMillis());
 					try {
-						sleep(interval);
+						if(interval>0) {
+							sleep(interval);
+						} else {
+							yield();
+						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}

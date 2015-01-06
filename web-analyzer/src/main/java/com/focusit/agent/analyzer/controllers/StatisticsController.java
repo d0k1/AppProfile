@@ -2,10 +2,7 @@ package com.focusit.agent.analyzer.controllers;
 
 import com.focusit.agent.analyzer.dao.statistics.StatisticsDao;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -24,9 +21,9 @@ public class StatisticsController {
 		return dao.getMethods(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId));
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/{recId}/methods/{parent}", method = RequestMethod.GET)
-	public Collection<MethodCallSample> methodsByParent(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("recId") String recId, @PathVariable("parent") String parent){
-		return dao.getMethodsByParent(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId), parent);
+	@RequestMapping(value = "/{appId}/{sessionId}/{recId}/methods", method = RequestMethod.POST)
+	public Collection<MethodCallSample> methodsByParent(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("recId") String recId, @RequestBody String[] parents){
+		return dao.getMethodsByParents(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId), parents);
 	}
 
 	@RequestMapping(value = "/{appId}/{sessionId}/{recId}/analyze", method = RequestMethod.GET)

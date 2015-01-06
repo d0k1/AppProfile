@@ -1,6 +1,6 @@
 agent.enabled=true
 agent.transformer=javaassist
-agent.timer.interval=10
+agent.timer.interval=1
 agent.dump.interval=1
 
 #agent.exclude=sun,com.sun,java,javax,sun.util,org.apache.juli,org.apache.catalina,org.apache.tomcat,com.focusit.agent,com.intellij
