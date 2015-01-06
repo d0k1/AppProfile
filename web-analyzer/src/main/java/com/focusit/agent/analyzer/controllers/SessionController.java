@@ -33,7 +33,7 @@ public class SessionController {
 		return dao.getRecords(Long.parseLong(appId), Long.parseLong(sessionId));
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/startrofiling", method = RequestMethod.GET)
+	@RequestMapping(value = "/{appId}/{sessionId}/startprofiling", method = RequestMethod.GET)
 	public boolean startprofiling(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
 		return true;
