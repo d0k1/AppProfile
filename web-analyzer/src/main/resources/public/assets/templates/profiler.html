@@ -3,9 +3,26 @@
 <appsessionrec on-data-view-updated="onDataViewUpdated"></appsessionrec>
 <button type="button" data-ng-click="analyze()">Analyze</button>
 <div>
+	<div ng-show="stack.length>0">
+		<table class="table">
+			<thead>
+				<tr>
+					<td>Parent</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="method in stack">
+					<td>{{method.methodName}}</td>
+					<td>{{method.finishTime-method.startTime}}</td>
+					<td>{{method.finishtimestamp-method.starttimestamp}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 	<table class="table">
 		<thead>
 			<tr>
+				<td>Thread</td>
 				<td>Method</td>
 				<td>Nanos</td>
 				<td>Millis</td>
@@ -14,15 +31,13 @@
 		</thead>
 		<tbody class=".table-striped">
 			<tr ng-repeat="method in methods">
+				<td>{{method.threadId}}</td>
 				<td>{{method.methodName}}</td>
 				<td>{{method.finishTime-method.startTime}}</td>
 				<td>{{method.finishtimestamp-method.starttimestamp}}</td>
-				<td><button type="button" ng-click="selectMethod(method)">more</button></td>
+				<td><button type="button" ng-click="selectMethod(method)">view</button></td>
+				<div id="parent_{{method.id}}" style="display: none"></div>
 			</tr>
 		</tbody>
 	</table>
-</div>
-
-<div ng-show="currentMethod!=null">
-	<h2>123</h2>
 </div>

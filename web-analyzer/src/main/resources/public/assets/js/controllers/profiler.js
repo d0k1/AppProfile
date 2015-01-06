@@ -2,7 +2,7 @@
  * Created by doki on 01.07.14.
  */
 
-var profilersControllers = angular.module('profilerControllers', ['appsessionrec','dataview', 'ngResource']);
+var profilersControllers = angular.module('profilerControllers', ['appsessionrec', 'dataview', 'ngResource']);
 
 profilersControllers.factory("methods", function($resource) {
 	return $resource("/profiler/:appId/:sessionId/:recId/methods");
@@ -16,7 +16,8 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 	$scope.title = 'Profiling information'
 
 	$scope.methods = [];
-	$scope.currentMethod = null;
+
+	$scope.stack = [];
 
 	function processSessionData(){
 		analyze.get({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
@@ -42,11 +43,13 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 		processSessionData();
 	}
 
+	$scope.resetStack = function(){
+		$scope.stack = [];
+		loadMethods();
+	}
+
 	$scope.selectMethod = function(method){
 		$scope.currentMethod = method;
 	}
 
-	$scope.onDataViewUpdated = function(view, appIds, sessionIds, recIds){
-		loadMethods();
-	}
 });

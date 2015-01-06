@@ -24,6 +24,11 @@ public class StatisticsController {
 		return dao.getMethods(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId));
 	}
 
+	@RequestMapping(value = "/{appId}/{sessionId}/{recId}/methods/{parent}", method = RequestMethod.GET)
+	public Collection<MethodCallSample> methodsByParent(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("recId") String recId, @PathVariable("parent") String parent){
+		return dao.getMethodsByParent(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId), parent);
+	}
+
 	@RequestMapping(value = "/{appId}/{sessionId}/{recId}/analyze", method = RequestMethod.GET)
 	public boolean analyze(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("recId") String recId){
 		return dao.analyzeSession(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId));

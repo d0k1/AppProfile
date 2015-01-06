@@ -90,4 +90,8 @@ public class StatisticsDao {
 		}
 		return true;
 	}
+
+	public Collection<MethodCallSample> getMethodsByParent(long appId, long sessionId, long recId, String parent) {
+		return null;
+	}
 }
