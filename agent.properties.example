@@ -18,3 +18,4 @@ statistics.file=
 jvm.file=
 
 agent.dumptype=disk
+agent.appId=1

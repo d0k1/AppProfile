@@ -33,32 +33,32 @@ public class SessionController {
 		return dao.getRecords(Long.parseLong(appId), Long.parseLong(sessionId));
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/startprofiling", method = RequestMethod.GET)
-	public boolean startprofiling(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	@RequestMapping(value = "/{appId}/startprofiling", method = RequestMethod.GET)
+	public boolean startprofiling(@PathVariable("appId") String appId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
 		return true;
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/startmonitoring", method = RequestMethod.GET)
-	public boolean startmonitoring(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	@RequestMapping(value = "/{appId}/startmonitoring", method = RequestMethod.GET)
+	public boolean startmonitoring(@PathVariable("appId") String appId){
 		sessionManager.setMonitoringEnabled(Long.parseLong(appId), true);
 		return true;
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/stopprofiling", method = RequestMethod.GET)
-	public boolean stopprofiling(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	@RequestMapping(value = "/{appId}/stopprofiling", method = RequestMethod.GET)
+	public boolean stopprofiling(@PathVariable("appId") String appId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
 		return true;
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/stopmonitoring", method = RequestMethod.GET)
-	public boolean stopmonitoring(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	@RequestMapping(value = "/{appId}/stopmonitoring", method = RequestMethod.GET)
+	public boolean stopmonitoring(@PathVariable("appId") String appId){
 		sessionManager.setMonitoringEnabled(Long.parseLong(appId), false);
 		return true;
 	}
 
-	@RequestMapping(value = "/{appId}/{sessionId}/stoprecord", method = RequestMethod.GET)
-	public boolean stoprecord(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
+	@RequestMapping(value = "/{appId}/stoprecord", method = RequestMethod.GET)
+	public boolean stoprecord(@PathVariable("appId") String appId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
 		sessionManager.setMonitoringEnabled(Long.parseLong(appId), false);
 		return true;
@@ -67,6 +67,8 @@ public class SessionController {
 	@RequestMapping(value = "/{appId}/{sessionId}/newrecord", method = RequestMethod.GET)
 	public boolean newrecord(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
 		sessionManager.startRecording(Long.parseLong(appId), Long.parseLong(sessionId));
+		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
+		sessionManager.setMonitoringEnabled(Long.parseLong(appId), true);
 		return true;
 	}
 
@@ -90,13 +92,13 @@ public class SessionController {
 	}
 
 	@RequestMapping(value = "/autoprofiling/enable", method = RequestMethod.GET)
-	public boolean autoprofilingEnable(@PathVariable("appId") String appId){
+	public boolean autoprofilingEnable(){
 		sessionManager.setAutoprofiling(true);
 		return true;
 	}
 
 	@RequestMapping(value = "/autoprofiling/disable", method = RequestMethod.GET)
-	public boolean autoprofilingDisable(@PathVariable("appId") String appId){
+	public boolean autoprofilingDisable(){
 		sessionManager.setAutoprofiling(false);
 		return true;
 	}
@@ -108,7 +110,7 @@ public class SessionController {
 	}
 
 	@RequestMapping(value = "/automonitoring/disable", method = RequestMethod.GET)
-	public boolean automonitoringDisable(@PathVariable("appId") String appId){
+	public boolean automonitoringDisable(){
 		sessionManager.setAutomonitoring(false);
 		return true;
 	}

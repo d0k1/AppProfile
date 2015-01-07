@@ -1,5 +1,7 @@
-<div>
-	AppId: <select ng-model="appId" ng-options="x.id as x.id for x in apps" ng-change="loadSessions()"></select>
-	SessionId: <select ng-model="sessionId" ng-options="x.sessionId as x.sessionId for x in sessions" ng-change="loadRecords()"></select>
-	RecordId: <select ng-model="recId" ng-options="x.id as x.id for x in recs" ng-change="updateGlobals()"></select>
+<div class="panel panel-default">
+	<div class="panel-body">
+		AppId: <select ng-model="appId" ng-options="x.id as x.id for x in apps" ng-change="loadSessions()"></select>
+		SessionId: <select ng-model="sessionId" ng-options="x.sessionId as x.sessionId for x in sessions" ng-change="loadRecords()"></select>
+		RecordId: <select ng-model="recId" ng-options="x.id as x.id for x in recs" ng-change="updateGlobals()"></select>
+	</div>
 </div>

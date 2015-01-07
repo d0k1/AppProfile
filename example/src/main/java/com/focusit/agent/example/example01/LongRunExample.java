@@ -28,7 +28,7 @@ public class LongRunExample {
 			@Override
 			public void run() {
 				while(!Thread.interrupted()) {
-					if (i++ >= 7)
+					if (i++ >= 70)
 						break;
 
 					new ClassToInstrument().foo();

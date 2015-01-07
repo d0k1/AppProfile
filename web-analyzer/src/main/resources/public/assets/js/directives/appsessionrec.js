@@ -29,6 +29,7 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 			$scope.recId = dataview.recId;
 
 			$scope.loadApps = function(){
+				$scope.apps=[];
 				appIds.query(function(data){
 					for(var i=0;i<data.length;i++){
 						$scope.apps.push(data[i]);
@@ -38,6 +39,7 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 
 			$scope.loadSessions = function(){
 				dataview.appId = $scope.appId;
+				$scope.sessions=[];
 				sessionIds.query({appId: $scope.appId}, function(data){
 					for(var i=0;i<data.length;i++){
 						$scope.sessions.push(data[i]);
@@ -48,6 +50,7 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 
 			$scope.loadRecords=function(){
 				dataview.sessionId = $scope.sessionId;
+				$scope.recs = [];
 				recIds.query({appId: $scope.appId, sessionId:$scope.sessionId}, function(data){
 					for(var i=0;i<data.length;i++){
 						$scope.recs.push(data[i]);
