@@ -129,11 +129,11 @@ public class NettySessionManager {
 	}
 
 	public boolean isMonitoringEnabled(long appId){
-		return enabledMonitoring.get(appId);
+		return enabledMonitoring.get(appId)==null?false:enabledMonitoring.get(appId);
 	}
 
 	public boolean isProfilingEnabled(long appId){
-		return enabledProfiling.get(appId);
+		return enabledProfiling.get(appId)==null?false:enabledProfiling.get(appId);
 	}
 
 	public void setMonitoringEnabled(long appId, boolean value){
@@ -148,7 +148,7 @@ public class NettySessionManager {
 	public void setProfilingEnabled(long appId, boolean value){
 		try {
 			lock.lock();
-			enabledMonitoring.put(appId, value);
+			enabledProfiling.put(appId, value);
 		}finally {
 			lock.unlock();
 		}

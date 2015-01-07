@@ -21,6 +21,7 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 
 	function processSessionData(){
 		analyze.get({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
+			loadMethods();
 		});
 	}
 

@@ -35,35 +35,48 @@
 		<div class="panel-body">
 			<div class="btn-toolbar" role="toolbar" aria-label="autoactions">
 				<div class="btn-group" role="group" aria-label="automonitoring">
-					<button type="button" ng-click="startAutoMonitoring()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> AutoMonitoring</button>
-					<button type="button" ng-click="stopAutoMonitoring()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> AutoMonitoring</button>
+					<div class="well well-sm">
+						<span class="label" ng-class="{'label-success':automonitoring=='true', 'label-default':automonitoring=='false'}">Monitoring {{automonitoring}}</span>
+						<button type="button" ng-click="startAutoMonitoring()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> AutoMonitoring</button>
+						<button type="button" ng-click="stopAutoMonitoring()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> AutoMonitoring</button>
+					</div>
 				</div>
 				<div class="btn-group" role="group" aria-label="autoprofiling">
+					<div class="well well-sm">
+					<span class="label" ng-class="{'label-success':autoprofiling=='true', 'label-default':autoprofiling=='false'}">Profiling {{autoprofiling}}</span>
 					<button type="button" ng-click="startAutoProfiling()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Auto Profiling</button>
 					<button type="button" ng-click="stopAutoProfiling()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> AutoProfiling</button>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<div class="panel panel-primary" ng-show="appId>0 && sessionId>0">
+	<div class="panel panel-primary" ng-show="appId>0">
 		<div class="panel-heading">
-			<div class="panel-title">Current session control. AppId: {{appId}} SessionId: {{sessionId}}</div>
+			<div class="panel-title">Current app control. AppId: {{appId}} </div>
 		</div>
 		<div class="panel-body">
 			<div class="btn-toolbar" role="toolbar" aria-label="actions">
-				<div class="btn-group" role="group" aria-label="profiling">
-					<button type="button" ng-click="startProfiling()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Profiling</button>
-					<button type="button" ng-click="stopProfiling()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Profiling</button>
-				</div>
 				<div class="btn-group" role="group" aria-label="monitoring">
-					<button type="button" ng-click="startMonitoring()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Monitoring</button>
-					<button type="button" ng-click="stopMonitoring()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Monitoring</button>
+					<div class="well well-sm">
+						<span class="label" ng-class="{'label-success':monitoring=='true', 'label-default':monitoring=='false'}">Monitoring {{monitoring}}</span>
+						<button type="button" ng-click="startMonitoring()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Monitoring</button>
+						<button type="button" ng-click="stopMonitoring()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Monitoring</button>
+					</div>
+				</div>
+				<div class="btn-group" role="group" aria-label="profiling">
+					<div class="well well-sm">
+						<span class="label" ng-class="{'label-success':profiling=='true', 'label-default':profiling=='false'}">Profiling {{profiling}}</span>
+						<button type="button" ng-click="startProfiling()"><span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span> Profiling</button>
+						<button type="button" ng-click="stopProfiling()"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Profiling</button>
+					</div>
 				</div>
 			</div>
-			<div class="btn-toolbar" role="toolbar" aria-label="recording">
-				<button type="button" ng-show="recId>-1" ng-click="stopRecord()"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span> Stop</button>
-				<button type="button" ng-click="newRecord()"><span class="glyphicon glyphicon-record" aria-hidden="true"></span> Start</button>
+			<div class="btn-toolbar" role="toolbar" aria-label="recording" ng-show="sessionId>0">
+				<div class="btn-group" role="group" aria-label="profiling">
+					<button type="button" ng-click="newRecord()"><span class="glyphicon glyphicon-record" aria-hidden="true"></span> New record</button>
+				</div>
 			</div>
 		</div>
 	</div>

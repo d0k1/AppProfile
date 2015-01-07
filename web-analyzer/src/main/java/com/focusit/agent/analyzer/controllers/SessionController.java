@@ -34,41 +34,32 @@ public class SessionController {
 	}
 
 	@RequestMapping(value = "/{appId}/startprofiling", method = RequestMethod.GET)
-	public boolean startprofiling(@PathVariable("appId") String appId){
+	public Map<String, String> startprofiling(@PathVariable("appId") String appId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
-		return true;
+		return getSettings(Long.parseLong(appId));
 	}
 
 	@RequestMapping(value = "/{appId}/startmonitoring", method = RequestMethod.GET)
-	public boolean startmonitoring(@PathVariable("appId") String appId){
+	public Map<String, String> startmonitoring(@PathVariable("appId") String appId){
 		sessionManager.setMonitoringEnabled(Long.parseLong(appId), true);
-		return true;
+		return getSettings(Long.parseLong(appId));
 	}
 
 	@RequestMapping(value = "/{appId}/stopprofiling", method = RequestMethod.GET)
-	public boolean stopprofiling(@PathVariable("appId") String appId){
+	public Map<String, String> stopprofiling(@PathVariable("appId") String appId){
 		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
-		return true;
+		return getSettings(Long.parseLong(appId));
 	}
 
 	@RequestMapping(value = "/{appId}/stopmonitoring", method = RequestMethod.GET)
-	public boolean stopmonitoring(@PathVariable("appId") String appId){
+	public Map<String, String> stopmonitoring(@PathVariable("appId") String appId){
 		sessionManager.setMonitoringEnabled(Long.parseLong(appId), false);
-		return true;
-	}
-
-	@RequestMapping(value = "/{appId}/stoprecord", method = RequestMethod.GET)
-	public boolean stoprecord(@PathVariable("appId") String appId){
-		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
-		sessionManager.setMonitoringEnabled(Long.parseLong(appId), false);
-		return true;
+		return getSettings(Long.parseLong(appId));
 	}
 
 	@RequestMapping(value = "/{appId}/{sessionId}/newrecord", method = RequestMethod.GET)
 	public boolean newrecord(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
 		sessionManager.startRecording(Long.parseLong(appId), Long.parseLong(sessionId));
-		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
-		sessionManager.setMonitoringEnabled(Long.parseLong(appId), true);
 		return true;
 	}
 
@@ -82,8 +73,7 @@ public class SessionController {
 		return dao.getAppIds();
 	}
 
-	@RequestMapping(value = "/settings", method = RequestMethod.GET)
-	public Map<String, String> sessionManagerSettings(){
+	private Map<String, String> getAutoSettings(){
 		Map<String, String> result = new HashMap<>();
 		result.put("automonitoring", String.valueOf(sessionManager.isAutomonitoring()));
 		result.put("autoprofiling", String.valueOf(sessionManager.isAutoprofiling()));
@@ -91,28 +81,46 @@ public class SessionController {
 		return result;
 	}
 
+	private Map<String, String> getSettings(long appId){
+		Map<String, String> result = new HashMap<>();
+		result.put("monitoring", String.valueOf(sessionManager.isMonitoringEnabled(appId)));
+		result.put("profiling", String.valueOf(sessionManager.isProfilingEnabled(appId)));
+
+		return result;
+	}
+
+	@RequestMapping(value = "/settings", method = RequestMethod.GET)
+	public Map<String, String> getSystemAutoSettings(){
+		return getAutoSettings();
+	}
+
+	@RequestMapping(value = "/settings/{appId}", method = RequestMethod.GET)
+	public Map<String, String> getAppSettings(@PathVariable("appId") String appId){
+		return getSettings(Long.parseLong(appId));
+	}
+
 	@RequestMapping(value = "/autoprofiling/enable", method = RequestMethod.GET)
-	public boolean autoprofilingEnable(){
+	public Map<String, String> autoprofilingEnable(){
 		sessionManager.setAutoprofiling(true);
-		return true;
+		return getAutoSettings();
 	}
 
 	@RequestMapping(value = "/autoprofiling/disable", method = RequestMethod.GET)
-	public boolean autoprofilingDisable(){
+	public Map<String, String> autoprofilingDisable(){
 		sessionManager.setAutoprofiling(false);
-		return true;
+		return getAutoSettings();
 	}
 
 	@RequestMapping(value = "/automonitoring/enable", method = RequestMethod.GET)
-	public boolean automonitoringEnable(){
+	public Map<String, String> automonitoringEnable(){
 		sessionManager.setAutomonitoring(true);
-		return true;
+		return getAutoSettings();
 	}
 
 	@RequestMapping(value = "/automonitoring/disable", method = RequestMethod.GET)
-	public boolean automonitoringDisable(){
+	public Map<String, String> automonitoringDisable(){
 		sessionManager.setAutomonitoring(false);
-		return true;
+		return getAutoSettings();
 	}
 
 }

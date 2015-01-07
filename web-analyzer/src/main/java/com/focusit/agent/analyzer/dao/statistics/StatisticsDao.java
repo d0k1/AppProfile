@@ -64,9 +64,10 @@ public class StatisticsDao {
 		return sample;
 	}
 
-	public boolean analyzeSession(long appId, long recId, long sessionId){
+	public boolean analyzeSession(long appId, long sessionId, long recId){
 		HashMap<Long, String> methods = new HashMap<>();
 		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+		BasicDBObject methodQuery = new BasicDBObject("appId", appId).append("sessionId", sessionId);
 
 		if(recId>-1) {
 			query.append("recId", recId);
@@ -78,7 +79,7 @@ public class StatisticsDao {
 				long methodId = (Long) item.get("methodId");
 				String methodName = methods.get(methodId);
 				if (methodName == null) {
-					DBObject methodNameData = methodmaps.findOne(query.append("index", methodId), new BasicDBObject("method", 1));
+					DBObject methodNameData = methodmaps.findOne(methodQuery.append("index", methodId), new BasicDBObject("method", 1));
 					if (methodNameData != null) {
 						methodName = (String) methodNameData.get("method");
 						methods.put(methodId, methodName);
