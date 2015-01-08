@@ -19,6 +19,10 @@ public class ClassToInstrument extends AbstractTest implements TestInterface {
 	}
 
 	public void bar2() throws IOException {
+		bar2Int();
+	}
+
+	private void bar2Int(){
 		for(int i=0;i<10;){
 			i++;
 //			throw new RuntimeException();

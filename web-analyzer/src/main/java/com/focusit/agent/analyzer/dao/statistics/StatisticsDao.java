@@ -101,7 +101,11 @@ public class StatisticsDao {
 			query.append("recId", recId);
 		}
 
-		query.append("parents", new BasicDBObject("$all", parents));
+		BasicDBList list = new BasicDBList();
+		for(String parent:parents) {
+			list.add(parent);
+		}
+		query.append("parents", new BasicDBObject("$all", list).append("$size", list.size()));
 
 		try (DBCursor cursor = statistics.find(query)) {
 			while(cursor.hasNext()) {

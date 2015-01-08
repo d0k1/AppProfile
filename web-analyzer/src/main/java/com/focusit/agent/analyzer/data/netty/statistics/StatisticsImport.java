@@ -4,6 +4,7 @@ import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import org.bson.types.ObjectId;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,7 +57,6 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	private void processExecutionInfo(long appId, long sessionId, long recId, ExecutionInfo info){
 		Map<Long, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
-
 		long threadId = (Long) info.threadId;
 		long event = (Long) info.eventId;
 		long methodId = (Long) info.method;
@@ -87,11 +88,15 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			sample.finishtimestamp = timestamp;
 			insertMethodCallSample(statistics, sample, appId, sessionId, recId);
 		} else if(event==0){
-			MethodCallSample parent = samples.getLast();
 			MethodCallSample sample = new MethodCallSample(new ObjectId().toString(), threadId, methodId, null);
 			sample.starttimestamp = timestamp;
 			sample.startTime = time;
-			sample.parents.add(parent._id);
+
+			Iterator<MethodCallSample> parents = samples.descendingIterator();
+			while(parents.hasNext()) {
+				MethodCallSample parent = parents.next();
+				sample.parents.add(parent._id);
+			}
 			samples.add(sample);
 		}
 
@@ -102,10 +107,10 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("starttimestamp", sample.starttimestamp)
 			.append("finishtimestamp", sample.finishtimestamp).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
 
-		String parents[] = new String[sample.parents.size()];
-		int i = 0;
+		BasicDBList parents = new BasicDBList();
+
 		for(String parent:sample.parents){
-			parents[i] = parent;
+			parents.add(parent);
 		}
 		method.append("parents", parents);
 

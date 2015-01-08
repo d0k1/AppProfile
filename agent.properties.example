@@ -9,8 +9,8 @@ agent.dump.interval=1
 agent.include=com.focusit.agent.example
 #agent.include.ignore=com.focusit.agent.example,java.sql,org.postresql
 
-agent.jvm.monitoring.interval=1000
-agent.dump.jvm.batch=50
+agent.jvm.monitoring.interval=2000
+agent.dump.jvm.batch=15
 agent.dump.statistics.batch=1000
 
 methods.file=

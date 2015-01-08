@@ -19,6 +19,8 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 
 	$scope.stack = [];
 
+	$scope.skipZero = true;
+
 	function processSessionData(){
 		analyze.get({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data){
 			loadMethods();
@@ -55,7 +57,13 @@ profilersControllers.controller('profilerController', function($scope, dataview,
 	function prepareData(data){
 		$scope.methods = []
 		for (var i = 0; i < data.length; i++) {
-			$scope.methods.push(data[i]);
+			var item = data[i];
+			if(item.finishtimestamp-item.starttimestamp != 0 && $scope.skipZero) {
+				$scope.methods.push(item);
+			}
+			else if($scope.skipZero==false){
+				$scope.methods.push(item);
+			}
 		}
 	}
 
