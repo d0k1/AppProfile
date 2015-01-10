@@ -47,7 +47,7 @@ public class GlobalTime {
 					}
 				}
 			}
-		});
+		}, "agent global time");
 		thread.setDaemon(true);
 		thread.start();
 	}

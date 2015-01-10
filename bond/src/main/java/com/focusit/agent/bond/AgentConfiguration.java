@@ -58,8 +58,21 @@ public class AgentConfiguration {
 		getAppId();
 	}
 
-	public static String getNettySessionPort(){
-		return "15999";
+	public static int getNettySessionPort(){
+		int result = 15999;
+		try {
+
+			String port = properties.getProperty("agent.netty.session.port");
+			if (!StringUtils.isEmpty(port)) {
+				try {
+					result = Integer.parseInt(port);
+				} catch (NumberFormatException e) {
+					result = 15999;
+				}
+			}
+		} finally {
+			return result;
+		}
 	};
 
 	public static int getDumpInterval() {
@@ -335,23 +348,101 @@ public class AgentConfiguration {
 	}
 
 	public static String getNettyDumpHost(){
-		return "localhost";
+		String result = "localhost";
+		try {
+
+			String host = properties.getProperty("agent.netty.server.host");
+			if (!StringUtils.isEmpty(host)) {
+				result = host;
+			}
+		} finally {
+			return result;
+		}
 	}
 
-	public static String getNettyDumpJvmPort(){
-		return "16000";
+	public static int getNettyDumpJvmPort(){
+		int result = 16000;
+		try {
+
+			String port = properties.getProperty("agent.netty.jvm.port");
+			if (!StringUtils.isEmpty(port)) {
+				try {
+					result = Integer.parseInt(port);
+				} catch (NumberFormatException e) {
+					result = 16000;
+				}
+			}
+		} finally {
+			return result;
+		}
 	}
 
-	public static String getNettyDumpOSPort(){
-		return "16001";
+	public static int getNettyDumpOSPort(){
+		int result = 16001;
+		try {
+
+			String port = properties.getProperty("agent.netty.os.port");
+			if (!StringUtils.isEmpty(port)) {
+				try {
+					result = Integer.parseInt(port);
+				} catch (NumberFormatException e) {
+					result = 16001;
+				}
+			}
+		} finally {
+			return result;
+		}
 	}
 
-	public static String getNettyDumpMethodMapPort(){
-		return "16002";
+	public static int getNettyDumpMethodMapPort(){
+		int result = 16002;
+		try {
+
+			String port = properties.getProperty("agent.netty.methodsmap.port");
+			if (!StringUtils.isEmpty(port)) {
+				try {
+					result = Integer.parseInt(port);
+				} catch (NumberFormatException e) {
+					result = 16002;
+				}
+			}
+		} finally {
+			return result;
+		}
 	}
 
-	public static String getNettyDumpStatisticsPort(){
-		return "16003";
+	public static int getNettyDumpStatisticsPort(){
+		int result = 16003;
+		try {
+
+			String port = properties.getProperty("agent.netty.statistics.port");
+			if (!StringUtils.isEmpty(port)) {
+				try {
+					result = Integer.parseInt(port);
+				} catch (NumberFormatException e) {
+					result = 16003;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
+	public static int getNettyConnectingInterval(){
+		int result = 5000;
+		try {
+
+			String interval = properties.getProperty("agent.netty.connection.interval");
+			if (!StringUtils.isEmpty(interval)) {
+				try {
+					result = Integer.parseInt(interval);
+				} catch (NumberFormatException e) {
+					result = 5000;
+				}
+			}
+		} finally {
+			return result;
+		}
 	}
 
 	public static long getAppId(){

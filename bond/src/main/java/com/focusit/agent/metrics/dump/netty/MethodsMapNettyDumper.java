@@ -3,12 +3,10 @@ package com.focusit.agent.metrics.dump.netty;
 import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.metrics.MethodsMap;
 import com.focusit.agent.metrics.dump.SamplesDataDumper;
-import io.netty.bootstrap.Bootstrap;
+import com.focusit.agent.metrics.dump.netty.manager.NettyConnectionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
 import java.io.IOException;
@@ -21,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Methods map dumper storaged based on MongoDb
  * Created by Denis V. Kirpichenkov on 09.12.14.
  */
-public class MethodsMapNettyDumper implements SamplesDataDumper {
+public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements SamplesDataDumper {
 	public static final String METHOD_MAP_DUMPING_THREAD = "MethodMap netty dumping thread";
 	private long lastIndex = 0;
 	private final Thread dumper;
@@ -30,25 +28,15 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	private static final int port = Integer.parseInt(AgentConfiguration.getNettyDumpMethodMapPort());
 	private static ChannelFuture lastWrite = null;
 
 	EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-methodmap-worker"));
-	ChannelFuture f;
+
+	private static final String METHODSMAP_TAG = "methodsmap";
 
 	public MethodsMapNettyDumper() throws IOException, InterruptedException {
-		Bootstrap b = new Bootstrap(); // (1)
-		b.group(workerGroup); // (2)
-		b.channel(NioSocketChannel.class); // (3)
-		b.option(ChannelOption.SO_KEEPALIVE, true); // (4)
-		b.option(ChannelOption.TCP_NODELAY, true);
-		b.handler(new ChannelInitializer<SocketChannel>() {
-			@Override
-			public void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast(new MethodsMapSampleEncoder(), getHandler());
-			}
-		});
-		f = b.connect(AgentConfiguration.getNettyDumpHost(), port).sync(); // (5)
+
+		NettyConnectionManager.getInstance().initConnection(METHODSMAP_TAG, getBootstrap(), AgentConfiguration.getNettyDumpMethodMapPort());
 
 		dumper = new Thread(new Runnable() {
 			@Override
@@ -57,10 +45,12 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 				while (!Thread.interrupted()) {
 
 					try {
-						while(lastIndex< MethodsMap.getLastIndex()){
-							doDump();
+						if(NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG)) {
+							while (lastIndex < MethodsMap.getLastIndex()) {
+								doDump();
+							}
+							waitToCompleteWrite();
 						}
-						waitToCompleteWrite();
 						Thread.sleep(interval);
 
 					} catch (InterruptedException e) {
@@ -74,6 +64,7 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 	}
 
 	private void waitToCompleteWrite() throws InterruptedException {
+		ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
 		f.channel().flush();
 		if(lastWrite!=null){
 			lastWrite.sync();
@@ -81,8 +72,19 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 		}
 	}
 
-	private ChannelHandler getHandler() {
-		return new ChannelHandlerAdapter();
+	@Override
+	protected EventLoopGroup getWorkerGroup() {
+		return workerGroup;
+	}
+
+	protected final ChannelHandler[] getHandler() {
+		return new ChannelHandler[]{new MethodsMapSampleEncoder(), new ChannelHandlerAdapter(){
+			@Override
+			public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+				NettyConnectionManager.getInstance().disconnected(METHODSMAP_TAG);
+				super.disconnect(ctx, promise);
+			}
+		}};
 	}
 
 	@Override
@@ -93,11 +95,15 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 
 	@Override
 	public final void dumpRest() {
+		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
+			return;
+
 		while(lastIndex<MethodsMap.getLastIndex()){
 			doDump();
 		}
 		try {
 			waitToCompleteWrite();
+			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
 			f.channel().close();
 			f.channel().closeFuture().sync();
 			workerGroup.shutdownGracefully().sync();
@@ -107,12 +113,16 @@ public class MethodsMapNettyDumper implements SamplesDataDumper {
 	}
 
 	private void doDump() {
+		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
+			return;
+
 		try {
 			readWriteLock.readLock().lock();
 
 			if (lastIndex >= MethodsMap.getLastIndex())
 				return;
 
+				ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
 				lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
 				lastIndex++;
 				samplesRead.incrementAndGet();

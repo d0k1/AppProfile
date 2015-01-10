@@ -13,7 +13,7 @@ import com.focusit.agent.utils.common.FixedSamplesArray;
  */
 public class Statistics {
 	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
-	private final static int LIMIT = 6553600;
+	private final static int LIMIT = 5;//6553600;
 	private final static long appId = AgentConfiguration.getAppId();
 
 	private static final FixedSamplesArray<ExecutionInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {

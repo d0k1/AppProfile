@@ -23,12 +23,13 @@ public class LongRunExample {
 	public static void main(String[] args) throws InterruptedException {
 		System.err.println("Begin!");
 
+		final int iterations = 50;
 		Thread thread = new Thread(new Runnable() {
 			private int i = 0;
 			@Override
 			public void run() {
 				while(!Thread.interrupted()) {
-					if (i++ >= 15)
+					if (i++ >= iterations)
 						break;
 
 					new ClassToInstrument().foo();
@@ -46,7 +47,7 @@ public class LongRunExample {
 			@Override
 			public void run() {
 				while(!Thread.interrupted()) {
-					if (i++ >= 5)
+					if (i++ >= iterations)
 						break;
 
 					new ClassToInstrument().foo();
@@ -63,6 +64,7 @@ public class LongRunExample {
 		thread.start();
 
 		thread.join();
+		thread2.join();
 		System.err.println("Done!");
 	}
 }
