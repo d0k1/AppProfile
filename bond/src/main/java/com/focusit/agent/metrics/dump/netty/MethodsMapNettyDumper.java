@@ -64,7 +64,14 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 	}
 
 	private void waitToCompleteWrite() throws InterruptedException {
+		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
+			return;
+
 		ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
+
+		if (!f.channel().isWritable())
+			return;
+
 		f.channel().flush();
 		if(lastWrite!=null){
 			lastWrite.sync();
@@ -113,19 +120,20 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 	}
 
 	private void doDump() {
-		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
-			return;
-
 		try {
 			readWriteLock.readLock().lock();
 
 			if (lastIndex >= MethodsMap.getLastIndex())
 				return;
 
+			if(NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG)) {
 				ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
-				lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
+				if (f.channel().isWritable()) {
+					lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
+				}
 				lastIndex++;
 				samplesRead.incrementAndGet();
+			}
 		}finally{
 			readWriteLock.readLock().unlock();
 		}

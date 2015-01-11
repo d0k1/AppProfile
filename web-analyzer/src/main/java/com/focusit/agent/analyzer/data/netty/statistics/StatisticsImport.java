@@ -33,6 +33,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	@Override
 	public void onSessionStart(long appId) {
+		System.out.println("statistics session start");
 		long sessionId = getSessionIdByAppId(appId);
 		Map<Long, Map<Long, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
 		if(sessionIdCalls==null) {
@@ -46,12 +47,15 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			}
 		}
 		sessionIdCalls.put(sessionId, new ConcurrentHashMap<Long, LinkedList<MethodCallSample>>());
+		System.out.println("done. statistics session start");
 	}
 
 	@Override
 	protected void importSampleInt(long appId, long sessionId, long recId, ExecutionInfo info) {
 		if(isProfilingEnabled(appId)) {
-			processExecutionInfo(appId, sessionId, recId, info);
+			// if session really started and internal state initialized
+			if(callSites.get(appId).get(sessionId)!=null)
+				processExecutionInfo(appId, sessionId, recId, info);
 		}
 	}
 

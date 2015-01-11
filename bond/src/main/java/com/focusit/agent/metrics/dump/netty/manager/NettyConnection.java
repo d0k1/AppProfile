@@ -34,6 +34,13 @@ public class NettyConnection {
 
 	public void init(Bootstrap b){
 		bootstrap = new FinalWrapper<>(b);
+
+		try {
+			tryConnect();
+		} catch (Exception e){
+
+		}
+
 		threadFactory.newThread(new Runnable() {
 			@Override
 			public void run() {
@@ -42,14 +49,7 @@ public class NettyConnection {
 						final FinalBoolean connected = channelConnected;
 
 						if (!connected.value) {
-							try {
-								lock.lockInterruptibly();
-								final FinalWrapper<Bootstrap> b = bootstrap;
-								future = new FinalWrapper<ChannelFuture>(b.value.connect(host, port).sync());
-								channelConnected = new FinalBoolean(true);
-							} finally {
-								lock.unlock();
-							}
+							tryConnect();
 						}else{
 							Thread.sleep(checkPeriod);
 						}
@@ -59,6 +59,17 @@ public class NettyConnection {
 				}
 			}
 		}).start();
+	}
+
+	private void tryConnect() throws InterruptedException {
+		try {
+			lock.lockInterruptibly();
+			final FinalWrapper<Bootstrap> b = bootstrap;
+			future = new FinalWrapper<ChannelFuture>(b.value.connect(host, port).sync());
+			channelConnected = new FinalBoolean(true);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	public ChannelFuture getFuture(){

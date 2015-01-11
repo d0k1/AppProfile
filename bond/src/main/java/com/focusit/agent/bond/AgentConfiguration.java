@@ -495,4 +495,38 @@ public class AgentConfiguration {
 			return result;
 		}
 	}
+
+	public static int getStatisticsBufferLength(){
+		int result = 6553600;
+		try {
+
+			String buffer = properties.getProperty("agent.statistics.buffer");
+			if (!StringUtils.isEmpty(buffer)) {
+				try {
+					result = Integer.parseInt(buffer);
+				} catch (NumberFormatException e) {
+					result = 6553600;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
+	public static int getJvmBufferLength(){
+		int result = 655360;
+		try {
+
+			String buffer = properties.getProperty("agent.jvm.buffer");
+			if (!StringUtils.isEmpty(buffer)) {
+				try {
+					result = Integer.parseInt(buffer);
+				} catch (NumberFormatException e) {
+					result = 655360;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
 }

@@ -115,10 +115,12 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 				bytesBuffers[i].resetReaderIndex();
 				lastWrite = f.channel().write(bytesBuffers[i]);
 			}
-			f.channel().flush();
-			if (lastWrite != null) {
-				lastWrite.sync();
-				lastWrite = null;
+			if (f.channel().isWritable()) {
+				f.channel().flush();
+				if (lastWrite != null) {
+					lastWrite.sync();
+					lastWrite = null;
+				}
 			}
 		}
 		if(interrupted!=null) {

@@ -19,8 +19,8 @@ public abstract class DataImport<S> {
 	public void onSessionStop(long appId){
 	}
 
-	protected final long  getSessionIdByAppId(long appId){
-		return sessionManager.getSessionIdByAppId(appId);
+	protected final Long getSessionIdByAppId(long appId){
+		return sessionManager.getCurrentSessionId(appId);
 	}
 
 	protected final long  getRecIdBySessionIdByAppId(long appId, long sessionId){
@@ -36,7 +36,11 @@ public abstract class DataImport<S> {
 	}
 
 	public void importSample(long appId, S sample){
-		long sessionId = getSessionIdByAppId(appId);
+		Long sessionId = getSessionIdByAppId(appId);
+		if(sessionId==null){
+			return;
+		}
+
 		long recId = getRecIdBySessionIdByAppId(appId, sessionId);
 		importSampleInt(appId, sessionId, recId, sample);
 	}

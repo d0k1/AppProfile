@@ -44,6 +44,12 @@ public class NettySessionStart extends NettyData {
 			}
 
 			@Override
+			public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+				super.channelInactive(ctx);
+				manager.onSessionStop((Long) ctx.attr(AttributeKey.valueOf("appId")).get());
+			}
+
+			@Override
 			public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
 				super.disconnect(ctx, promise);
 				manager.onSessionStop((Long) ctx.attr(AttributeKey.valueOf("appId")).get());

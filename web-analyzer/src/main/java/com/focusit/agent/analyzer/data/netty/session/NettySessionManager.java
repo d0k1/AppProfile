@@ -84,6 +84,9 @@ public class NettySessionManager {
 				sessionIdRecs.put(sessionId, 0L);
 				record.append("recordId", 0L);
 			} else {
+				// store finish timestamp on previous record
+				BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("recordId", recId);
+				records.update(query, new BasicDBObject("set", new BasicDBObject("finish", System.currentTimeMillis())));
 				sessionIdRecs.put(sessionId, recId + 1);
 				record.append("recordId", recId + 1);
 			}
@@ -96,8 +99,12 @@ public class NettySessionManager {
 
 	private final void startSession(long appId){
 		try {
-			sessionIds.remove(appId);
 			lock.lock();
+			System.out.println("start session for "+appId);
+
+			if(sessionIds.contains(appId)) {
+				sessionIds.remove(appId);
+			}
 
 			if(!activeApps.contains(appId)){
 				activeApps.add(appId);
@@ -113,6 +120,7 @@ public class NettySessionManager {
 
 			long sessionId = getSessionIdByAppId(appId);
 			startRecording(appId, sessionId);
+			System.out.println("done. start session for " + appId);
 		} finally {
 			lock.unlock();
 		}
@@ -120,9 +128,30 @@ public class NettySessionManager {
 
 	private void stopSession(long appId){
 		try {
+			lock.lock();
 			if(activeApps.contains(appId)) {
 				activeApps.remove(appId);
 			}
+
+			long sessionId = getCurrentSessionId(appId);
+			long recId = getRecIdBySessionIdByAppId(appId, sessionId);
+
+			if(sessionIds.contains(appId)) {
+				sessionIds.remove(appId);
+			}
+
+			System.out.println("session stop for "+appId);
+			DBCollection sessions = db.getCollection(SESSIONS_COLLECTION);
+			BasicDBObject query = new BasicDBObject();
+			query.append("appId", appId);
+			query.append("sessionId", sessionId);
+			sessions.update(query, new BasicDBObject("$set", new BasicDBObject("finish", System.currentTimeMillis())));
+
+			// store finish timestamp on last record
+			DBCollection records = db.getCollection(RECORDS_COLLECTION);
+			query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("recordId", recId);
+			records.update(query, new BasicDBObject("$set", new BasicDBObject("finish", System.currentTimeMillis())));
+
 		} finally {
 			lock.unlock();
 		}
@@ -167,18 +196,22 @@ public class NettySessionManager {
 	}
 
 	public final long getRecIdBySessionIdByAppId(long appId, long sessionId){
+		if(recordings.get(appId)==null || recordings.get(appId).get(sessionId)==null){
+			startRecording(appId, sessionId);
+		}
 		return recordings.get(appId).get(sessionId);
 	}
 
-	public final long  getSessionIdByAppId(long appId){
+	public final Long getCurrentSessionId(long appId){
+		return sessionIds.get(appId);
+	}
+
+	private final long getSessionIdByAppId(long appId){
 		if(sessionIds.get(appId)!=null)
 			return sessionIds.get(appId);
 
 		try{
 			lock.lock();
-
-			if(sessionIds.get(appId)!=null)
-				return sessionIds.get(appId);
 
 			DBCollection sessions = db.getCollection(SESSIONS_COLLECTION);
 			BasicDBObject query = new BasicDBObject();
