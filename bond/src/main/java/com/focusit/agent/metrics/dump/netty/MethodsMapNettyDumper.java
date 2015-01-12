@@ -45,7 +45,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 				while (!Thread.interrupted()) {
 
 					try {
-						if(NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG)) {
+						if(NettyConnectionManager.getInstance().isConnectionReady(METHODSMAP_TAG)) {
 							while (lastIndex < MethodsMap.getLastIndex()) {
 								doDump();
 							}
@@ -64,7 +64,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 	}
 
 	private void waitToCompleteWrite() throws InterruptedException {
-		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
+		if(!NettyConnectionManager.getInstance().isConnectionReady(METHODSMAP_TAG))
 			return;
 
 		ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
@@ -87,9 +87,9 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 	protected final ChannelHandler[] getHandler() {
 		return new ChannelHandler[]{new MethodsMapSampleEncoder(), new ChannelHandlerAdapter(){
 			@Override
-			public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+			public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 				NettyConnectionManager.getInstance().disconnected(METHODSMAP_TAG);
-				super.disconnect(ctx, promise);
+				super.channelInactive(ctx);
 			}
 		}};
 	}
@@ -102,7 +102,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 
 	@Override
 	public final void dumpRest() {
-		if(!NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG))
+		if(!NettyConnectionManager.getInstance().isConnectionReady(METHODSMAP_TAG))
 			return;
 
 		while(lastIndex<MethodsMap.getLastIndex()){
@@ -126,7 +126,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 			if (lastIndex >= MethodsMap.getLastIndex())
 				return;
 
-			if(NettyConnectionManager.getInstance().isConnected(METHODSMAP_TAG)) {
+			if(NettyConnectionManager.getInstance().isConnectionReady(METHODSMAP_TAG)) {
 				ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
 				if (f.channel().isWritable()) {
 					lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));

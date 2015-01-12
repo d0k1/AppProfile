@@ -15,7 +15,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class NettyConnection {
 	private final String host;
 	private final int port;
-	private final String name;
 	private final int checkPeriod;
 
 	private FinalBoolean channelConnected = new FinalBoolean(false);
@@ -24,10 +23,9 @@ public class NettyConnection {
 	private final NettyThreadFactory threadFactory;
 	private final ReentrantLock lock = new ReentrantLock();
 
-	public NettyConnection(String name, String host, int port, int checkPeriod, NettyThreadFactory threadFactory) {
+	public NettyConnection(String host, int port, int checkPeriod, NettyThreadFactory threadFactory) {
 		this.host = host;
 		this.port = port;
-		this.name = name;
 		this.checkPeriod = checkPeriod;
 		this.threadFactory = threadFactory;
 	}
@@ -89,5 +87,9 @@ public class NettyConnection {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public static interface ConnectionReadyChecker{
+		boolean isConnectionReady();
 	}
 }

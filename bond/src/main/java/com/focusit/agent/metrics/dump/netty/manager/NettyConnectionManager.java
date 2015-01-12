@@ -19,6 +19,7 @@ public class NettyConnectionManager {
 	private final NettyThreadFactory threadFactory = new NettyThreadFactory("Netty-connection-checker-threads");
 
 	private final ConcurrentHashMap<String, NettyConnection> connections = new ConcurrentHashMap<>();
+	private NettyConnection.ConnectionReadyChecker connectionReadyChecker;
 
 	private NettyConnectionManager(){
 
@@ -34,9 +35,26 @@ public class NettyConnectionManager {
 			return;
 		}
 
-		NettyConnection connection = new NettyConnection(name, server, port, checkPeriod, threadFactory);
+		NettyConnection connection = new NettyConnection(server, port, checkPeriod, threadFactory);
 		connections.put(name, connection);
 		connection.init(b);
+	}
+
+	public void initMainConnection(String name, Bootstrap b, int port, NettyConnection.ConnectionReadyChecker mainConnectionChecker){
+		if(connectionReadyChecker!=null) {
+			System.err.println("Main channel already initialized");
+			return;
+		}
+
+		NettyConnection connection = new NettyConnection(server, port, checkPeriod, threadFactory);
+		connections.put(name, connection);
+		connection.init(b);
+		connectionReadyChecker = mainConnectionChecker;
+	}
+
+	public boolean isConnectionReady(String name){
+		final boolean result = connections.get(name).isChannelConnected() && connectionReadyChecker.isConnectionReady();
+		return result;
 	}
 
 	public boolean isConnected(String name){

@@ -52,7 +52,7 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 
 							doDump(false);
 
-							if(NettyConnectionManager.getInstance().isConnected(STATISTICS_TAG)) {
+							if(NettyConnectionManager.getInstance().isConnectionReady(STATISTICS_TAG)) {
 								Thread.yield();
 							} else {
 								Thread.sleep(interval);
@@ -76,9 +76,9 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 	protected final ChannelHandler[] getHandler() {
 		return new ChannelHandlerAdapter[]{new ChannelHandlerAdapter(){
 			@Override
-			public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+			public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 				NettyConnectionManager.getInstance().disconnected(STATISTICS_TAG);
-				super.disconnect(ctx, promise);
+				super.channelInactive(ctx);
 			}
 		}};
 	}
@@ -107,7 +107,7 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 			}
 		}
 
-		if(NettyConnectionManager.getInstance().isConnected(STATISTICS_TAG)) {
+		if(NettyConnectionManager.getInstance().isConnectionReady(STATISTICS_TAG)) {
 			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(STATISTICS_TAG);
 			for (int i = 0; i < sampleRead; i++) {
 				if (!f.channel().isWritable()) {
@@ -132,7 +132,7 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 
 	@Override
 	public final void dumpRest() throws InterruptedException {
-		if(!NettyConnectionManager.getInstance().isConnected(STATISTICS_TAG))
+		if(!NettyConnectionManager.getInstance().isConnectionReady(STATISTICS_TAG))
 			return;
 
 		while(Statistics.hasMore()){

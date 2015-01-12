@@ -49,7 +49,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 
 							doDump(false);
 
-							if(NettyConnectionManager.getInstance().isConnected(JVM_TAG)) {
+							if(NettyConnectionManager.getInstance().isConnectionReady(JVM_TAG)) {
 								Thread.yield();
 							} else {
 								Thread.sleep(interval);
@@ -73,9 +73,9 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 	protected final ChannelHandler[] getHandler() {
 		return new ChannelHandlerAdapter[]{new ChannelHandlerAdapter(){
 			@Override
-			public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+			public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 				NettyConnectionManager.getInstance().disconnected(JVM_TAG);
-				super.disconnect(ctx, promise);
+				super.channelInactive(ctx);
 			}
 		}};
 	}
@@ -104,7 +104,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 			}
 		}
 
-		if(NettyConnectionManager.getInstance().isConnected(JVM_TAG)) {
+		if(NettyConnectionManager.getInstance().isConnectionReady(JVM_TAG)) {
 			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(JVM_TAG);
 
 			for (int i = 0; i < sampleRead; i++) {
@@ -130,7 +130,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 
 	@Override
 	public final void dumpRest() throws InterruptedException {
-		if(!NettyConnectionManager.getInstance().isConnected(JVM_TAG))
+		if(!NettyConnectionManager.getInstance().isConnectionReady(JVM_TAG))
 			return;
 
 		JvmMonitoring.getInstance().doMeasureAtExit();

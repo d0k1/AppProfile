@@ -2,6 +2,7 @@ package com.focusit.agent.analyzer.data.netty.session;
 
 import com.focusit.agent.analyzer.data.netty.NettyData;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,9 +18,11 @@ import java.util.List;
  */
 public class NettySessionStart extends NettyData {
 	private final NettySessionManager manager;
+	private final ByteBuf readyBuffer = Unpooled.unreleasableBuffer(Unpooled.buffer(1, 1));
 
 	public NettySessionStart(NettySessionManager manager){
 		this.manager = manager;
+		readyBuffer.writeBoolean(true);
 	}
 
 	@Override
@@ -41,6 +44,9 @@ public class NettySessionStart extends NettyData {
 				ctx.attr(AttributeKey.valueOf("appId")).set(appId);
 				manager.onSesionStart(appId);
 				ReferenceCountUtil.release(msg);
+				ctx.channel().writeAndFlush(readyBuffer).sync();
+				readyBuffer.resetWriterIndex();
+				readyBuffer.resetReaderIndex();
 			}
 
 			@Override

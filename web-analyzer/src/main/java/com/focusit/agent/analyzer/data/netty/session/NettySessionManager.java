@@ -102,7 +102,7 @@ public class NettySessionManager {
 			lock.lock();
 			System.out.println("start session for "+appId);
 
-			if(sessionIds.contains(appId)) {
+			if(sessionIds.containsKey(appId)) {
 				sessionIds.remove(appId);
 			}
 
@@ -136,7 +136,7 @@ public class NettySessionManager {
 			long sessionId = getCurrentSessionId(appId);
 			long recId = getRecIdBySessionIdByAppId(appId, sessionId);
 
-			if(sessionIds.contains(appId)) {
+			if(sessionIds.containsKey(appId)) {
 				sessionIds.remove(appId);
 			}
 
