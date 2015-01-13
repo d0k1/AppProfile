@@ -3,6 +3,7 @@ package com.focusit.agent.analyzer.dao.jvm;
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.jvm.CpuSample;
 import com.focusit.agent.analyzer.data.jvm.HeapSample;
+import com.focusit.agent.analyzer.data.jvm.JvmSamplesCounter;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -126,5 +127,32 @@ public class JvmDao {
 			}
 		}
 		return result;
+	}
+
+	public JvmSamplesCounter getJvmSamplesCount(long appId, long sessionId, long recId){
+		JvmSamplesCounter empty = new JvmSamplesCounter(appId, sessionId, recId, 0, 0, 0);
+
+		long count;
+		long min;
+		long max;
+
+		BasicDBObject projection = new BasicDBObject("timestamp", 1);
+		BasicDBObject sort = new BasicDBObject("timestamp", -1);
+		BasicDBObject query = new BasicDBObject("sessionId", sessionId).append("appId", appId);
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
+
+		count = jvm.count(query);
+
+		if(count==0) {
+			return empty;
+		}
+
+		max = (Long) jvm.find(query, projection).sort(sort).limit(1).next().get("timestamp");
+		sort.put("timestamp", 1);
+		min = (Long) jvm.find(query, projection).sort(sort).limit(1).next().get("timestamp");
+
+		return new JvmSamplesCounter(appId, sessionId, recId, count, min, max);
 	}
 }

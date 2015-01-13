@@ -20,7 +20,11 @@ jvmControllers.factory("heap", function($resource) {
 	return $resource("/jvm/:appId/:sessionId/:recId/heap/:max/:min");
 });
 
-jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $interval, cpu, heap, dataview){
+jvmControllers.factory("count", function($resource) {
+	return $resource("/jvm/:appId/:sessionId/:recId/count");
+});
+
+jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $interval, cpu, heap, count, dataview){
 	$scope.title = 'JVM Monitoring'
 
 	$scope.cpuChartSeries = [
@@ -38,6 +42,10 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 
 	$scope.lastSeconds = 30;
 	$scope.timeStepSeconds = 15;
+
+	$scope.count=0;
+	$scope.timestampStart = 0;
+	$scope.timestampStop = 0;
 
 	function loadCpuData(data){
 		var data0 = []
@@ -131,8 +139,18 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 	//$scope.loadSessions = function(){loadSessions()}
 	//$scope.loadData = function(){loadData()};
 
+	function loadCount() {
+		count.get({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data) {
+			$scope.count = data.samples;
+			$scope.timestampStart = data.minTimestamp;
+			$scope.timestampStop = data.maxTimestamp;
+		});
+
+	}
+
 	if($scope.appId>0 && $scope.sessionId>0){
 		loadData();
+		loadCount();
 	}
 
 	$scope.lastData = function(){
@@ -178,5 +196,6 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 		$scope.sessionId = dataview.sessionId;
 		$scope.recId = dataview.recId;
 		loadData();
+		loadCount();
 	}
 });
