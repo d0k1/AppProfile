@@ -22,7 +22,6 @@ public class NettySessionStart extends NettyData {
 
 	public NettySessionStart(NettySessionManager manager){
 		this.manager = manager;
-		readyBuffer.writeBoolean(true);
 	}
 
 	@Override
@@ -44,9 +43,10 @@ public class NettySessionStart extends NettyData {
 				ctx.attr(AttributeKey.valueOf("appId")).set(appId);
 				manager.onSesionStart(appId);
 				ReferenceCountUtil.release(msg);
-				ctx.channel().writeAndFlush(readyBuffer).sync();
 				readyBuffer.resetWriterIndex();
 				readyBuffer.resetReaderIndex();
+				readyBuffer.writeBoolean(true);
+				ctx.channel().writeAndFlush(readyBuffer).sync();
 			}
 
 			@Override
