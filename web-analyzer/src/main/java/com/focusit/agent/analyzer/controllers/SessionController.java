@@ -28,6 +28,11 @@ public class SessionController {
 	@Inject
 	NettySessionManager sessionManager;
 
+	@RequestMapping(value = "/{appId}/isonline", method = RequestMethod.GET)
+	public String record(@PathVariable("appId") String appId){
+		return "{\"result\":\""+String.valueOf(sessionManager.isOnline(Long.parseLong(appId)))+"\"}";
+	}
+
 	@RequestMapping(value = "/{appId}/{sessionId}", method = RequestMethod.GET)
 	public Collection<RecordInfo> record(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId){
 		return dao.getRecords(Long.parseLong(appId), Long.parseLong(sessionId));

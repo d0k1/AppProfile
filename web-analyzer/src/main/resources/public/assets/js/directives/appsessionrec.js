@@ -12,6 +12,10 @@ appSessionRecModule.factory("recIds", function($resource) {
 	return $resource("/sessions/:appId/:sessionId");
 });
 
+appSessionRecModule.factory("isonline", function($resource) {
+	return $resource("/sessions/:appId/isonline");
+});
+
 appSessionRecModule.directive('appsessionrec', function(dataview){
 
 	return {
@@ -19,7 +23,7 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 		templateUrl: '/assets/templates/directives/appsessionrec.html',
 		replace: true,
 		scope: { onDataViewUpdated : "="},
-		controller: ['$scope', 'appIds', 'sessionIds', 'recIds', function($scope, appIds, sessionIds, recIds){
+		controller: ['$scope', 'appIds', 'sessionIds', 'recIds', 'isonline', function($scope, appIds, sessionIds, recIds, isonline){
 			$scope.apps = [];
 			$scope.sessions = [];
 			$scope.recs = [];
@@ -27,6 +31,7 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 			$scope.appId = dataview.appId;
 			$scope.sessionId = dataview.sessionId;
 			$scope.recId = dataview.recId;
+			$scope.online = false;
 
 			$scope.loadApps = function(){
 				$scope.apps=[];
@@ -45,6 +50,10 @@ appSessionRecModule.directive('appsessionrec', function(dataview){
 						$scope.sessions.push(data[i]);
 					}
 					$scope.updateGlobals();
+				});
+				isonline.get({appId: $scope.appId}, function(data){
+					dataview.online = data.result;
+					$scope.online = data.result;
 				});
 			}
 

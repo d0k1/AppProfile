@@ -43,10 +43,6 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 	$scope.lastSeconds = 30;
 	$scope.timeStepSeconds = 15;
 
-	$scope.count=0;
-	$scope.timestampStart = 0;
-	$scope.timestampStop = 0;
-
 	function loadCpuData(data){
 		var data0 = []
 		var data1 = []
@@ -139,13 +135,21 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 	//$scope.loadSessions = function(){loadSessions()}
 	//$scope.loadData = function(){loadData()};
 
+	$scope.canMove = false;
 	function loadCount() {
-		count.get({appId:dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function(data) {
-			$scope.count = data.samples;
-			$scope.timestampStart = data.minTimestamp;
-			$scope.timestampStop = data.maxTimestamp;
-		});
+		if($scope.appId>0 && $scope.sessionId>0) {
 
+			count.get({appId: dataview.appId, sessionId: dataview.sessionId, recId: dataview.recId}, function (data) {
+				$scope.count = data.samples;
+
+				$scope.timestampStart = new Date(data.minTimestamp).toString("hh:mm:ss dd.mm.yyyy");
+				$scope.timestampStop = new Date(data.maxTimestamp).toString("hh:mm:ss dd.mm.yyyy");
+
+				if (data.maxTimestamp - data.minTimestamp > $scope.timeStepSeconds * 1000) {
+					$scope.canMove = true;
+				}
+			});
+		}
 	}
 
 	if($scope.appId>0 && $scope.sessionId>0){
@@ -195,6 +199,7 @@ jvmControllers.controller('jvmController', function($scope, lastcpu, lastheap, $
 		$scope.appId = dataview.appId;
 		$scope.sessionId = dataview.sessionId;
 		$scope.recId = dataview.recId;
+		$scope.online = dataview.online;
 		loadData();
 		loadCount();
 	}

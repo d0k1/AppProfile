@@ -29,7 +29,7 @@
 			</thead>
 			<tbody>
 				<tr ng-repeat="method in stack">
-					<td><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></td>
+					<td><span class="glyphicon glyphicon-minus" aria-hidden="true" ng-click="upStack()"></span></td>
 					<td>{{method.threadId}}</td>
 					<td>{{method.methodName}}</td>
 					<td>{{method.finishTime-method.startTime}}</td>
@@ -51,7 +51,7 @@
 		</thead>
 		<tbody class=".table-striped">
 			<tr ng-repeat="method in methods">
-				<td><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
+				<td><span class="glyphicon glyphicon-plus" aria-hidden="true" ng-click="selectMethod(method)"></span></td>
 				<td>{{method.threadId}}</td>
 				<td>{{method.methodName}}</td>
 				<td>{{method.finishTime-method.startTime}}</td>

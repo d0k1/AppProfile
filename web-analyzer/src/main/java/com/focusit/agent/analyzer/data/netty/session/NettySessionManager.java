@@ -126,6 +126,10 @@ public class NettySessionManager {
 		}
 	}
 
+	public boolean isOnline(long appId){
+		return activeApps.contains(appId);
+	}
+
 	private void stopSession(long appId){
 		try {
 			lock.lock();
