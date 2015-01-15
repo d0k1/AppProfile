@@ -19,7 +19,6 @@ public class LongRunExample {
 		}
 	}
 
-
 	public static void main(String[] args) throws InterruptedException {
 		System.err.println("Begin!");
 

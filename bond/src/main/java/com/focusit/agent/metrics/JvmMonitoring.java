@@ -35,7 +35,7 @@ public class JvmMonitoring {
 	private GarbageCollectorMXBean gc1;
 	private GarbageCollectorMXBean gc2;
 
-	// Max LIMIT in memory = 655360 * 176 (bytes per sample) = 125 829 120 bytes = 120 Mb
+	// Max LIMIT in memory = 655360  * 176 (bytes per sample) = 125 829 120 bytes = 120 Mb
 	private final static int LIMIT = AgentConfiguration.getJvmBufferLength();
 	private final static FixedSamplesArray<JvmInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
 		@Override

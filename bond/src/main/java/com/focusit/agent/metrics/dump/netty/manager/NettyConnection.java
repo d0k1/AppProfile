@@ -89,7 +89,7 @@ public class NettyConnection {
 		}
 	}
 
-	public static interface ConnectionReadyChecker{
+	public static interface ConnectionReadyChecker {
 		boolean isConnectionReady();
 	}
 }

@@ -8,6 +8,8 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -22,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class StatisticsImport extends DataImport<ExecutionInfo> {
-	private static final String COLLECTION_NAME = "statistics";
+	private final static Logger LOG = LoggerFactory.getLogger(StatisticsImport.class);
 
 	@Named(MongoConfiguration.STATISTICS_COLLECTION)
 	@Inject
@@ -33,7 +35,6 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	@Override
 	public void onSessionStart(long appId) {
-		System.out.println("statistics session start");
 		long sessionId = getSessionIdByAppId(appId);
 		Map<Long, Map<Long, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
 		if(sessionIdCalls==null) {
@@ -47,7 +48,6 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			}
 		}
 		sessionIdCalls.put(sessionId, new ConcurrentHashMap<Long, LinkedList<MethodCallSample>>());
-		System.out.println("done. statistics session start");
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 				map.put(threadId, samples);
 			}
 			if (event == 1) {
-				System.err.println("Method exit found before method entry");
+				LOG.warn("Method exit found before method entry {}", info.toString());
 				return;
 			} else {
 

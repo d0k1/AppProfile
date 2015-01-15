@@ -31,13 +31,14 @@ sessionsControllers.controller('sessionsController', function($scope, recordCont
 	$scope.autoprofiling = null;
 	$scope.monitoring = null;
 	$scope.profiling = null;
+	$scope.online = false;
 
 	$scope.onDataViewUpdated = function(view, appIds, sessionIds, recIds){
 		$scope.session = sessionIds[view.sessionId-1];
 		$scope.appId = view.appId;
 		$scope.sessionId = view.sessionId;
 		$scope.recId = view.recId;
-
+		$scope.online = view.online;
 		loadSessionData();
 	}
 

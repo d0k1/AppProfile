@@ -6,6 +6,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -36,10 +38,12 @@ public class NettySessionManager {
 	// lock to synchronize work with appIds, sessionId, recordingIds and enabled/disbaled flag
 	private final ReentrantLock lock = new ReentrantLock(true);
 
+	private final static Logger LOG = LoggerFactory.getLogger(NettySessionManager.class);
+
 	private final List<Long> activeApps = new ArrayList<>();
 
-	private boolean automonitoring = true;
-	private boolean autoprofiling = true;
+	private boolean automonitoring = false;
+	private boolean autoprofiling = false;
 
 	private DataImport[] importToNotify;
 
@@ -66,6 +70,7 @@ public class NettySessionManager {
 	public void startRecording(long appId, long sessionId) {
 		try{
 			lock.lock();
+
 			Map<Long, Long> sessionIdRecs = recordings.get(appId);
 			if(sessionIdRecs==null){
 				sessionIdRecs = new ConcurrentHashMap<>();
@@ -86,21 +91,22 @@ public class NettySessionManager {
 			} else {
 				// store finish timestamp on previous record
 				BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("recordId", recId);
-				records.update(query, new BasicDBObject("set", new BasicDBObject("finish", System.currentTimeMillis())));
+				records.update(query, new BasicDBObject("$set", new BasicDBObject("finish", System.currentTimeMillis())));
 				sessionIdRecs.put(sessionId, recId + 1);
 				record.append("recordId", recId + 1);
 			}
 
 			records.insert(record);
+
+			LOG.info(String.format("start record %d on sessionId %d for appId %d", record.get("recordId"), sessionId, appId));
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	private final void startSession(long appId){
+	private final void startSession(long appId) {
 		try {
 			lock.lock();
-			System.out.println("start session for "+appId);
 
 			if(sessionIds.containsKey(appId)) {
 				sessionIds.remove(appId);
@@ -119,8 +125,8 @@ public class NettySessionManager {
 			}
 
 			long sessionId = getSessionIdByAppId(appId);
+			LOG.info(String.format("start session %d for appId %d", sessionId, appId));
 			startRecording(appId, sessionId);
-			System.out.println("done. start session for " + appId);
 		} finally {
 			lock.unlock();
 		}
@@ -144,7 +150,6 @@ public class NettySessionManager {
 				sessionIds.remove(appId);
 			}
 
-			System.out.println("session stop for "+appId);
 			DBCollection sessions = db.getCollection(SESSIONS_COLLECTION);
 			BasicDBObject query = new BasicDBObject();
 			query.append("appId", appId);
@@ -155,6 +160,7 @@ public class NettySessionManager {
 			DBCollection records = db.getCollection(RECORDS_COLLECTION);
 			query = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("recordId", recId);
 			records.update(query, new BasicDBObject("$set", new BasicDBObject("finish", System.currentTimeMillis())));
+			LOG.info(String.format("stop session %d for appId %d", sessionId, appId));
 
 		} finally {
 			lock.unlock();
@@ -230,7 +236,6 @@ public class NettySessionManager {
 				session.append("sessionId", 1L);
 				sessions.insert(session);
 				sessionIds.put(appId, 1L);
-				System.out.println("Class: "+this.getClass().getName()+": appId: "+appId+"! sessionId: 1");
 				return 1L;
 			}
 
@@ -240,7 +245,6 @@ public class NettySessionManager {
 			session.append("sessionId", nextSessionId);
 			sessions.insert(session);
 
-			System.out.println("Class: "+this.getClass().getName()+": appId: "+appId+"; sessionId: "+nextSessionId);
 			sessionIds.put(appId, nextSessionId);
 			return nextSessionId;
 		} finally {

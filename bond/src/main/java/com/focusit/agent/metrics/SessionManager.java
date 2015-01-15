@@ -94,17 +94,22 @@ public class SessionManager {
 			@Override
 			public void run() {
 				try {
-					int interval = AgentConfiguration.getDumpInterval();
+					int interval = AgentConfiguration.getNettyConnectingInterval();
 					boolean lastConnectionStatus = false;
 
 					while (!Thread.interrupted()) {
 						try {
 							boolean connected = NettyConnectionManager.getInstance().isConnected(SESSIONMANAGER_TAG);
 							if(connected && !lastConnectionStatus) {
+								// if connection established then need wait session to initialize
 								lastConnectionStatus = connected;
 								sendAppIdAndWait();
 							} else if(!connected){
+								// if connection is lost or agent hasn't been connected
 								lastConnectionStatus = connected;
+								Thread.sleep(interval);
+							} else {
+								// if all is ok sleep alot
 								Thread.sleep(interval);
 							}
 						} catch (InterruptedException e) {

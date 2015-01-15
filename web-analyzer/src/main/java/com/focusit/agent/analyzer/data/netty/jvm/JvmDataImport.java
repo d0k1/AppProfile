@@ -26,6 +26,10 @@ public class JvmDataImport extends DataImport<JvmInfo> {
 
 	@Override
 	protected void importSampleInt(long appId, long sessionId, long recId, JvmInfo info) {
+		if (!isMonitoringEnabled(appId)){
+			return;
+		}
+
 		BasicDBObject jvmInfo = new BasicDBObject("appId", appId).append("sessionId", sessionId).append("recId", recId);
 
 		try {
