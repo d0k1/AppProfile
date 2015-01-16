@@ -117,7 +117,7 @@ public class Agent
     }
 
     private static void startDumping() throws IOException, InterruptedException {
-        GlobalTime gt = new GlobalTime(AgentConfiguration.getTimerPrecision());
+        GlobalTime gt = new GlobalTime();
         gt.start();
 
         final SamplesDumpManager dataDumper = new SamplesDumpManager();

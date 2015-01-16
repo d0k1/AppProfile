@@ -6,7 +6,8 @@ var configuration = angular.module('configuration', [])
 
 configuration.constant('urls', {
 	sessions:'/',
-	methods:'/profiler',
-	threads:'/system',
+	profiler:'/profiler',
+	methods: '/methods',
+	system:'/system',
 	jvm:'/jvm'
 })
