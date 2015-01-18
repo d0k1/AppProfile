@@ -1,12 +1,14 @@
 package com.focusit.agent.analyzer.data.netty.methodmap;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
+import com.focusit.agent.analyzer.data.netty.DataBuffer;
 import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.metrics.dump.netty.MethodsMapNettyDumper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,9 +23,19 @@ public class MethodMapImport extends DataImport<MethodsMapNettyDumper.MethodsMap
 	DBCollection collection;
 
 	@Override
-	protected void importSampleInt(long appId, long sessionId, long recId, MethodsMapNettyDumper.MethodsMapSample sample) {
+	protected void importSampleInt(long appId, long sessionId, long recId, MethodsMapNettyDumper.MethodsMapSample sample, DataBuffer buffer) {
 		BasicDBObject methodInfo = new BasicDBObject("appId", appId).append("sessionId", sessionId)
 			.append("index", sample.index).append("method", sample.method);
-		collection.insert(methodInfo);
+
+		if(buffer!=null && buffer.getCapacity()>0) {
+			buffer.holdItem(methodInfo);
+		} else {
+			collection.insert(methodInfo);
+		}
+	}
+
+	@PostConstruct
+	public void init(){
+		initBuffer(1000, collection, "methods");
 	}
 }

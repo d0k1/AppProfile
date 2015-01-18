@@ -28,7 +28,7 @@ public class NettyStatisticsData  extends NettyData {
 
 	@Override
 	protected String getName() {
-		return "statistics";
+		return "collection";
 	}
 
 	@Override

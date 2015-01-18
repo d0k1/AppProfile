@@ -2,6 +2,7 @@ package com.focusit.agent.analyzer.dao.statistics;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
+import com.focusit.agent.analyzer.data.statistics.MethodStatSample;
 import com.mongodb.*;
 import org.springframework.stereotype.Repository;
 
@@ -112,6 +113,64 @@ public class StatisticsDao {
 				DBObject method = cursor.next();
 				result.add(dbobject2MethodCall(method));
 			}
+		}
+
+		return result;
+	}
+
+	public Collection<MethodStatSample> getMethodsStat(long appId, long sessionId, long recId){
+
+		String map="function(){\n" +
+			"    emit(this.methodName, {\"count\": 1, \"threadId\":this.threadId, \"nanos\":this.finishTime-this.startTime});\n" +
+			"};\n";
+
+		String reduce="function(key, values){\n" +
+			"    var count = 0;\n" +
+			"    var threads = [];\n" +
+			"    var sumTime = -1;\n" +
+			"    var minNanos = -1;\n" +
+			"    var maxNanos = -1;\n" +
+			"    var times = [];\n" +
+			"    \n" +
+			"    print(\"values.length = \"+values.length)\n" +
+			"    for(var i=0;i<values.length;i++){\n" +
+			"        count += 1;\n" +
+			"                    \n" +
+			"        if(threads.indexOf(Number(values[i].threadId))<0)\n" +
+			"            threads.push(Number(values[i].threadId));\n" +
+			"        \n" +
+			"        sumTime = sumTime+values[i].nanos;\n" +
+			"        times.push(values[i].nanos);\n" +
+			"\n" +
+			"        if(minNanos==-1){\n" +
+			"            minNanos = values[i].nanos;\n" +
+			"            if(maxNanos==-1)\n" +
+			"                maxNanos = values[i].nanos;\n" +
+			"        \n" +
+			"            continue;\n" +
+			"        }\n" +
+			"        \n" +
+			"        if(minNanos>values[i].nanos){\n" +
+			"            minNanos = values[i].nanos;\n" +
+			"        } else if(maxNanos<values[i].nanos){\n" +
+			"            maxNanos = values[i].nanos;\n" +
+			"        }            \n" +
+			"    }\n" +
+			"    \n" +
+			"    return {\"count\":count, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime};\n" +
+			"}";
+
+		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+
+		if(recId>-1) {
+			query.append("recId", recId);
+		}
+
+		Iterable<DBObject> items = statistics.mapReduce(map, reduce, null, query).results();
+		Collection<MethodStatSample> result = new ArrayList<>();
+
+		for(DBObject item:items){
+
 		}
 
 		return result;

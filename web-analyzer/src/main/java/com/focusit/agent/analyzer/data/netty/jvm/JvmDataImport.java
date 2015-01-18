@@ -1,12 +1,14 @@
 package com.focusit.agent.analyzer.data.netty.jvm;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
+import com.focusit.agent.analyzer.data.netty.DataBuffer;
 import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.metrics.samples.JvmInfo;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.math.BigInteger;
@@ -25,7 +27,7 @@ public class JvmDataImport extends DataImport<JvmInfo> {
 	DBCollection collection;
 
 	@Override
-	protected void importSampleInt(long appId, long sessionId, long recId, JvmInfo info) {
+	protected void importSampleInt(long appId, long sessionId, long recId, JvmInfo info, DataBuffer buffer) {
 		if (!isMonitoringEnabled(appId)){
 			return;
 		}
@@ -72,6 +74,15 @@ public class JvmDataImport extends DataImport<JvmInfo> {
 			.append("time", info.time)
 			.append("timestamp", info.timestamp);
 
-		collection.insert(jvmInfo);
+		if(buffer!=null && buffer.getCapacity()>0) {
+			buffer.holdItem(jvmInfo);
+		} else {
+			collection.insert(jvmInfo);
+		}
+	}
+
+	@PostConstruct
+	public void init(){
+		initBuffer(50, collection, "jvm");
 	}
 }

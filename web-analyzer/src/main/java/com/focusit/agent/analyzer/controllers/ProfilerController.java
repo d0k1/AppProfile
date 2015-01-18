@@ -12,7 +12,7 @@ import java.util.Collection;
  */
 @RestController
 @RequestMapping("/profiler")
-public class StatisticsController {
+public class ProfilerController {
 	@Inject
 	StatisticsDao dao;
 
@@ -30,5 +30,4 @@ public class StatisticsController {
 	public boolean analyze(@PathVariable("appId") String appId, @PathVariable("sessionId") String sessionId, @PathVariable("recId") String recId){
 		return dao.analyzeSession(Long.parseLong(appId), Long.parseLong(sessionId), Long.parseLong(recId));
 	}
-
 }

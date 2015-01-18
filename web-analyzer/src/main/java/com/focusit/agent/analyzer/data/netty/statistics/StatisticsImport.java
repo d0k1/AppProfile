@@ -1,6 +1,7 @@
 package com.focusit.agent.analyzer.data.netty.statistics;
 
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
+import com.focusit.agent.analyzer.data.netty.DataBuffer;
 import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Iterator;
@@ -28,7 +30,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	@Named(MongoConfiguration.STATISTICS_COLLECTION)
 	@Inject
-	DBCollection statistics;
+	DBCollection collection;
 
 	// appId // sessionId // threadId
 	Map<Long, Map<Long, Map<Long, LinkedList<MethodCallSample>>>> callSites = new ConcurrentHashMap<>();
@@ -51,15 +53,15 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 	}
 
 	@Override
-	protected void importSampleInt(long appId, long sessionId, long recId, ExecutionInfo info) {
+	protected void importSampleInt(long appId, long sessionId, long recId, ExecutionInfo info, DataBuffer buffer) {
 		if(isProfilingEnabled(appId)) {
 			// if session really started and internal state initialized
 			if(callSites.get(appId).get(sessionId)!=null)
-				processExecutionInfo(appId, sessionId, recId, info);
+				processExecutionInfo(appId, sessionId, recId, info, buffer);
 		}
 	}
 
-	private void processExecutionInfo(long appId, long sessionId, long recId, ExecutionInfo info){
+	private void processExecutionInfo(long appId, long sessionId, long recId, ExecutionInfo info, DataBuffer buffer){
 		Map<Long, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
 		long threadId = (Long) info.threadId;
 		long event = (Long) info.eventId;
@@ -90,7 +92,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			MethodCallSample sample = samples.removeLast();
 			sample.finishTime = time;
 			sample.finishtimestamp = timestamp;
-			insertMethodCallSample(statistics, sample, appId, sessionId, recId);
+			insertMethodCallSample(collection, sample, appId, sessionId, recId, buffer);
 		} else if(event==0){
 			MethodCallSample sample = new MethodCallSample(new ObjectId().toString(), threadId, methodId, null);
 			sample.starttimestamp = timestamp;
@@ -106,7 +108,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	}
 
-	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId, long recId) {
+	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId, long recId, DataBuffer buffer) {
 		BasicDBObject method = new BasicDBObject("_id", sample._id).append("threadId", sample.threadId).append("methodId", sample.methodId).append("methodName", sample.methodName)
 			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("starttimestamp", sample.starttimestamp)
 			.append("finishtimestamp", sample.finishtimestamp).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
@@ -118,6 +120,16 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 		}
 		method.append("parents", parents);
 
-		collection.insert(method);
+		if(buffer!=null && buffer.getCapacity()>0) {
+			buffer.holdItem(method);
+		} else {
+			collection.insert(method);
+		}
 	}
+
+	@PostConstruct
+	public void init(){
+		initBuffer(5000, collection, "statistics");
+	}
+
 }
