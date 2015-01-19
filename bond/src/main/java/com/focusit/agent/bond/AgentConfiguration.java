@@ -16,7 +16,6 @@ import java.util.Properties;
 public class AgentConfiguration {
 	private static Properties properties = null;
 	private static Integer dumpInterval = null;
-	private static Integer timerInterval = null;
 
 	private static String excludes[] = null;
 	private static String ignoreExcludes[] = null;
@@ -47,7 +46,6 @@ public class AgentConfiguration {
 		}
 
 		getDumpInterval();
-		getTimerPrecision();
 
 		getExcludeClasses();
 		getIgnoreExcludeClasses();
@@ -315,24 +313,22 @@ public class AgentConfiguration {
 		return ignoreIncludes;
 	}
 
-	public static int getTimerPrecision() {
-		if(timerInterval!=null)
-			return timerInterval;
-
-		int result = 10;
-		try {
-			String interval = properties.getProperty("agent.timer.interval");
-			if (!StringUtils.isEmpty(interval)) {
-				try {
-					result = Integer.parseInt(interval);
-				} catch (NumberFormatException e) {
-					result = 10;
-				}
-			}
-		} finally {
-			timerInterval = result;
-			return timerInterval;
+	public static boolean isJvmMonitoringEnabled(){
+		String values = properties.getProperty("agent.jvm.enabled");
+		if(values==null){
+			return true;
 		}
+		values = values.trim();
+		return Boolean.parseBoolean(values);
+	}
+
+	public static boolean isStatisticsEnabled(){
+		String values = properties.getProperty("agent.statistics.enabled");
+		if(values==null){
+			return true;
+		}
+		values = values.trim();
+		return Boolean.parseBoolean(values);
 	}
 
 	public static DumpType getDumpType(){

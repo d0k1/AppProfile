@@ -1,6 +1,5 @@
 agent.enabled=true
 agent.transformer=javaassist
-agent.timer.interval=1
 agent.dump.interval=1
 
 #agent.exclude=sun,com.sun,java,javax,sun.util,org.apache.juli,org.apache.catalina,org.apache.tomcat,com.focusit.agent,com.intellij
@@ -21,3 +20,6 @@ agent.dumptype=disk
 agent.appId=1
 
 agent.netty.session.port=15999
+
+agent.statistics.enabled=true
+agent.jvm.enabled=true

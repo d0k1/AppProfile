@@ -1,5 +1,6 @@
 package com.focusit.agent.analyzer.data.statistics;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,17 +9,15 @@ import java.util.List;
  */
 public class MethodStatSample {
 	public final String method;
-	public final List<Long> threads;
-	public final List<Long> times;
+	public final List<Long> threads = new ArrayList<>();
+	public final List<Long> times = new ArrayList<>();
 	public final long callCount;
 	public final long minTime;
 	public final long maxTime;
 	public final long totalTime;
 
-	public MethodStatSample(String method, List<Long> threads, List<Long> times, long callCount, long minTime, long maxTime, long totalTime) {
+	public MethodStatSample(String method, long callCount, long minTime, long maxTime, long totalTime) {
 		this.method = method;
-		this.threads = threads;
-		this.times = times;
 		this.callCount = callCount;
 		this.minTime = minTime;
 		this.maxTime = maxTime;

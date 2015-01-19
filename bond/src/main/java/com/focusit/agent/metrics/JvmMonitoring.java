@@ -5,6 +5,7 @@ import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.JvmInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
+import com.focusit.agent.utils.jmm.FinalBoolean;
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.ThreadMXBean;
@@ -34,6 +35,8 @@ public class JvmMonitoring {
 	private final MemoryMXBean memoryMBean;
 	private GarbageCollectorMXBean gc1;
 	private GarbageCollectorMXBean gc2;
+
+	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isJvmMonitoringEnabled());
 
 	// Max LIMIT in memory = 655360  * 176 (bytes per sample) = 125 829 120 bytes = 120 Mb
 	private final static int LIMIT = AgentConfiguration.getJvmBufferLength();
@@ -106,6 +109,11 @@ public class JvmMonitoring {
 	}
 
 	private void writeMeasure() throws InterruptedException {
+		FinalBoolean working = enabled;
+
+		if(!working.value)
+			return;
+
 		if (data.isFull()) {
 			System.err.println("No memory to store sample in " + data.getName());
 		}

@@ -11,6 +11,7 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Created by Denis V. Kirpichenkov on 24.12.14.
@@ -121,7 +122,14 @@ public class StatisticsDao {
 	public Collection<MethodStatSample> getMethodsStat(long appId, long sessionId, long recId){
 
 		String map="function(){\n" +
-			"    emit(this.methodName, {\"count\": 1, \"threadId\":this.threadId, \"nanos\":this.finishTime-this.startTime});\n" +
+			"    var nanos = this.finishTime-this.startTime;\n" +
+			"    var threads = [0.0+this.threadId];\n" +
+			"    var sumTime = 0.0+nanos;\n" +
+			"    var minNanos = 0.0+nanos;\n" +
+			"    var maxNanos = 0.0+nanos;\n" +
+			"    var times = [0.0+nanos];\n" +
+			"    \n" +
+			"    emit(this.methodName, {\"count\": 1, \"threadId\":this.threadId, \"nanos\":nanos, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime});\n" +
 			"};\n";
 
 		String reduce="function(key, values){\n" +
@@ -132,7 +140,6 @@ public class StatisticsDao {
 			"    var maxNanos = -1;\n" +
 			"    var times = [];\n" +
 			"    \n" +
-			"    print(\"values.length = \"+values.length)\n" +
 			"    for(var i=0;i<values.length;i++){\n" +
 			"        count += 1;\n" +
 			"                    \n" +
@@ -166,13 +173,28 @@ public class StatisticsDao {
 			query.append("recId", recId);
 		}
 
-		Iterable<DBObject> items = statistics.mapReduce(map, reduce, null, query).results();
+		String tempCollection = "methods."+ UUID.randomUUID().toString();
+
+		MapReduceCommand cmd = new MapReduceCommand( statistics , map , reduce , tempCollection , MapReduceCommand.OutputType.REPLACE, query );
+		statistics.mapReduce(cmd);
+
 		Collection<MethodStatSample> result = new ArrayList<>();
 
-		for(DBObject item:items){
+		DBCollection mapreduce = db.getCollection(tempCollection);
+		DBCursor cursor = mapreduce.find().sort(new BasicDBObject("value.count", -1).append("value.totalTime", -1));
 
+		while(cursor.hasNext()){
+			DBObject item0 = cursor.next();
+			BasicDBObject item = (BasicDBObject) item0.get("value");
+			MethodStatSample sample = new MethodStatSample((String)item0.get("_id"), ((Double)item.get("count")).longValue(), ((Double)item.get("minNanos")).longValue(), ((Double)item.get("maxNanos")).longValue(), ((Double)item.get("totalTime")).longValue());
+
+			for(Object element:(BasicDBList) item.get("threads")){
+				sample.threads.add(((Double)element).longValue());
+			}
+			result.add(sample);
 		}
 
+		mapreduce.drop();
 		return result;
 	}
 }
