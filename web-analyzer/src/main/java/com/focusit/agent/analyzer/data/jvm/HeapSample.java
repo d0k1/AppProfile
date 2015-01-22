@@ -3,7 +3,7 @@ package com.focusit.agent.analyzer.data.jvm;
 /**
  * Created by Denis V. Kirpichenkov on 24.12.14.
  */
-public class HeapSample {
+public class  HeapSample {
 	public final long heapInit;
 	public final long heapUsed;
 	public final long heapCommited;

@@ -28,6 +28,12 @@ public class SessionController {
 	@Inject
 	NettySessionManager sessionManager;
 
+	@RequestMapping(value = "/flush", method = RequestMethod.GET)
+	public String flush(){
+		sessionManager.flushBuffers();
+		return "{\"result\":\"true\"}";
+	}
+
 	@RequestMapping(value = "/{appId}/isonline", method = RequestMethod.GET)
 	public String record(@PathVariable("appId") String appId){
 		return "{\"result\":\""+String.valueOf(sessionManager.isOnline(Long.parseLong(appId)))+"\"}";

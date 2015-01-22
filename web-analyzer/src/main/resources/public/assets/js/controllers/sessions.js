@@ -20,7 +20,11 @@ sessionsControllers.factory("autoprofiling", function($resource) {
 	return $resource("/sessions/autoprofiling/:action");
 });
 
-sessionsControllers.controller('sessionsController', function($scope, recordControl, automonitoring, autoprofiling, settings){
+sessionsControllers.factory("flush", function($resource) {
+	return $resource("/sessions/flush");
+});
+
+sessionsControllers.controller('sessionsController', function($scope, recordControl, automonitoring, autoprofiling, flush, settings){
 	$scope.title = 'Measurement sessions'
 
 	$scope.session = null;
@@ -116,6 +120,10 @@ sessionsControllers.controller('sessionsController', function($scope, recordCont
 	$scope.newRecord = function(){
 		recordControl.get({appId: $scope.appId, sessionId:$scope.sessionId, action:"newrecord"}, function(data){
 		});
+	}
+
+	$scope.flush = function(){
+		flush.get({}, function(data){});
 	}
 
 	loadAutdata();

@@ -129,7 +129,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	@PostConstruct
 	public void init(){
-		initBuffer(5000, collection, "statistics");
+		initBuffer(20000, collection, "statistics");
 	}
 
 }

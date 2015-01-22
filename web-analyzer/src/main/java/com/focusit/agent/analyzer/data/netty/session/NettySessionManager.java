@@ -216,6 +216,11 @@ public class NettySessionManager {
 		return sessionIds.get(appId);
 	}
 
+	public final void flushBuffers(){
+		for(DataImport dataImport:importToNotify)
+			dataImport.flushBuffer();
+	}
+
 	private final long getSessionIdByAppId(long appId){
 		if(sessionIds.get(appId)!=null)
 			return sessionIds.get(appId);

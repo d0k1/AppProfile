@@ -1,8 +1,6 @@
 package com.focusit.agent.analyzer.configuration;
 
-import com.mongodb.DBCollection;
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +38,7 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 	@Bean
 	@Override
 	public Mongo mongo() throws Exception {
-		return new MongoClient(MONGO_DB_HOST, MONGO_DB_PORT);
+		return new MongoClient(new ServerAddress(MONGO_DB_HOST, MONGO_DB_PORT), MongoClientOptions.builder().writeConcern(WriteConcern.NORMAL).build());
 	}
 
 	@Bean

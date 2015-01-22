@@ -11,7 +11,6 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.UUID;
 
 /**
  * Created by Denis V. Kirpichenkov on 24.12.14.
@@ -121,62 +120,76 @@ public class StatisticsDao {
 
 	public Collection<MethodStatSample> getMethodsStat(long appId, long sessionId, long recId){
 
-		String map="function(){\n" +
-			"    var nanos = this.finishTime-this.startTime;\n" +
-			"    var threads = [0.0+this.threadId];\n" +
-			"    var sumTime = 0.0+nanos;\n" +
-			"    var minNanos = 0.0+nanos;\n" +
-			"    var maxNanos = 0.0+nanos;\n" +
-			"    var times = [0.0+nanos];\n" +
-			"    \n" +
-			"    emit(this.methodName, {\"count\": 1, \"threadId\":this.threadId, \"nanos\":nanos, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime});\n" +
-			"};\n";
+		String tempCollection = "methods_"+ appId+"_"+sessionId+"_"+recId;
 
-		String reduce="function(key, values){\n" +
-			"    var count = 0;\n" +
-			"    var threads = [];\n" +
-			"    var sumTime = -1;\n" +
-			"    var minNanos = -1;\n" +
-			"    var maxNanos = -1;\n" +
-			"    var times = [];\n" +
-			"    \n" +
-			"    for(var i=0;i<values.length;i++){\n" +
-			"        count += 1;\n" +
-			"                    \n" +
-			"        if(threads.indexOf(Number(values[i].threadId))<0)\n" +
-			"            threads.push(Number(values[i].threadId));\n" +
-			"        \n" +
-			"        sumTime = sumTime+values[i].nanos;\n" +
-			"        times.push(values[i].nanos);\n" +
-			"\n" +
-			"        if(minNanos==-1){\n" +
-			"            minNanos = values[i].nanos;\n" +
-			"            if(maxNanos==-1)\n" +
-			"                maxNanos = values[i].nanos;\n" +
-			"        \n" +
-			"            continue;\n" +
-			"        }\n" +
-			"        \n" +
-			"        if(minNanos>values[i].nanos){\n" +
-			"            minNanos = values[i].nanos;\n" +
-			"        } else if(maxNanos<values[i].nanos){\n" +
-			"            maxNanos = values[i].nanos;\n" +
-			"        }            \n" +
-			"    }\n" +
-			"    \n" +
-			"    return {\"count\":count, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime};\n" +
-			"}";
+		if(!db.collectionExists(tempCollection)) {
+			String map = "function(){\n" +
+				"    var nanos = this.finishTime-this.startTime;\n" +
+				"    var threads = [this.threadId];\n" +
+				"    var sumTime = nanos;\n" +
+				"    var minNanos = nanos;\n" +
+				"    var maxNanos = nanos;\n" +
+				"    var times = [nanos];\n" +
+				"    \n" +
+				"    emit(this.methodName, {\"count\": 1, \"threadId\":this.threadId, \"nanos\":nanos, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime, \"ordinal\":true});\n" +
+				"}";
 
-		BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+			String reduce = "function(key, values){\n" +
+				"    var count = 0;\n" +
+				"    var threads = [];\n" +
+				"    var sumTime = -1;\n" +
+				"    var minNanos = -1;\n" +
+				"    var maxNanos = -1;\n" +
+				"    var times = [];\n" +
+				"    \n" +
+				"    function processArrayItem(item){\n" +
+				"        count += 1;\n" +
+				"                    \n" +
+				"        if(threads.indexOf(Number(item.threadId))<0)\n" +
+				"            threads.push(Number(item.threadId));\n" +
+				"        \n" +
+				"        sumTime = sumTime+item.nanos;\n" +
+				"        times.push(item.nanos);\n" +
+				"\n" +
+				"        if(minNanos==-1){\n" +
+				"            minNanos = item.nanos;\n" +
+				"            maxNanos = item.nanos;\n" +
+				"            return;\n" +
+				"        }\n" +
+				"        \n" +
+				"        if(minNanos>item.nanos){\n" +
+				"            minNanos = item.nanos;\n" +
+				"        } else if(maxNanos<item.nanos){\n" +
+				"            maxNanos = item.nanos;\n" +
+				"        }            \n" +
+				"    };\n" +
+				"    \n" +
+				"    for(var i=0;i<values.length;i++){\n" +
+				"        if(values[i].ordinal==null){\n" +
+				"            var inter = values[i];\n" +
+				"            count = inter.count;\n" +
+				"            threads = inter.threads;\n" +
+				"            times = inter.times;\n" +
+				"            sumTime = inter.totalTime;\n" +
+				"            minNanos = inter.minNanos;\n" +
+				"            maxNanos = inter.maxNanos;\n" +
+				"            continue;\n" +
+				"        }\n" +
+				"        processArrayItem(values[i]);\n" +
+				"    }\n" +
+				"    \n" +
+				"    return {\"count\":count, \"threads\":threads, \"times\":times, \"minNanos\":minNanos, \"maxNanos\":maxNanos, \"totalTime\":sumTime};\n" +
+				"}";
 
-		if(recId>-1) {
-			query.append("recId", recId);
+			BasicDBObject query = new BasicDBObject("appId", appId).append("sessionId", sessionId);
+
+			if (recId > -1) {
+				query.append("recId", recId);
+			}
+
+			MapReduceCommand cmd = new MapReduceCommand(statistics, map, reduce, tempCollection, MapReduceCommand.OutputType.REPLACE, query);
+			statistics.mapReduce(cmd);
 		}
-
-		String tempCollection = "methods."+ UUID.randomUUID().toString();
-
-		MapReduceCommand cmd = new MapReduceCommand( statistics , map , reduce , tempCollection , MapReduceCommand.OutputType.REPLACE, query );
-		statistics.mapReduce(cmd);
 
 		Collection<MethodStatSample> result = new ArrayList<>();
 
@@ -189,12 +202,14 @@ public class StatisticsDao {
 			MethodStatSample sample = new MethodStatSample((String)item0.get("_id"), ((Double)item.get("count")).longValue(), ((Double)item.get("minNanos")).longValue(), ((Double)item.get("maxNanos")).longValue(), ((Double)item.get("totalTime")).longValue());
 
 			for(Object element:(BasicDBList) item.get("threads")){
-				sample.threads.add(((Double)element).longValue());
+				if(element instanceof Double)
+					sample.threads.add(((Double)element).longValue());
+				else
+					sample.threads.add(((Long)element));
 			}
 			result.add(sample);
 		}
 
-		mapreduce.drop();
 		return result;
 	}
 }
