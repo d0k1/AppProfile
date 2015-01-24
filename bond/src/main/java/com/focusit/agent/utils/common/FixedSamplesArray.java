@@ -58,10 +58,6 @@ public class FixedSamplesArray<T> {
 	 * @return
 	 */
 	public void writeItemFrom(long ... fields) throws InterruptedException {
-//		if (isFull()) {
-//			System.err.println("No memory to dump sample in " + name);
-////			return;
-//		}
 		InterruptedException interrupted = null;
 		final Lock lock = this.lock;
 		final Sample<T>[] data = this.data;

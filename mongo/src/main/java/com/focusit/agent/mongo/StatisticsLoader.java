@@ -53,8 +53,7 @@ public class StatisticsLoader implements MongoLoader {
 							.append("threadId", info.threadId)
 							.append("eventId", info.eventId)
 							.append("method", info.method)
-							.append("time", info.time)
-							.append("timestamp", info.timestamp);
+							.append("time", info.time);
 
 						ops.insert(executionInfo);
 					}

@@ -51,11 +51,9 @@ public class StatisticsDao {
 	}
 
 	private MethodCallSample dbobject2MethodCall(DBObject object){
-		MethodCallSample sample = new MethodCallSample((String)object.get("_id"),(Long)object.get("threadId"), (Long)object.get("methodId"), (String)object.get("methodName"));
+		MethodCallSample sample = new MethodCallSample((String)object.get("_id"),(Integer)object.get("threadId"), (Long)object.get("methodId"), (String)object.get("methodName"));
 		sample.startTime = (Long)object.get("startTime");
 		sample.finishTime = (Long)object.get("finishTime");
-		sample.starttimestamp = (Long)object.get("starttimestamp");
-		sample.finishtimestamp = (Long)object.get("finishtimestamp");
 		BasicDBList parents = (BasicDBList)object.get("parents");
 
 		for(Object parent:parents){

@@ -12,12 +12,12 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	/**
 	 * Thread Id
 	 */
-	public long threadId = -1;
+	public int threadId = -1;
 
 	/**
 	 * event eventId
 	 */
-	public long eventId = -1;
+	public byte eventId = -1;
 
 	/**
 	 * nanos at exit
@@ -29,12 +29,10 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	 */
 	public long method = -1;
 
-	public long timestamp;
-
 	public long appId;
 
 	public static int sizeOf(){
-		return 6 * 8; // 4 field, each field - 8 bytes
+		return 3 * 8 + 1 + 4; // 3 longs + 1 byte + 1 int
 	}
 
 	@Override
@@ -44,7 +42,6 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		this.eventId = ((ExecutionInfo) sample).eventId;
 		this.time = ((ExecutionInfo) sample).time;
 		this.method = ((ExecutionInfo) sample).method;
-		this.timestamp = ((ExecutionInfo) sample).timestamp;
 		this.appId = ((ExecutionInfo) sample).appId;
 		return this;
 	}
@@ -54,47 +51,42 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 		out.putLong(eventId);
 		out.putLong(time);
 		out.putLong(method);
-		out.putLong(timestamp);
 		out.putLong(appId);
 	}
 
 	public void readFromBuffer(ByteBuffer in){
-		threadId = in.getLong();
-		eventId = in.getLong();
+		threadId = in.getInt();
+		eventId = in.get();
 		time = in.getLong();
 		method = in.getLong();
-		timestamp = in.getLong();
 		appId = in.getLong();
 	}
 
 	@Override
 	public void writeToBuffer(ByteBuf out) {
-		out.writeLong(threadId);
-		out.writeLong(eventId);
+		out.writeInt(threadId);
+		out.writeByte(eventId);
 		out.writeLong(time);
 		out.writeLong(method);
-		out.writeLong(timestamp);
 		out.writeLong(appId);
 	}
 
 	@Override
 	public void readFromBuffer(ByteBuf in) {
-		threadId = in.readLong();
-		eventId = in.readLong();
+		threadId = in.readInt();
+		eventId = in.readByte();
 		time = in.readLong();
 		method = in.readLong();
-		timestamp = in.readLong();
 		appId = in.readLong();
 	}
 
 	@Override
 	public void readFromBuffer(long[] buffer) {
-		threadId = buffer[0];
-		eventId = buffer[1];
+		threadId = (int) buffer[0];
+		eventId = (byte) buffer[1];
 		time = buffer[2];
 		method = buffer[3];
-		timestamp = buffer[4];
-		appId = buffer[5];
+		appId = buffer[4];
 	}
 
 	@Override
@@ -114,7 +106,6 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 			", eventId=" + eventId +
 			", time=" + time +
 			", method=" + method +
-			", timestamp=" + timestamp +
 			", appId=" + appId +
 			'}';
 	}

@@ -33,12 +33,12 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 	DBCollection collection;
 
 	// appId // sessionId // threadId
-	Map<Long, Map<Long, Map<Long, LinkedList<MethodCallSample>>>> callSites = new ConcurrentHashMap<>();
+	Map<Long, Map<Long, Map<Integer, LinkedList<MethodCallSample>>>> callSites = new ConcurrentHashMap<>();
 
 	@Override
 	public void onSessionStart(long appId) {
 		long sessionId = getSessionIdByAppId(appId);
-		Map<Long, Map<Long, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
+		Map<Long, Map<Integer, LinkedList<MethodCallSample>>> sessionIdCalls = callSites.get(appId);
 		if(sessionIdCalls==null) {
 			sessionIdCalls = new ConcurrentHashMap<>();
 			callSites.put(appId, sessionIdCalls);
@@ -49,7 +49,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 				sessionIdCalls.remove(sessionId-1);
 			}
 		}
-		sessionIdCalls.put(sessionId, new ConcurrentHashMap<Long, LinkedList<MethodCallSample>>());
+		sessionIdCalls.put(sessionId, new ConcurrentHashMap<Integer, LinkedList<MethodCallSample>>());
 	}
 
 	@Override
@@ -62,12 +62,11 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 	}
 
 	private void processExecutionInfo(long appId, long sessionId, long recId, ExecutionInfo info, DataBuffer buffer){
-		Map<Long, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
-		long threadId = (Long) info.threadId;
-		long event = (Long) info.eventId;
+		Map<Integer, LinkedList<MethodCallSample>> map = callSites.get(appId).get(sessionId);
+		int threadId = (Integer) info.threadId;
+		byte event = (Byte) info.eventId;
 		long methodId = (Long) info.method;
 		long time = (Long) info.time;
-		long timestamp = (Long) info.timestamp;
 
 		LinkedList<MethodCallSample> samples = map.get(threadId);
 		if (samples == null || samples.size()==0) {
@@ -81,7 +80,6 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 			} else {
 
 				MethodCallSample sample = new MethodCallSample(new ObjectId().toString(), threadId, methodId, null);
-				sample.starttimestamp = timestamp;
 				sample.startTime = time;
 				samples.add(sample);
 
@@ -91,11 +89,9 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 		if(event==1){
 			MethodCallSample sample = samples.removeLast();
 			sample.finishTime = time;
-			sample.finishtimestamp = timestamp;
 			insertMethodCallSample(collection, sample, appId, sessionId, recId, buffer);
 		} else if(event==0){
 			MethodCallSample sample = new MethodCallSample(new ObjectId().toString(), threadId, methodId, null);
-			sample.starttimestamp = timestamp;
 			sample.startTime = time;
 
 			Iterator<MethodCallSample> parents = samples.descendingIterator();
@@ -110,8 +106,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 
 	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId, long recId, DataBuffer buffer) {
 		BasicDBObject method = new BasicDBObject("_id", sample._id).append("threadId", sample.threadId).append("methodId", sample.methodId).append("methodName", sample.methodName)
-			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("starttimestamp", sample.starttimestamp)
-			.append("finishtimestamp", sample.finishtimestamp).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
+			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
 
 		BasicDBList parents = new BasicDBList();
 
