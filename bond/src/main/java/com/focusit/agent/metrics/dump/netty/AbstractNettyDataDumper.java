@@ -23,7 +23,7 @@ public abstract class AbstractNettyDataDumper {
 		b.channel(NioSocketChannel.class);
 		b.option(ChannelOption.SO_KEEPALIVE, true);
 		b.option(ChannelOption.TCP_NODELAY, true);
-		b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000);
+		b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			public void initChannel(SocketChannel ch) throws Exception {

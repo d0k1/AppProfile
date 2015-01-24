@@ -110,19 +110,13 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 		if(NettyConnectionManager.getInstance().isConnectionReady(STATISTICS_TAG)) {
 			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(STATISTICS_TAG);
 			for (int i = 0; i < sampleRead; i++) {
-				if (!f.channel().isWritable()) {
-					System.err.println("Error: netty statistics channel is not writeable");
-					break;
-				}
 				bytesBuffers[i].resetReaderIndex();
 				lastWrite = f.channel().write(bytesBuffers[i]);
 			}
-			if (f.channel().isWritable()) {
-				f.channel().flush();
-				if (lastWrite != null) {
-					lastWrite.sync();
-					lastWrite = null;
-				}
+			f.channel().flush();
+			if (lastWrite != null) {
+				lastWrite.sync();
+				lastWrite = null;
 			}
 		}
 		if(interrupted!=null) {

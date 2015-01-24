@@ -69,9 +69,6 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 
 		ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
 
-		if (!f.channel().isWritable())
-			return;
-
 		f.channel().flush();
 		if(lastWrite!=null){
 			lastWrite.sync();
@@ -128,9 +125,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 
 			if(NettyConnectionManager.getInstance().isConnectionReady(METHODSMAP_TAG)) {
 				ChannelFuture f = NettyConnectionManager.getInstance().getFuture(METHODSMAP_TAG);
-				if (f.channel().isWritable()) {
-					lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
-				}
+				lastWrite = f.channel().write(new MethodsMapSample(lastIndex, MethodsMap.getMethod((int) lastIndex)));
 				lastIndex++;
 				samplesRead.incrementAndGet();
 			}

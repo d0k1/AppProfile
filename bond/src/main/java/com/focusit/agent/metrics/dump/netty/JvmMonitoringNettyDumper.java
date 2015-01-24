@@ -108,19 +108,14 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(JVM_TAG);
 
 			for (int i = 0; i < sampleRead; i++) {
-				if (!f.channel().isWritable()) {
-					System.err.println("Error: netty jvm monitoring channel is not writeable");
-					break;
-				}
 				bytesBuffers[i].resetReaderIndex();
 				lastWrite = f.channel().write(bytesBuffers[i]);
 			}
-			if (f.channel().isWritable()) {
-				f.channel().flush();
-				if (lastWrite != null) {
-					lastWrite.sync();
-					lastWrite = null;
-				}
+
+			f.channel().flush();
+			if (lastWrite != null) {
+				lastWrite.sync();
+				lastWrite = null;
 			}
 		}
 		if(interrupted!=null) {
