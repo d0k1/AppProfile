@@ -75,7 +75,7 @@ public class JvmDataImport extends DataImport<JvmInfo> {
 			.append("timestamp", info.timestamp);
 
 		if(buffer!=null && buffer.getCapacity()>0) {
-			buffer.holdItem(jvmInfo);
+			buffer.holdDbItem(jvmInfo);
 		} else {
 			collection.insert(jvmInfo);
 		}

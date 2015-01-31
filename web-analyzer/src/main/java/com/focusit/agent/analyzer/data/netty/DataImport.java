@@ -13,7 +13,7 @@ public abstract class DataImport<S> {
 
 	@Inject
 	private NettySessionManager sessionManager;
-	private DataBuffer buffer = null;
+	protected DataBuffer buffer = null;
 
 	protected void initBuffer(int capacity, DBCollection collection, String name){
 		buffer = new DataBuffer(capacity, collection, name);

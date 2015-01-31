@@ -28,7 +28,7 @@ public class MethodMapImport extends DataImport<MethodsMapNettyDumper.MethodsMap
 			.append("index", sample.index).append("method", sample.method);
 
 		if(buffer!=null && buffer.getCapacity()>0) {
-			buffer.holdItem(methodInfo);
+			buffer.holdDbItem(methodInfo);
 		} else {
 			collection.insert(methodInfo);
 		}

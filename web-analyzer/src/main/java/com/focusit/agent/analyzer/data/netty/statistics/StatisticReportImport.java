@@ -3,10 +3,9 @@ package com.focusit.agent.analyzer.data.netty.statistics;
 import com.focusit.agent.analyzer.configuration.MongoConfiguration;
 import com.focusit.agent.analyzer.data.netty.DataBuffer;
 import com.focusit.agent.analyzer.data.netty.DataImport;
+import com.focusit.agent.analyzer.data.netty.ReportDataBuffer;
 import com.focusit.agent.analyzer.data.statistics.MethodCallSample;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -22,13 +21,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by Denis V. Kirpichenkov on 30.12.14.
+ * Created by Denis V. Kirpichenkov on 25.01.15.
  */
 @Component
-public class StatisticsImport extends DataImport<ExecutionInfo> {
-	private final static Logger LOG = LoggerFactory.getLogger(StatisticsImport.class);
+public class StatisticReportImport extends DataImport<ExecutionInfo> {
+	private final static Logger LOG = LoggerFactory.getLogger(StatisticReportImport.class);
 
-	@Named(MongoConfiguration.STATISTICS_COLLECTION)
+	@Named(MongoConfiguration.REPORT_COLLECTION)
 	@Inject
 	DBCollection collection;
 
@@ -86,7 +85,7 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 				return;
 			}
 		}
-		if(event==1){
+		if(event==1 || event==2){
 			MethodCallSample sample = samples.removeLast();
 			sample.finishTime = time;
 			insertMethodCallSample(collection, sample, appId, sessionId, recId, buffer);
@@ -105,26 +104,18 @@ public class StatisticsImport extends DataImport<ExecutionInfo> {
 	}
 
 	private void insertMethodCallSample(DBCollection collection, MethodCallSample sample, long appId, long sessionId, long recId, DataBuffer buffer) {
-		BasicDBObject method = new BasicDBObject("_id", sample._id).append("threadId", sample.threadId).append("methodId", sample.methodId).append("methodName", sample.methodName)
-			.append("startTime", sample.startTime).append("finishTime", sample.finishTime).append("appId", appId).append("sessionId", sessionId).append("recId", recId);
-
-		BasicDBList parents = new BasicDBList();
-
-		for(String parent:sample.parents){
-			parents.add(parent);
-		}
-		method.append("parents", parents);
-
 		if(buffer!=null && buffer.getCapacity()>0) {
-			buffer.holdDbItem(method);
-		} else {
-			collection.insert(method);
+			buffer.holdItem(appId, sessionId, recId, sample);
 		}
+	}
+
+	protected void initBuffer(int capacity, DBCollection collection, String name){
+		buffer = new ReportDataBuffer(capacity, collection, name);
 	}
 
 	@PostConstruct
 	public void init(){
-		initBuffer(20000, collection, "statistics");
+		initBuffer(2000000, collection, "report");
 	}
 
 }

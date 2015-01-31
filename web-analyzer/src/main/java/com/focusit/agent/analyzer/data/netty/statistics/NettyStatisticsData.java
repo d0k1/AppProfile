@@ -1,5 +1,6 @@
 package com.focusit.agent.analyzer.data.netty.statistics;
 
+import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.netty.NettyData;
 import com.focusit.agent.metrics.samples.ExecutionInfo;
 import io.netty.buffer.ByteBuf;
@@ -15,9 +16,9 @@ import java.util.List;
  * Created by Denis V. Kirpichenkov on 29.12.14.
  */
 public class NettyStatisticsData  extends NettyData {
-	private final StatisticsImport dataImport;
+	private final DataImport dataImport;
 
-	public NettyStatisticsData(StatisticsImport dataImport){
+	public NettyStatisticsData(DataImport dataImport){
 		this.dataImport = dataImport;
 	}
 

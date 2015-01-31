@@ -14,12 +14,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by Denis V. Kirpichenkov on 17.01.15.
  */
 public class DataBuffer {
-	private final DBCollection collection;
-	private final int capacity;
-	private AtomicInteger count = new AtomicInteger(0);
-	private BulkWriteOperation bulkWriteOperation;
-	private ReentrantLock workLock = new ReentrantLock();
-	private final String name;
+	protected final DBCollection collection;
+	protected final int capacity;
+	protected AtomicInteger count = new AtomicInteger(0);
+	protected BulkWriteOperation bulkWriteOperation;
+	protected ReentrantLock workLock = new ReentrantLock();
+	protected final String name;
 	private final static Logger LOG = LoggerFactory.getLogger(DataBuffer.class);
 
 	public DataBuffer(int size, DBCollection collection, String name){
@@ -29,7 +29,7 @@ public class DataBuffer {
 		bulkWriteOperation = collection.initializeOrderedBulkOperation();
 	}
 
-	public void holdItem(DBObject object){
+	public void holdDbItem(DBObject object){
 		try {
 			workLock.lock();
 			bulkWriteOperation.insert(object);
@@ -40,6 +40,10 @@ public class DataBuffer {
 		} finally {
 			workLock.unlock();
 		}
+	}
+
+	public void holdItem(long appId, long sessionId, long recId, Object object){
+
 	}
 
 	public void flushBuffer(){
@@ -57,6 +61,10 @@ public class DataBuffer {
 		} finally {
 			workLock.unlock();
 		}
+	}
+
+	public void flushBuffer(long appId, long sessionId, long recId){
+		flushBuffer();
 	}
 
 	public int getCapacity(){

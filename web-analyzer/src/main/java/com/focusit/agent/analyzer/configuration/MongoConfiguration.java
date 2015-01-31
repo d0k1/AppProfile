@@ -29,6 +29,7 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 	public static final String JVM_COLLECTION = "jvmmonitoring";
 	public static final String METHODSMAP_COLLECTION = "methodsmap";
 	public static final String STATISTICS_COLLECTION = "statistics";
+	public static final String REPORT_COLLECTION = "methodsreport";
 
 	@Override
 	protected String getDatabaseName() {
@@ -70,6 +71,11 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 	@Bean(name=RECORDS_COLLECTION)
 	public DBCollection getDbCollectionRecords() throws Exception {
 		return mongoDbFactory().getDb().getCollection(RECORDS_COLLECTION);
+	}
+
+	@Bean(name=REPORT_COLLECTION)
+	public DBCollection getDbCollectionReport() throws Exception {
+		return mongoDbFactory().getDb().getCollection(REPORT_COLLECTION);
 	}
 
 	@Bean
