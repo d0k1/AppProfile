@@ -94,6 +94,12 @@ public class AgentConfiguration {
 		}
 	}
 
+	private static boolean matchMask(String className, String mask){
+		if(mask.length()<=3 || mask.indexOf(".*")!=0)
+			return false;
+
+		return className.matches(mask);
+	}
 	public static boolean isClassExcluded(String className)
 	{
 		boolean skip = false;
@@ -102,7 +108,7 @@ public class AgentConfiguration {
 		{
 			for (String exclude : excludes)
 			{
-				if (className.startsWith(exclude) || exclude.equalsIgnoreCase("*"))
+				if (className.startsWith(exclude) || exclude.equalsIgnoreCase("*") || matchMask(className, exclude))
 				{
 					skip = true;
 					break;
@@ -122,7 +128,7 @@ public class AgentConfiguration {
 		if(includes!=null && includes.length>0){
 			for (String include : includes)
 			{
-				if (className.startsWith(include) || include.equalsIgnoreCase("*"))
+				if (className.startsWith(include) || include.equalsIgnoreCase("*") || matchMask(className, include))
 				{
 					skip = false;
 					break;
