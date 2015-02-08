@@ -42,8 +42,8 @@ public class NettySessionManager {
 
 	private final List<Long> activeApps = new ArrayList<>();
 
-	private boolean automonitoring = false;
-	private boolean autoprofiling = false;
+	private boolean automonitoring = true;
+	private boolean autoprofiling = true;
 
 	private DataImport[] importToNotify;
 

@@ -109,7 +109,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 
 			for (int i = 0; i < sampleRead; i++) {
 				bytesBuffers[i].resetReaderIndex();
-				lastWrite = f.channel().write(bytesBuffers[i]);
+				lastWrite = f.channel().writeAndFlush(bytesBuffers[i]);
 			}
 
 			f.channel().flush();

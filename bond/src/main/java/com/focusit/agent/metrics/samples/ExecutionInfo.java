@@ -32,7 +32,7 @@ public final class ExecutionInfo implements Sample<ExecutionInfo> {
 	public long appId;
 
 	public static int sizeOf(){
-		return 3 * 8 + 1 + 4; // 3 longs + 1 byte + 1 int
+		return 3 * 8 + 1 + 4; // 3 longs + 1 byte + 1 int = 29 bytes
 	}
 
 	@Override

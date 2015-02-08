@@ -208,6 +208,46 @@ AGENTEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved
     return 0;
 }
 
+AGENTEXPORT jint JNICALL Agent_OnAttach(JavaVM *jvm, char *options, void *reserved) {
+    IMPLICITLY_USE(reserved);
+    int err;
+    jvmtiEnv *jvmti;
+//    parseArguments(options, *CONFIGURATION);
+
+    if ((err = (jvm->GetEnv(reinterpret_cast<void **>(&jvmti), JVMTI_VERSION))) !=
+            JNI_OK) {
+        logError("JVMTI initialisation Error %d\n", err);
+        return 1;
+    }
+
+    /*
+      JNIEnv *jniEnv;
+      if ((err = (vm->GetEnv(reinterpret_cast<void **>(&jniEnv),
+      JNI_VERSION_1_6))) != JNI_OK) {
+        logError("JNI Error %d\n", err);
+        return 1;
+      }
+      */
+
+    if (!PrepareJvmti(jvmti)) {
+        logError("Failed to initialize JVMTI.  Continuing...\n");
+        return 0;
+    }
+
+    if (!RegisterJvmti(jvmti)) {
+//        logError("Failed to enable JVMTI events.  Continuing...\n");
+        // We fail hard here because we may have failed in the middle of
+        // registering callbacks, which will leave the system in an
+        // inconsistent state.
+        return 1;
+    }
+
+//    Asgct::SetAsgct(Accessors::GetJvmFunction<ASGCTType>("AsyncGetCallTrace"));
+
+//    prof = new Profiler(jvm, jvmti, CONFIGURATION);
+
+    return 0;
+}
 AGENTEXPORT void JNICALL Agent_OnUnload(JavaVM *vm) {
     IMPLICITLY_USE(vm);
 }

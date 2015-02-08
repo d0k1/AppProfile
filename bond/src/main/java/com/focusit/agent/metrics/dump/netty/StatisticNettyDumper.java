@@ -95,9 +95,9 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 					break;
 			}
 
-			bytesBuffers[i].clear();
 			try {
 				Statistics.readData(info);
+				bytesBuffers[i].clear();
 				info.writeToBuffer(bytesBuffers[i]);
 				samplesRead.incrementAndGet();
 				sampleRead++;
@@ -111,7 +111,7 @@ public class StatisticNettyDumper extends AbstractNettyDataDumper implements Sam
 			ChannelFuture f = NettyConnectionManager.getInstance().getFuture(STATISTICS_TAG);
 			for (int i = 0; i < sampleRead; i++) {
 				bytesBuffers[i].resetReaderIndex();
-				lastWrite = f.channel().write(bytesBuffers[i]);
+				lastWrite = f.channel().writeAndFlush(bytesBuffers[i]);
 			}
 			f.channel().flush();
 			if (lastWrite != null) {
