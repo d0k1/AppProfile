@@ -2,10 +2,10 @@ package com.focusit.agent.metrics;
 
 import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.agent.metrics.samples.ExecutionInfo;
-import com.focusit.agent.metrics.samples.Sample;
-import com.focusit.agent.utils.common.FixedSamplesArray;
+import com.focusit.agent.metrics.samples.ThreadCallStat;
 import com.focusit.agent.utils.jmm.FinalBoolean;
+
+import java.util.Map;
 
 /**
  * Class to dump profiling data to it's own temporary buffer.
@@ -13,22 +13,8 @@ import com.focusit.agent.utils.jmm.FinalBoolean;
  * Created by Denis V. Kirpichenkov on 26.11.14.
  */
 public class Statistics {
-	// Max samples in memory - 6 553 600 * com.focusit.agent.metrics.samples.ExecutionInfo.sizeOf() = 6553600 * 32 = 209 715 200 = 200 Mb
-	private final static int LIMIT = AgentConfiguration.getStatisticsBufferLength();
-	private final static long appId = AgentConfiguration.getAppId();
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-
-	private static final FixedSamplesArray<ExecutionInfo> data = new FixedSamplesArray<>(LIMIT, new FixedSamplesArray.ItemInitializer() {
-		@Override
-		public Sample[] initData(int limit) {
-			return new ExecutionInfo[limit];
-		}
-
-		@Override
-		public Sample createItem() {
-			return new ExecutionInfo();
-		}
-	}, "Statistics", AgentConfiguration.getStatisticsDumpBatch());
+	private static ThreadLocal<ThreadControl> threadStat = new ThreadLocal<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		FinalBoolean working = enabled;
@@ -36,7 +22,65 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		data.writeItemFrom(Thread.currentThread().getId(), 0, GlobalTime.getCurrentTime(), methodId, appId);
+		ThreadControl control = threadStat.get();
+
+		control.lock.lockInterruptibly();
+
+		try {
+			if (control == null) {
+				control = ThreadStatHolder.getInstance().getThreadControl();
+				threadStat.set(control);
+			}
+
+			Map<Long, ThreadCallStat> methods = control.stat;
+
+			ThreadCallStat stat = methods.get(methodId);
+			if (stat == null) {
+				stat = new ThreadCallStat();
+				methods.put(methodId, stat);
+				stat.methodId = (int) methodId;
+				stat.threadId = Thread.currentThread().getId();
+				stat.count = 0;
+				stat.totalTime = 0;
+				stat.maxTime = Long.MIN_VALUE;
+				stat.minTime = Long.MAX_VALUE;
+			}
+
+			stat.count++;
+			stat.stack.push(GlobalTime.getCurrentTime());
+		} finally {
+			control.lock.unlock();
+		}
+	}
+
+	private static void updateStatOnLeave(ThreadCallStat stat, boolean exception) throws InterruptedException {
+
+		threadStat.get().lock.lockInterruptibly();
+
+		try {
+
+			if (stat == null || stat.stack.size() == 0) {
+				return;
+			}
+
+			Long leave = GlobalTime.getCurrentTime();
+			Long time = leave - stat.stack.pop();
+
+			if (stat.minTime > time) {
+				stat.minTime = time;
+			}
+
+			if (stat.maxTime < time) {
+				stat.maxTime = time;
+			}
+
+			stat.totalTime += time;
+			if (exception) {
+				stat.exceptions += 1;
+			}
+		} finally {
+			threadStat.get().lock.unlock();
+		}
 	}
 
 	public static void storeLeave(long methodId) throws InterruptedException {
@@ -45,7 +89,7 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		data.writeItemFrom(Thread.currentThread().getId(), 1, GlobalTime.getCurrentTime(), methodId, appId);
+		updateStatOnLeave(threadStat.get().stat.get(methodId), false);
 	}
 
 	public static void storeLeaveException(long methodId) throws InterruptedException {
@@ -54,14 +98,6 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		data.writeItemFrom(Thread.currentThread().getId(), 2, GlobalTime.getCurrentTime(), methodId, appId);
-	}
-
-	public static ExecutionInfo readData(ExecutionInfo info) throws InterruptedException {
-		return data.readItemTo(info);
-	}
-
-	public static boolean hasMore() throws InterruptedException {
-		return data.hasMore();
+		updateStatOnLeave(threadStat.get().stat.get(methodId), true);
 	}
 }

@@ -1,8 +1,6 @@
 package com.focusit.agent.bond;
 
-import com.focusit.agent.bond.AsmClassTransformer.ModifierClassWriter;
 import com.focusit.agent.metrics.MethodsMap;
-
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AdviceAdapter;
 
@@ -31,17 +29,7 @@ public class AsmClassTransformer implements ClassFileTransformer {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 		ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw, className);
 		ClassReader cr = new ClassReader(classfileBuffer);
-//		ClassVisitor cv = new CheckClassAdapter(mcw);
-//		cr.accept(cv, ClassReader.SKIP_FRAMES);
 		cr.accept(mcw, ClassReader.EXPAND_FRAMES);
-
-//		StringWriter sw = new StringWriter();
-//		PrintWriter pw = new PrintWriter(sw);
-//		CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, pw);
-//
-//		if(sw.toString().length()>0){
-//			System.err.println(sw.toString());
-//		}
 
 		return cw.toByteArray();
 	}

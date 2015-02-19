@@ -2,6 +2,7 @@ package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.JvmMonitoring;
+import com.focusit.agent.metrics.ThreadStatHolder;
 import com.focusit.agent.metrics.dump.SamplesDumpManager;
 
 import java.io.IOException;
@@ -128,23 +129,25 @@ public class Agent
             @Override
             public void run()
             {
-            try
-            {
-                dataDumper.exit();
-            }
-            catch (InterruptedException e)
-            {
-                System.err.println("Error stopping dumpers: "+e);
-            }
+	            try
+	            {
+	                dataDumper.exit();
+	            }
+	            catch (InterruptedException e)
+	            {
+	                System.err.println("Error stopping dumpers: "+e);
+	            }
 
-            try
-            {
-                dataDumper.dumpRest();
-            }
-            catch (Throwable e)
-            {
-                System.err.println("Shutdown hook error: " + e.getMessage());
-            }
+	            try
+	            {
+	                dataDumper.dumpRest();
+	            }
+	            catch (Throwable e)
+	            {
+	                System.err.println("Shutdown hook error: " + e.getMessage());
+	            }
+
+	            ThreadStatHolder.getInstance().printData();
             }
         });
     }
