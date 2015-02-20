@@ -23,14 +23,28 @@ public class ThreadStatHolder {
 		return item;
 	}
 
+	private long printMethodStat(ThreadCallStat s, int level){
+		long totalCount = s.count;
+
+		for(int i=0;i<level;i++){
+			System.out.print("-");
+		}
+		System.out.println(String.format("%d;%s;%d;%d;%d;%d", s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime));
+
+		for(Map.Entry<Long, ThreadCallStat> entry : s.childs.entrySet()){
+			totalCount += printMethodStat(entry.getValue(), level+1);
+		}
+
+		return totalCount;
+	}
+
 	public void printData(){
 		long totalCount = 0;
 
 		for(ThreadControl control:controls) {
-			for (Map.Entry<Long, ThreadCallStat> entry : control.stat.entrySet()) {
+			for (Map.Entry<Long, ThreadCallStat> entry : control.roots.entrySet()) {
 				ThreadCallStat s = entry.getValue();
-				totalCount += s.count;
-				System.out.println(String.format("%d;%s;%d;%d;%d;%d", s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime));
+				totalCount += printMethodStat(s, 0);
 			}
 		}
 		System.out.println("Total call count "+totalCount);

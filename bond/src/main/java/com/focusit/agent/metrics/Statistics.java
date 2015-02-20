@@ -5,8 +5,6 @@ import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ThreadCallStat;
 import com.focusit.agent.utils.jmm.FinalBoolean;
 
-import java.util.Map;
-
 /**
  * Class to dump profiling data to it's own temporary buffer.
  * Will Log a lot if buffer is full
@@ -24,47 +22,72 @@ public class Statistics {
 
 		ThreadControl control = threadStat.get();
 
+		if (control == null) {
+			control = ThreadStatHolder.getInstance().getThreadControl();
+			threadStat.set(control);
+		}
+
 		control.lock.lockInterruptibly();
 
 		try {
-			if (control == null) {
-				control = ThreadStatHolder.getInstance().getThreadControl();
-				threadStat.set(control);
-			}
 
-			Map<Long, ThreadCallStat> methods = control.stat;
+			// Вход в метод.
+			ThreadCallStat stat = control.current;
 
-			ThreadCallStat stat = methods.get(methodId);
+			// если еще не были внтури ниодного метода
 			if (stat == null) {
-				stat = new ThreadCallStat();
-				methods.put(methodId, stat);
-				stat.methodId = (int) methodId;
-				stat.threadId = Thread.currentThread().getId();
-				stat.count = 0;
-				stat.totalTime = 0;
-				stat.maxTime = Long.MIN_VALUE;
-				stat.minTime = Long.MAX_VALUE;
+
+				// ищем такой же, для статистики
+				stat = control.roots.get(methodId);
+
+				// если не бывали в таком методе раньше
+				if(stat == null){
+					stat = new ThreadCallStat();
+					control.roots.put(methodId, stat);
+					control.current = stat;
+				} else {
+					control.current = stat;
+				}
+			} else {
+				// если уже внутри какого-то метода
+				// пробуем найти метод внутри текущего, в который уже погружались
+				stat = control.current.childs.get(methodId);
+				// не найден - создаем новый
+				if(stat==null){
+					stat = new ThreadCallStat();
+					control.current.childs.put(methodId, stat);
+				}
+
+				// кладем в стек потока текущий метод
+				control.stack.push(control.current);
+				// текущим становиться stat метод
+				control.current = stat;
 			}
 
 			stat.count++;
-			stat.stack.push(GlobalTime.getCurrentTime());
+			stat.methodId = (int) methodId;
+			stat.threadId = Thread.currentThread().getId();
+			stat.enterTime = GlobalTime.getCurrentTime();
 		} finally {
 			control.lock.unlock();
 		}
 	}
 
-	private static void updateStatOnLeave(ThreadCallStat stat, boolean exception) throws InterruptedException {
+	private static void updateStatOnLeave(boolean exception) throws InterruptedException {
 
 		threadStat.get().lock.lockInterruptibly();
 
+		ThreadControl control = threadStat.get();
+		ThreadCallStat stat = control.current;
+
 		try {
 
-			if (stat == null || stat.stack.size() == 0) {
+			if (stat == null || stat.reset) {
 				return;
 			}
 
 			Long leave = GlobalTime.getCurrentTime();
-			Long time = leave - stat.stack.pop();
+			Long time = leave - stat.enterTime;
 
 			if (stat.minTime > time) {
 				stat.minTime = time;
@@ -78,6 +101,13 @@ public class Statistics {
 			if (exception) {
 				stat.exceptions += 1;
 			}
+
+			if(control.stack.size()>0){
+				control.current = control.stack.pop();
+			} else {
+				control.current = null;
+			}
+
 		} finally {
 			threadStat.get().lock.unlock();
 		}
@@ -89,7 +119,7 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		updateStatOnLeave(threadStat.get().stat.get(methodId), false);
+		updateStatOnLeave(false);
 	}
 
 	public static void storeLeaveException(long methodId) throws InterruptedException {
@@ -98,6 +128,6 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		updateStatOnLeave(threadStat.get().stat.get(methodId), true);
+		updateStatOnLeave(true);
 	}
 }
