@@ -42,6 +42,7 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 			@Override
 			public void run() {
 				int interval = AgentConfiguration.getDumpInterval();
+				int connectionInterval = AgentConfiguration.getNettyConnectingInterval();
 				while (!Thread.interrupted()) {
 
 					try {
@@ -50,8 +51,10 @@ public class MethodsMapNettyDumper extends AbstractNettyDataDumper implements Sa
 								doDump();
 							}
 							waitToCompleteWrite();
+							Thread.sleep(interval);
+						} else {
+							Thread.sleep(connectionInterval);
 						}
-						Thread.sleep(interval);
 
 					} catch (InterruptedException e) {
 						break;

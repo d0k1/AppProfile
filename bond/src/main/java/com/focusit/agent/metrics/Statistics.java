@@ -2,7 +2,7 @@ package com.focusit.agent.metrics;
 
 import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
-import com.focusit.agent.metrics.samples.ThreadCallStat;
+import com.focusit.agent.metrics.samples.ProfilingInfo;
 import com.focusit.agent.utils.jmm.FinalBoolean;
 
 /**
@@ -12,7 +12,7 @@ import com.focusit.agent.utils.jmm.FinalBoolean;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static ThreadLocal<ThreadControl> threadStat = new ThreadLocal<>();
+	private static ThreadLocal<ThreadProfilingControl> threadStat = new ThreadLocal<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		FinalBoolean working = enabled;
@@ -20,10 +20,10 @@ public class Statistics {
 		if(!working.value)
 			return;
 
-		ThreadControl control = threadStat.get();
+		ThreadProfilingControl control = threadStat.get();
 
 		if (control == null) {
-			control = ThreadStatHolder.getInstance().getThreadControl();
+			control = ProfilerDataHolder.getInstance().getThreadControl();
 			threadStat.set(control);
 		}
 
@@ -32,7 +32,7 @@ public class Statistics {
 		try {
 
 			// Вход в метод.
-			ThreadCallStat stat = control.current;
+			ProfilingInfo stat = control.current;
 
 			// если еще не были внтури ниодного метода
 			if (stat == null) {
@@ -42,7 +42,7 @@ public class Statistics {
 
 				// если не бывали в таком методе раньше
 				if(stat == null){
-					stat = new ThreadCallStat();
+					stat = new ProfilingInfo();
 					control.roots.put(methodId, stat);
 					control.current = stat;
 				} else {
@@ -54,7 +54,7 @@ public class Statistics {
 				stat = control.current.childs.get(methodId);
 				// не найден - создаем новый
 				if(stat==null){
-					stat = new ThreadCallStat();
+					stat = new ProfilingInfo();
 					control.current.childs.put(methodId, stat);
 				}
 
@@ -77,8 +77,8 @@ public class Statistics {
 
 		threadStat.get().lock.lockInterruptibly();
 
-		ThreadControl control = threadStat.get();
-		ThreadCallStat stat = control.current;
+		ThreadProfilingControl control = threadStat.get();
+		ProfilingInfo stat = control.current;
 
 		try {
 
@@ -88,6 +88,7 @@ public class Statistics {
 
 			Long leave = GlobalTime.getCurrentTime();
 			Long time = leave - stat.enterTime;
+			stat.enterTime = -1;
 
 			if (stat.minTime > time) {
 				stat.minTime = time;

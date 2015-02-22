@@ -43,7 +43,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 			@Override
 			public void run() {
 				try {
-					int interval = AgentConfiguration.getDumpInterval();
+					int interval = AgentConfiguration.getJvmMonitoringInterval()*AgentConfiguration.getJvmDumpBatch();
 					while (!Thread.interrupted()) {
 						try {
 

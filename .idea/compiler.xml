@@ -25,7 +25,6 @@
         <module name="bond" />
         <module name="example" />
         <module name="jassie" />
-        <module name="mongo" />
         <module name="web-analyzer" />
         <module name="web-example" />
       </profile>

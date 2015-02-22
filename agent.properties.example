@@ -23,3 +23,7 @@ agent.netty.session.port=15999
 
 agent.statistics.enabled=true
 agent.jvm.enabled=true
+agent.os.enabled=true
+
+agent.os.ifaces=wlan0,lo
+agent.os.hdds=sda

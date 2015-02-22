@@ -88,6 +88,37 @@ public class FixedSamplesArray<T> {
 		}
 	}
 
+	public void writeItemFrom(Sample<T> source) throws InterruptedException {
+		InterruptedException interrupted = null;
+		final Lock lock = this.lock;
+		final Sample<T>[] data = this.data;
+		try {
+			try {
+				lock.lockInterruptibly();
+			} catch (InterruptedException e){
+				interrupted = e;
+				return;
+			}
+			while (count == data.length) {
+				notFull.await();
+			}
+			Sample<T> result = data[putIndex];
+			if (++putIndex == data.length)
+				putIndex = 0;
+			result.copyDataFrom(source);
+			count++;
+
+			if(count>batchSize)
+				notEmpty.signal();
+
+		} finally {
+			if(interrupted==null)
+				lock.unlock();
+			else
+				throw interrupted;
+		}
+	}
+
 	/**
 	 * Get identifier of this data array. Used to log some events
 	 *

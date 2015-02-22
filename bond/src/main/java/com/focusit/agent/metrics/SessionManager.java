@@ -54,6 +54,7 @@ public class SessionManager {
 			}
 		});
 	}
+
 	private void waitToReady() throws InterruptedException {
 		FinalBoolean result = sessionReady;
 

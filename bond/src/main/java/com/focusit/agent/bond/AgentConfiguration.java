@@ -24,7 +24,7 @@ public class AgentConfiguration {
 	private static String ignoreIncludes[] = null;
 
 	private static int statisticsDumpBatch = -1;
-	private static int jvmDumpBatch = -1;
+	private static int dumpBatch = -1;
 	private static long appId = -1L;
 
 	static {
@@ -246,8 +246,8 @@ public class AgentConfiguration {
 	}
 
 	public static int getJvmDumpBatch(){
-		if(jvmDumpBatch>0)
-			return jvmDumpBatch;
+		if(dumpBatch >0)
+			return dumpBatch;
 
 		int result = 1000;
 		try {
@@ -261,10 +261,66 @@ public class AgentConfiguration {
 				}
 			}
 		} finally {
-			jvmDumpBatch = result;
-			return jvmDumpBatch;
+			dumpBatch = result;
+			return dumpBatch;
 		}
 	}
+
+	public static int getOsDumpBatch(){
+		if(dumpBatch>0)
+			return dumpBatch;
+
+		int result = 1000;
+		try {
+
+			String batch = properties.getProperty("agent.dump.os.batch");
+			if (!StringUtils.isEmpty(batch)) {
+				try {
+					result = Integer.parseInt(batch);
+				} catch (NumberFormatException e) {
+					result = 1000;
+				}
+			}
+		} finally {
+			dumpBatch = result;
+			return dumpBatch;
+		}
+	}
+
+	public static String[] getNetworkInterfaces() {
+		String empty[] = new String[0];
+		String ifs = properties.getProperty("agent.os.ifaces");
+
+		if(ifs==null) {
+			return empty;
+		}
+
+		ifs = ifs.trim().toLowerCase();
+		String faces[] = ifs.split(",");
+		for(String face:faces){
+			face = face.trim();
+		}
+
+		return faces;
+	}
+
+	public static String[] getHdDrives() {
+		String empty[] = new String[0];
+		String hdds = properties.getProperty("agent.os.hdds");
+
+		if(hdds==null) {
+			return empty;
+		}
+
+		hdds = hdds.trim().toLowerCase();
+		String drives[] = hdds.split(",");
+		for(String drive :drives){
+			drive = drive.trim();
+		}
+
+		return drives;
+	}
+
 	public static String[] getIgnoreExcludeClasses() {
 
 		if(ignoreExcludes!=null)
@@ -321,6 +377,15 @@ public class AgentConfiguration {
 
 	public static boolean isJvmMonitoringEnabled(){
 		String values = properties.getProperty("agent.jvm.enabled");
+		if(values==null){
+			return true;
+		}
+		values = values.trim();
+		return Boolean.parseBoolean(values);
+	}
+
+	public static boolean isOsMonitoringEnabled(){
+		String values = properties.getProperty("agent.os.enabled");
 		if(values==null){
 			return true;
 		}
@@ -498,6 +563,23 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static int getOsMonitoringInterval() {
+		int result = 1000;
+		try {
+
+			String batch = properties.getProperty("agent.os.monitoring.interval");
+			if (!StringUtils.isEmpty(batch)) {
+				try {
+					result = Integer.parseInt(batch);
+				} catch (NumberFormatException e) {
+					result = 1000;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
 	public static int getStatisticsBufferLength(){
 		int result = 6553600;
 		try {
@@ -520,6 +602,23 @@ public class AgentConfiguration {
 		try {
 
 			String buffer = properties.getProperty("agent.jvm.buffer");
+			if (!StringUtils.isEmpty(buffer)) {
+				try {
+					result = Integer.parseInt(buffer);
+				} catch (NumberFormatException e) {
+					result = 655360;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
+	public static int getOsBufferLength(){
+		int result = 655360;
+		try {
+
+			String buffer = properties.getProperty("agent.os.buffer");
 			if (!StringUtils.isEmpty(buffer)) {
 				try {
 					result = Integer.parseInt(buffer);

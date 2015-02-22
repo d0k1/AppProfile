@@ -14,7 +14,6 @@
 		<module>jassie</module>
 		<module>example</module>
 		<module>web-example</module>
-		<module>mongo</module>
 		<module>web-analyzer</module>
 	</modules>
 

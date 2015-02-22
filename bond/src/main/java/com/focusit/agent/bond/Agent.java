@@ -2,7 +2,8 @@ package com.focusit.agent.bond;
 
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.JvmMonitoring;
-import com.focusit.agent.metrics.ThreadStatHolder;
+import com.focusit.agent.metrics.OSMonitoring;
+import com.focusit.agent.metrics.ProfilerDataHolder;
 import com.focusit.agent.metrics.dump.SamplesDumpManager;
 
 import java.io.IOException;
@@ -49,11 +50,6 @@ public class Agent
             else if (transformer == AgentConfiguration.Transformer.javaassist)
             {
                 agentInstrumentation.addTransformer(new JavaAssistClassTransformer(instrumentation), true);
-            }
-            else if (transformer == AgentConfiguration.Transformer.cglib)
-            {
-                agentInstrumentation.addTransformer(
-                        new CGLibClassTransformer(instrumentation), true);
             }
 
             retransformAlreadyLoadedClasses(instrumentation);
@@ -147,7 +143,7 @@ public class Agent
 	                System.err.println("Shutdown hook error: " + e.getMessage());
 	            }
 
-	            ThreadStatHolder.getInstance().printData();
+	            ProfilerDataHolder.getInstance().printData();
             }
         });
     }
@@ -155,5 +151,6 @@ public class Agent
     private static void startSensors()
     {
         JvmMonitoring.getInstance().start();
+	    OSMonitoring.getInstance().start();
     }
 }
