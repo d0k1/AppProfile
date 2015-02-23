@@ -27,6 +27,7 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 	public static final String RECORDS_COLLECTION = "records";
 	public static final String SESSIONS_COLLECTION = "sessions";
 	public static final String JVM_COLLECTION = "jvmmonitoring";
+	public static final String OS_COLLECTION = "osmonitoring";
 	public static final String METHODSMAP_COLLECTION = "methodsmap";
 	public static final String STATISTICS_COLLECTION = "statistics";
 	public static final String REPORT_COLLECTION = "methodsreport";
@@ -78,6 +79,10 @@ public class MongoConfiguration extends AbstractMongoConfiguration {
 		return mongoDbFactory().getDb().getCollection(REPORT_COLLECTION);
 	}
 
+	@Bean(name=OS_COLLECTION)
+	public DBCollection getDbCollectionOS() throws Exception {
+		return mongoDbFactory().getDb().getCollection(OS_COLLECTION);
+	}
 	@Bean
 	public com.mongodb.DB getDb() throws Exception {
 		return mongoDbFactory().getDb();

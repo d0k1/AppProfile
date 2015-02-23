@@ -1,8 +1,7 @@
-package com.focusit.agent.analyzer.data.netty.statistics;
+package com.focusit.agent.analyzer.data.netty.os;
 
-import com.focusit.agent.analyzer.data.netty.DataImport;
 import com.focusit.agent.analyzer.data.netty.NettyData;
-import com.focusit.agent.metrics.samples.ExecutionInfo;
+import com.focusit.agent.metrics.samples.OSInfo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -13,50 +12,50 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 
 /**
- * Created by Denis V. Kirpichenkov on 29.12.14.
+ * Created by Denis V. Kirpichenkov on 23.02.15.
  */
-public class NettyStatisticsData  extends NettyData {
-	private final DataImport dataImport;
-
-	public NettyStatisticsData(DataImport dataImport){
-		this.dataImport = dataImport;
-	}
+public class NettyOSData extends NettyData {
+	private final OSDataImport dataImport;
 
 	@Override
 	protected int getPort() {
-		return 16003;
+		return 16001;
 	}
 
 	@Override
 	protected String getName() {
-		return "collection";
+		return "os";
+	}
+
+	public NettyOSData(OSDataImport dataImport){
+		this.dataImport = dataImport;
 	}
 
 	@Override
 	public ChannelHandler getHandler() {
-		return new ExecutionDataServerHandler();
+		return new OSDataServerHandler();
 	}
 
 	@Override
 	public ChannelHandler[] getDecoder() {
-		return new ExecutionDataDecoder[]{new ExecutionDataDecoder()};
+		return new OSDataDecoder[]{new OSDataDecoder()};
 	}
 
-	class ExecutionDataDecoder extends ReplayingDecoder<Void> {
+	class OSDataDecoder extends ReplayingDecoder<Void> {
 
 		@Override
 		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-			ExecutionInfo info = new ExecutionInfo();
+			OSInfo info = new OSInfo();
 			info.readFromBuffer(in);
 			out.add(info);
 		}
 	}
 
-	class ExecutionDataServerHandler extends ChannelHandlerAdapter {
+	class OSDataServerHandler extends ChannelHandlerAdapter {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
-			ExecutionInfo sample = (ExecutionInfo) msg;
+			OSInfo sample = (OSInfo) msg;
 			dataImport.importSample(sample.appId, sample);
 			ReferenceCountUtil.release(msg);
 		}

@@ -143,7 +143,9 @@ public class Agent
 	                System.err.println("Shutdown hook error: " + e.getMessage());
 	            }
 
-	            ProfilerDataHolder.getInstance().printData();
+	            if(AgentConfiguration.dumpProfileDataOnExit()) {
+		            ProfilerDataHolder.getInstance().printData();
+	            }
             }
         });
     }

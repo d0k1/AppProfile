@@ -1,6 +1,7 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.bond.AgentConfiguration;
+import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.OSInfo;
 import com.focusit.agent.metrics.samples.Sample;
 import com.focusit.agent.utils.common.FixedSamplesArray;
@@ -147,6 +148,10 @@ public class OSMonitoring {
 			}
 			hddsData[i] = null;
 		}
+
+		sample.time = GlobalTime.getCurrentTime();
+		sample.timestamp = GlobalTime.getCurrentTimeInMillis();
+		sample.appId = appId;
 
 		data.writeItemFrom(sample);
 	}

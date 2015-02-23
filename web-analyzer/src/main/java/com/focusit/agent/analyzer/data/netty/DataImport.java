@@ -34,10 +34,6 @@ public abstract class DataImport<S> {
 		return sessionManager.getRecIdBySessionIdByAppId(appId, sessionId);
 	}
 
-	protected final boolean isProfilingEnabled(long appId){
-		return sessionManager.isProfilingEnabled(appId);
-	}
-
 	protected final boolean isMonitoringEnabled(long appId){
 		return sessionManager.isMonitoringEnabled(appId);
 	}

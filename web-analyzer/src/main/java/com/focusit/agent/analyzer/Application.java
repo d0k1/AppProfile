@@ -2,12 +2,10 @@ package com.focusit.agent.analyzer;
 
 import com.focusit.agent.analyzer.data.netty.jvm.JvmDataImport;
 import com.focusit.agent.analyzer.data.netty.jvm.NettyJvmData;
-import com.focusit.agent.analyzer.data.netty.methodmap.MethodMapImport;
-import com.focusit.agent.analyzer.data.netty.methodmap.NettyMethodMapData;
+import com.focusit.agent.analyzer.data.netty.os.NettyOSData;
+import com.focusit.agent.analyzer.data.netty.os.OSDataImport;
 import com.focusit.agent.analyzer.data.netty.session.NettySessionManager;
 import com.focusit.agent.analyzer.data.netty.session.NettySessionStart;
-import com.focusit.agent.analyzer.data.netty.statistics.NettyStatisticsData;
-import com.focusit.agent.analyzer.data.netty.statistics.StatisticReportImport;
 import com.focusit.agent.metrics.dump.netty.NettyThreadFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,19 +27,14 @@ public class Application extends SpringBootServletInitializer {
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
 		ExecutorService service = Executors.newFixedThreadPool(4, new NettyThreadFactory("NettyExecutorService"));
 
-		MethodMapImport methodMapImport = (MethodMapImport) ctx.getBean("methodMapImport");
 		JvmDataImport jvmDataImport = (JvmDataImport) ctx.getBean("jvmDataImport");
-		//StatisticsImport statisticsImport = (StatisticsImport) ctx.getBean("statisticsImport");
-		StatisticReportImport statisticReportImport = (StatisticReportImport) ctx.getBean("statisticReportImport");
+		OSDataImport osDataImport = (OSDataImport) ctx.getBean(OSDataImport.class);
 
 		NettySessionManager sessionManager = (NettySessionManager) ctx.getBean("nettySessionManager");
-//		sessionManager.setImportsToNotify(methodMapImport, jvmDataImport, statisticsImport);
-		sessionManager.setImportsToNotify(methodMapImport, jvmDataImport, statisticReportImport);
+		sessionManager.setImportsToNotify(jvmDataImport, osDataImport);
 
 		service.submit(new NettySessionStart(sessionManager));
-		service.submit(new NettyMethodMapData(methodMapImport));
 		service.submit(new NettyJvmData(jvmDataImport));
-//		service.submit(new NettyStatisticsData(statisticsImport));
-		service.submit(new NettyStatisticsData(statisticReportImport));
+		service.submit(new NettyOSData(osDataImport));
 	}
 }

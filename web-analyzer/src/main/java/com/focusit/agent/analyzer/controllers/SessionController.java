@@ -44,11 +44,11 @@ public class SessionController {
 		return dao.getRecords(Long.parseLong(appId), Long.parseLong(sessionId));
 	}
 
-	@RequestMapping(value = "/{appId}/startprofiling", method = RequestMethod.GET)
-	public Map<String, String> startprofiling(@PathVariable("appId") String appId){
-		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
-		return getSettings(Long.parseLong(appId));
-	}
+//	@RequestMapping(value = "/{appId}/startprofiling", method = RequestMethod.GET)
+//	public Map<String, String> startprofiling(@PathVariable("appId") String appId){
+//		sessionManager.setProfilingEnabled(Long.parseLong(appId), true);
+//		return getSettings(Long.parseLong(appId));
+//	}
 
 	@RequestMapping(value = "/{appId}/startmonitoring", method = RequestMethod.GET)
 	public Map<String, String> startmonitoring(@PathVariable("appId") String appId){
@@ -56,11 +56,11 @@ public class SessionController {
 		return getSettings(Long.parseLong(appId));
 	}
 
-	@RequestMapping(value = "/{appId}/stopprofiling", method = RequestMethod.GET)
-	public Map<String, String> stopprofiling(@PathVariable("appId") String appId){
-		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
-		return getSettings(Long.parseLong(appId));
-	}
+//	@RequestMapping(value = "/{appId}/stopprofiling", method = RequestMethod.GET)
+//	public Map<String, String> stopprofiling(@PathVariable("appId") String appId){
+//		sessionManager.setProfilingEnabled(Long.parseLong(appId), false);
+//		return getSettings(Long.parseLong(appId));
+//	}
 
 	@RequestMapping(value = "/{appId}/stopmonitoring", method = RequestMethod.GET)
 	public Map<String, String> stopmonitoring(@PathVariable("appId") String appId){
@@ -87,7 +87,7 @@ public class SessionController {
 	private Map<String, String> getAutoSettings(){
 		Map<String, String> result = new HashMap<>();
 		result.put("automonitoring", String.valueOf(sessionManager.isAutomonitoring()));
-		result.put("autoprofiling", String.valueOf(sessionManager.isAutoprofiling()));
+//		result.put("autoprofiling", String.valueOf(sessionManager.isAutoprofiling()));
 
 		return result;
 	}
@@ -95,7 +95,7 @@ public class SessionController {
 	private Map<String, String> getSettings(long appId){
 		Map<String, String> result = new HashMap<>();
 		result.put("monitoring", String.valueOf(sessionManager.isMonitoringEnabled(appId)));
-		result.put("profiling", String.valueOf(sessionManager.isProfilingEnabled(appId)));
+//		result.put("profiling", String.valueOf(sessionManager.isProfilingEnabled(appId)));
 
 		return result;
 	}
@@ -112,13 +112,13 @@ public class SessionController {
 
 	@RequestMapping(value = "/autoprofiling/enable", method = RequestMethod.GET)
 	public Map<String, String> autoprofilingEnable(){
-		sessionManager.setAutoprofiling(true);
+//		sessionManager.setAutoprofiling(true);
 		return getAutoSettings();
 	}
 
 	@RequestMapping(value = "/autoprofiling/disable", method = RequestMethod.GET)
 	public Map<String, String> autoprofilingDisable(){
-		sessionManager.setAutoprofiling(false);
+//		sessionManager.setAutoprofiling(false);
 		return getAutoSettings();
 	}
 

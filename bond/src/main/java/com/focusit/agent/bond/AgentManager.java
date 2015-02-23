@@ -1,6 +1,7 @@
 package com.focusit.agent.bond;
 
 import com.focusit.agent.metrics.JvmMonitoring;
+import com.focusit.agent.metrics.OSMonitoring;
 import com.focusit.agent.metrics.Statistics;
 import com.focusit.agent.utils.jmm.FinalBoolean;
 
@@ -19,8 +20,8 @@ public class AgentManager {
 	}
 
 	public static void stopJvmMonitoring(){
+		lock.lock();
 		try{
-			lock.lock();
 			JvmMonitoring.enabled = new FinalBoolean(false);
 		} finally {
 			lock.unlock();
@@ -28,26 +29,44 @@ public class AgentManager {
 	}
 
 	public static void startJvmMonitoring(){
+		lock.lock();
 		try{
-			lock.lock();
 			JvmMonitoring.enabled = new FinalBoolean(true);
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	public static void stopStatistics(){
+	public static void stopOsMonitoring(){
+		lock.lock();
 		try{
-			lock.lock();
+			OSMonitoring.enabled = new FinalBoolean(false);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public static void startOsMonitoring(){
+		lock.lock();
+		try{
+			OSMonitoring.enabled = new FinalBoolean(true);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public static void stopProfiling(){
+		lock.lock();
+		try{
 			Statistics.enabled = new FinalBoolean(false);
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	public static void startStatistics(){
+	public static void startProfiling(){
+		lock.lock();
 		try{
-			lock.lock();
 			Statistics.enabled = new FinalBoolean(true);
 		} finally {
 			lock.unlock();

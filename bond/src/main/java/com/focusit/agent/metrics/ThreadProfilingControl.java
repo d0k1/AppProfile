@@ -13,6 +13,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ThreadProfilingControl {
 	public final ReentrantLock lock = new ReentrantLock(true);
 	public final Map<Long, ProfilingInfo> roots = new ConcurrentHashMap<>();
-	public LinkedList<ProfilingInfo> stack = new LinkedList<>();
+	public final LinkedList<ProfilingInfo> stack = new LinkedList<>();
 	public ProfilingInfo current = null;
 }

@@ -33,8 +33,6 @@ public class NettySessionManager {
 	private final Map<Long, Map<Long, Long>> recordings = new ConcurrentHashMap<>();
 	// Map appId - boolean if storing monitoring data enabled. if false no data is written to mongodb.
 	private final Map<Long, Boolean> enabledMonitoring = new ConcurrentHashMap<>();
-	// Map appId - boolean if storing profiling data enabled. if false no data is written to mongodb.
-	private final Map<Long, Boolean> enabledProfiling = new ConcurrentHashMap<>();
 	// lock to synchronize work with appIds, sessionId, recordingIds and enabled/disbaled flag
 	private final ReentrantLock lock = new ReentrantLock(true);
 
@@ -43,7 +41,6 @@ public class NettySessionManager {
 	private final List<Long> activeApps = new ArrayList<>();
 
 	private boolean automonitoring = true;
-	private boolean autoprofiling = true;
 
 	private DataImport[] importToNotify;
 
@@ -51,16 +48,8 @@ public class NettySessionManager {
 		this.automonitoring = automonitoring;
 	}
 
-	public void setAutoprofiling(boolean autoprofiling) {
-		this.autoprofiling = autoprofiling;
-	}
-
 	public boolean isAutomonitoring() {
 		return automonitoring;
-	}
-
-	public boolean isAutoprofiling() {
-		return autoprofiling;
 	}
 
 	public void setImportsToNotify(DataImport...imports) {
@@ -120,10 +109,6 @@ public class NettySessionManager {
 				enabledMonitoring.put(appId, automonitoring);
 			}
 
-			if(enabledProfiling.get(appId)==null){
-				enabledProfiling.put(appId, autoprofiling);
-			}
-
 			long sessionId = getSessionIdByAppId(appId);
 			LOG.info(String.format("start session %d for appId %d", sessionId, appId));
 			startRecording(appId, sessionId);
@@ -171,23 +156,10 @@ public class NettySessionManager {
 		return enabledMonitoring.get(appId)==null?false:enabledMonitoring.get(appId);
 	}
 
-	public boolean isProfilingEnabled(long appId){
-		return enabledProfiling.get(appId)==null?false:enabledProfiling.get(appId);
-	}
-
 	public void setMonitoringEnabled(long appId, boolean value){
 		try {
 			lock.lock();
 			enabledMonitoring.put(appId, value);
-		}finally {
-			lock.unlock();
-		}
-	}
-
-	public void setProfilingEnabled(long appId, boolean value){
-		try {
-			lock.lock();
-			enabledProfiling.put(appId, value);
 		}finally {
 			lock.unlock();
 		}

@@ -34,6 +34,7 @@ public class OSInfo implements Sample<OSInfo> {
 
 		this.time = ((OSInfo)sample).time;
 		this.timestamp = ((OSInfo)sample).timestamp;
+		this.appId = ((OSInfo)sample).appId;
 
 		return this;
 	}
@@ -49,6 +50,7 @@ public class OSInfo implements Sample<OSInfo> {
 		}
 		buffer.putLong(time);
 		buffer.putLong(timestamp);
+		buffer.putLong(appId);
 	}
 
 	@Override
@@ -63,6 +65,7 @@ public class OSInfo implements Sample<OSInfo> {
 
 		time = buffer.getLong();
 		timestamp = buffer.getLong();
+		appId = buffer.getLong();
 	}
 
 	@Override
@@ -76,6 +79,7 @@ public class OSInfo implements Sample<OSInfo> {
 		}
 		buffer.writeLong(time);
 		buffer.writeLong(timestamp);
+		buffer.writeLong(appId);
 	}
 
 	@Override
@@ -90,6 +94,7 @@ public class OSInfo implements Sample<OSInfo> {
 
 		time = buffer.readLong();
 		timestamp = buffer.readLong();
+		appId = buffer.readLong();
 	}
 
 	@Override
@@ -105,7 +110,7 @@ public class OSInfo implements Sample<OSInfo> {
 
 		time = buffer[index++];
 		timestamp = buffer[index++];
-
+		appId = buffer[index++];
 	}
 
 	@Override

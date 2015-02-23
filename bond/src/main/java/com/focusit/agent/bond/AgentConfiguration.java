@@ -461,11 +461,11 @@ public class AgentConfiguration {
 		}
 	}
 
-	public static int getNettyDumpMethodMapPort(){
+	public static int getNettyProfilerPort(){
 		int result = 16002;
 		try {
 
-			String port = properties.getProperty("agent.netty.methodsmap.port");
+			String port = properties.getProperty("agent.netty.profiler.port");
 			if (!StringUtils.isEmpty(port)) {
 				try {
 					result = Integer.parseInt(port);
@@ -478,16 +478,16 @@ public class AgentConfiguration {
 		}
 	}
 
-	public static int getNettyDumpStatisticsPort(){
-		int result = 16003;
+	public static Boolean dumpProfileDataOnExit(){
+		boolean result = false;
 		try {
 
-			String port = properties.getProperty("agent.netty.statistics.port");
-			if (!StringUtils.isEmpty(port)) {
+			String value = properties.getProperty("agent.statistics.dump.on.exit");
+			if (!StringUtils.isEmpty(value)) {
 				try {
-					result = Integer.parseInt(port);
-				} catch (NumberFormatException e) {
-					result = 16003;
+					result = Boolean.parseBoolean(value);
+				} catch (Exception e) {
+					result = false;
 				}
 			}
 		} finally {

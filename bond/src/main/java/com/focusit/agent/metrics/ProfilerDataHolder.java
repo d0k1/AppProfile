@@ -5,11 +5,14 @@ import com.focusit.agent.metrics.samples.ProfilingInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Denis V. Kirpichenkov on 19.02.15.
  */
 public class ProfilerDataHolder {
+	private final static ReentrantLock cleanupLock = new ReentrantLock();
+
 	private final static ProfilerDataHolder instance = new ProfilerDataHolder();
 	private final List<ThreadProfilingControl> controls = new ArrayList<>();
 
@@ -18,19 +21,22 @@ public class ProfilerDataHolder {
 	}
 
 	public ThreadProfilingControl getThreadControl(){
-		ThreadProfilingControl item = new ThreadProfilingControl();
-		controls.add(item);
-		return item;
+		cleanupLock.lock();
+		try {
+
+			ThreadProfilingControl item = new ThreadProfilingControl();
+			controls.add(item);
+			return item;
+
+		} finally {
+			cleanupLock.unlock();
+		}
 	}
 
 	private long printMethodStat(ProfilingInfo s, int level){
 		long totalCount = s.count;
 
-		System.out.print(s.exceptions);
-		for(int i=0;i<level;i++){
-			System.out.print("-");
-		}
-		System.out.println(String.format("%d;%s;%d;%d;%d;%d", s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime));
+		System.out.println(String.format("%d;%d;%d;%s;%d;%d;%d;%d", s.exceptions, level, s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime));
 
 		for(Map.Entry<Long, ProfilingInfo> entry : s.childs.entrySet()){
 			totalCount += printMethodStat(entry.getValue(), level+1);
@@ -49,5 +55,26 @@ public class ProfilerDataHolder {
 			}
 		}
 		System.out.println("Total call count "+totalCount);
+	}
+
+	public void cleanUp() throws InterruptedException {
+		cleanupLock.lockInterruptibly();
+
+		try{
+
+			for(ThreadProfilingControl ctrl:controls){
+				ctrl.lock.lockInterruptibly();
+
+				try{
+					ctrl.current = null;
+					ctrl.stack.clear();
+					ctrl.roots.clear();
+				} finally {
+					ctrl.lock.unlock();
+				}
+			}
+		} finally {
+			cleanupLock.unlock();
+		}
 	}
 }
