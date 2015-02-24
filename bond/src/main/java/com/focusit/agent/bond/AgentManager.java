@@ -2,6 +2,7 @@ package com.focusit.agent.bond;
 
 import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.OSMonitoring;
+import com.focusit.agent.metrics.ProfilerDataHolder;
 import com.focusit.agent.metrics.Statistics;
 import com.focusit.agent.utils.jmm.FinalBoolean;
 
@@ -71,5 +72,20 @@ public class AgentManager {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public static void cleanUpProfiler(){
+		lock.lock();
+		try{
+			ProfilerDataHolder.getInstance().cleanUp();
+		} catch (InterruptedException e) {
+			System.err.println("CleanUpProfiler error: " + e.toString());
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public static String getProfilerData(){
+		return ProfilerDataHolder.getInstance().getStringData();
 	}
 }

@@ -33,13 +33,18 @@ public class ProfilerDataHolder {
 		}
 	}
 
-	private long printMethodStat(ProfilingInfo s, int level){
+	private long printMethodStat(ProfilingInfo s, int level, StringBuilder builder){
 		long totalCount = s.count;
 
-		System.out.println(String.format("%d;%d;%d;%s;%d;%d;%d;%d", s.exceptions, level, s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime));
+		String currentLine = String.format("%d;%d;%d;%s;%d;%d;%d;%d\r\n", s.exceptions, level, s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
+		if(builder!=null){
+			builder.append(currentLine);
+		} else {
+			System.out.print(currentLine);
+		}
 
 		for(Map.Entry<Long, ProfilingInfo> entry : s.childs.entrySet()){
-			totalCount += printMethodStat(entry.getValue(), level+1);
+			totalCount += printMethodStat(entry.getValue(), level+1, builder);
 		}
 
 		return totalCount;
@@ -51,10 +56,34 @@ public class ProfilerDataHolder {
 		for(ThreadProfilingControl control:controls) {
 			for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
 				ProfilingInfo s = entry.getValue();
-				totalCount += printMethodStat(s, 0);
+				totalCount += printMethodStat(s, 0, null);
 			}
 		}
 		System.out.println("Total call count "+totalCount);
+	}
+
+	public String getStringData(){
+		cleanupLock.lock();
+
+		try {
+			StringBuilder builder = new StringBuilder();
+
+			for (ThreadProfilingControl control : controls) {
+				control.lock.lock();
+				try {
+					for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
+						ProfilingInfo s = entry.getValue();
+						printMethodStat(s, 0, builder);
+					}
+				} finally {
+					control.lock.unlock();
+				}
+			}
+
+			return builder.toString();
+		} finally {
+			cleanupLock.unlock();
+		}
 	}
 
 	public void cleanUp() throws InterruptedException {

@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class NettyProfilerControl {
 	private final static String PROFILER_TAG = "profiler";
-	private final EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-profiler-worker"));
+	private final EventLoopGroup workerGroup = new NioEventLoopGroup(1, new NettyThreadFactory("NioEventLoopGroup-profiler-worker"));
 	private final ByteBuf byteBuf = Unpooled.unreleasableBuffer(UnpooledByteBufAllocator.DEFAULT.buffer(8));
 
 	public NettyProfilerControl() {
@@ -28,6 +28,7 @@ public class NettyProfilerControl {
 		b.channel(NioSocketChannel.class);
 		b.option(ChannelOption.SO_KEEPALIVE, true);
 		b.option(ChannelOption.TCP_NODELAY, true);
+		b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			public void initChannel(SocketChannel ch) throws Exception {
@@ -52,6 +53,11 @@ public class NettyProfilerControl {
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 				Long commandId = (Long) msg;
 				System.err.println("Received command " + commandId);
+				byteBuf.resetReaderIndex();
+				byteBuf.resetWriterIndex();
+				byteBuf.writeLong(0L);
+				ctx.write(byteBuf);
+				ctx.flush();
 			}
 		};
 	}

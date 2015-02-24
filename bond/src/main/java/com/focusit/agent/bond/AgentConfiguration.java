@@ -478,6 +478,23 @@ public class AgentConfiguration {
 		}
 	}
 
+	public static Boolean isNettyDisabled(){
+		boolean result = true;
+		try {
+
+			String value = properties.getProperty("agent.netty.disabled");
+			if (!StringUtils.isEmpty(value)) {
+				try {
+					result = Boolean.parseBoolean(value);
+				} catch (Exception e) {
+					result = true;
+				}
+			}
+		} finally {
+			return result;
+		}
+	}
+
 	public static Boolean dumpProfileDataOnExit(){
 		boolean result = false;
 		try {

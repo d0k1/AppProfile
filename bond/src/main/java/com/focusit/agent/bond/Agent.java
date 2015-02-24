@@ -5,6 +5,7 @@ import com.focusit.agent.metrics.JvmMonitoring;
 import com.focusit.agent.metrics.OSMonitoring;
 import com.focusit.agent.metrics.ProfilerDataHolder;
 import com.focusit.agent.metrics.dump.SamplesDumpManager;
+import com.focusit.agent.metrics.dump.netty.NettyProfilerControl;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
@@ -117,42 +118,63 @@ public class Agent
         GlobalTime gt = new GlobalTime();
         gt.start();
 
-        final SamplesDumpManager dataDumper = new SamplesDumpManager();
-        dataDumper.start();
+	    if(!AgentConfiguration.isNettyDisabled()) {
+		    final SamplesDumpManager dataDumper = new SamplesDumpManager();
+		    dataDumper.start();
+	        Runtime.getRuntime().addShutdownHook(new Thread()
+	        {
+	            @Override
+	            public void run()
+	            {
+		            try
+		            {
+		                dataDumper.exit();
+		            }
+		            catch (InterruptedException e)
+		            {
+		                System.err.println("Error stopping dumpers: "+e);
+		            }
 
-        Runtime.getRuntime().addShutdownHook(new Thread()
-        {
-            @Override
-            public void run()
-            {
-	            try
-	            {
-	                dataDumper.exit();
-	            }
-	            catch (InterruptedException e)
-	            {
-	                System.err.println("Error stopping dumpers: "+e);
-	            }
+		            try
+		            {
+		                dataDumper.dumpRest();
+		            }
+		            catch (Throwable e)
+		            {
+		                System.err.println("Shutdown hook error: " + e.getMessage());
+		            }
 
-	            try
-	            {
-	                dataDumper.dumpRest();
+		            if(AgentConfiguration.dumpProfileDataOnExit()) {
+			            ProfilerDataHolder.getInstance().printData();
+		            }
 	            }
-	            catch (Throwable e)
-	            {
-	                System.err.println("Shutdown hook error: " + e.getMessage());
-	            }
+	        });
+	    } else {
+		    Runtime.getRuntime().addShutdownHook(new Thread()
+		    {
+			    @Override
+			    public void run()
+			    {
+				    if(AgentConfiguration.dumpProfileDataOnExit()) {
+					    ProfilerDataHolder.getInstance().printData();
+				    }
+			    }
+		    });
 
-	            if(AgentConfiguration.dumpProfileDataOnExit()) {
-		            ProfilerDataHolder.getInstance().printData();
-	            }
-            }
-        });
+	    }
     }
 
     private static void startSensors()
     {
-        JvmMonitoring.getInstance().start();
-	    OSMonitoring.getInstance().start();
+	    if(AgentConfiguration.isJvmMonitoringEnabled()) {
+		    JvmMonitoring.getInstance().start();
+	    }
+	    if(AgentConfiguration.isOsMonitoringEnabled()) {
+		    OSMonitoring.getInstance().start();
+	    }
+
+		if(!AgentConfiguration.isNettyDisabled()) {
+			NettyProfilerControl ctrl = new NettyProfilerControl();
+		}
     }
 }

@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SessionManager {
 	private final static String SESSIONMANAGER_TAG = "sessionmanager";
-	private final EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-session-worker"));
+	private final EventLoopGroup workerGroup = new NioEventLoopGroup(1, new NettyThreadFactory("NioEventLoopGroup-session-worker"));
 	private final ByteBuf byteBuf = Unpooled.unreleasableBuffer(UnpooledByteBufAllocator.DEFAULT.buffer(8));
 	private FinalBoolean sessionReady = new FinalBoolean(false);
 	private ReentrantLock lock = new ReentrantLock(true);

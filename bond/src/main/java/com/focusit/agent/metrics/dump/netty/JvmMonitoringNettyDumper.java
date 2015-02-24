@@ -29,7 +29,7 @@ public class JvmMonitoringNettyDumper extends AbstractNettyDataDumper implements
 	private AtomicLong samplesRead = new AtomicLong(0L);
 	private static ChannelFuture lastWrite = null;
 
-	EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-jvm-worker"));
+	EventLoopGroup workerGroup = new NioEventLoopGroup(1, new NettyThreadFactory("NioEventLoopGroup-jvm-worker"));
 
 	public JvmMonitoringNettyDumper() throws IOException, InterruptedException {
 

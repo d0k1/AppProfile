@@ -4,6 +4,7 @@ import com.focusit.agent.analyzer.data.netty.jvm.JvmDataImport;
 import com.focusit.agent.analyzer.data.netty.jvm.NettyJvmData;
 import com.focusit.agent.analyzer.data.netty.os.NettyOSData;
 import com.focusit.agent.analyzer.data.netty.os.OSDataImport;
+import com.focusit.agent.analyzer.data.netty.profiler.ProfilerControl;
 import com.focusit.agent.analyzer.data.netty.session.NettySessionManager;
 import com.focusit.agent.analyzer.data.netty.session.NettySessionStart;
 import com.focusit.agent.metrics.dump.netty.NettyThreadFactory;
@@ -36,5 +37,9 @@ public class Application extends SpringBootServletInitializer {
 		service.submit(new NettySessionStart(sessionManager));
 		service.submit(new NettyJvmData(jvmDataImport));
 		service.submit(new NettyOSData(osDataImport));
+
+		ProfilerControl ctrl = (ProfilerControl) ctx.getBean("profilerControl");
+
+		service.submit(ctrl);
 	}
 }

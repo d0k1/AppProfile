@@ -27,7 +27,7 @@ public class OSMonitoringNettyDumper extends AbstractNettyDataDumper implements 
 	private final OSInfo info = new OSInfo();
 	private AtomicLong samplesRead = new AtomicLong(0L);
 
-	EventLoopGroup workerGroup = new NioEventLoopGroup(0, new NettyThreadFactory("NioEventLoopGroup-os-worker"));
+	EventLoopGroup workerGroup = new NioEventLoopGroup(1, new NettyThreadFactory("NioEventLoopGroup-os-worker"));
 	private static ChannelFuture lastWrite = null;
 
 	public OSMonitoringNettyDumper(){
