@@ -33,10 +33,11 @@ public class ProfilerDataHolder {
 		}
 	}
 
-	private long printMethodStat(ProfilingInfo s, int level, StringBuilder builder){
+	private long printMethodStat(ProfilingInfo parent, ProfilingInfo s, int level, StringBuilder builder){
 		long totalCount = s.count;
 
-		String currentLine = String.format("\"%d\";\"%d\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\";\"%d\"\r\n", s.exceptions, level, s.threadId, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
+	    String currentLine = String.format("\"%d\";\"%d\";\"%s\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\";\"%d\"\r\n", s.exceptions, s.threadId, parent==null?"null":parent.toString(), level, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
+
 		if(builder!=null){
 			builder.append(currentLine);
 		} else {
@@ -44,7 +45,7 @@ public class ProfilerDataHolder {
 		}
 
 		for(Map.Entry<Long, ProfilingInfo> entry : s.childs.entrySet()){
-			totalCount += printMethodStat(entry.getValue(), level+1, builder);
+			totalCount += printMethodStat(s, entry.getValue(), level+1, builder);
 		}
 
 		return totalCount;
@@ -56,7 +57,7 @@ public class ProfilerDataHolder {
 		for(ThreadProfilingControl control:controls) {
 			for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
 				ProfilingInfo s = entry.getValue();
-				totalCount += printMethodStat(s, 0, null);
+				totalCount += printMethodStat(null, s, 0, null);
 			}
 		}
 		System.out.println("Total call count "+totalCount);
@@ -73,7 +74,7 @@ public class ProfilerDataHolder {
 				try {
 					for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
 						ProfilingInfo s = entry.getValue();
-						printMethodStat(s, 0, builder);
+						printMethodStat(null, s, 0, builder);
 					}
 				} finally {
 					control.lock.unlock();
