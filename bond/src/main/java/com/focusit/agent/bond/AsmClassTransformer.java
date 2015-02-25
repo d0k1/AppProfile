@@ -2,12 +2,14 @@ package com.focusit.agent.bond;
 
 import com.focusit.agent.metrics.MethodsMap;
 import org.objectweb.asm.*;
-import org.objectweb.asm.commons.AdviceAdapter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
 /**
  * Class transformer based on asm
@@ -23,10 +25,16 @@ public class AsmClassTransformer implements ClassFileTransformer {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
 
-		if(AgentConfiguration.isClassExcluded(className))
+		if(!className.equalsIgnoreCase("java.lang.Thread") && AgentConfiguration.isClassExcluded(className)) {
 			return classfileBuffer;
+		}
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+
+		if(className.equalsIgnoreCase("java.lang.Thread")) {
+			cw.visitField(ACC_PUBLIC + ACC_FINAL, "control", "Lcom/focusit/agent/metrics/ThreadProfilingControl", null, null).visitEnd();
+		}
+
 		ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw, className);
 		ClassReader cr = new ClassReader(classfileBuffer);
 		cr.accept(mcw, ClassReader.EXPAND_FRAMES);
@@ -56,56 +64,8 @@ public class AsmClassTransformer implements ClassFileTransformer {
 			long methodId = MethodsMap.addMethod(builder.toString());
 			builder.setLength(0);
 			return new ModifierMethodWriter(Opcodes.ASM5, mv, name, className, methodId, desc);
-//			return new TryFinallyAdapter(Opcodes.ASM5, mv, access, name, desc, methodId);
 		}
 
-	}
-
-	static class TryFinallyAdapter extends AdviceAdapter{
-		private final String name;
-		private final long methodId;
-		private Label startFinally = new Label();
-
-		protected TryFinallyAdapter(int api, MethodVisitor mv, int access, String name, String desc, long methodId) {
-			super(api, mv, access, name, desc);
-			this.name = name;
-			this.methodId = methodId;
-		}
-
-		@Override
-		protected void onMethodEnter() {
-			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			mv.visitLdcInsn("Method " + methodDesc + " Enter " + methodId);
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-		}
-
-		private void onFinally(int opcode) {
-			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			mv.visitLdcInsn("Method " + methodDesc + " Exit " + methodId);
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-		}
-		public void visitMaxs(int maxStack, int maxLocals) {
-			Label endFinally = new Label();
-			mv.visitTryCatchBlock(startFinally,
-				endFinally, endFinally, null);
-			mv.visitLabel(endFinally);
-			onFinally(ATHROW);
-			mv.visitInsn(ATHROW);
-			mv.visitMaxs(maxStack, maxLocals);
-		}
-
-		@Override
-		public void visitCode() {
-			super.visitCode();
-			mv.visitLabel(startFinally);
-		}
-
-		@Override
-		protected void onMethodExit(int opcode) {
-			if(opcode!=ATHROW) {
-				onFinally(opcode);
-			}
-		}
 	}
 
 	static class ModifierMethodWriter extends MethodVisitor implements Opcodes {
@@ -162,7 +122,6 @@ public class AsmClassTransformer implements ClassFileTransformer {
 		private void onTry(){
 			mv.visitLdcInsn(methodId);
 			mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeEnter", "(J)V", false);
-//			printEnter();
 		}
 
 		private void onFinally(int opcode) {
@@ -172,7 +131,6 @@ public class AsmClassTransformer implements ClassFileTransformer {
 			} else {
 				mv.visitMethodInsn(INVOKESTATIC, "com/focusit/agent/metrics/Statistics", "storeLeave", "(J)V", false);
 			}
-//			printExit();
 		}
 
 		private void printExit(){

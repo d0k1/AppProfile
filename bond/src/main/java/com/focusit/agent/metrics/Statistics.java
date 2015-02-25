@@ -4,6 +4,7 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ProfilingInfo;
 import com.focusit.agent.utils.jmm.FinalBoolean;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 /**
  * Class to dump profiling data to it's own temporary buffer.
@@ -12,19 +13,21 @@ import com.focusit.agent.utils.jmm.FinalBoolean;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static ThreadLocal<ThreadProfilingControl> threadStat = new ThreadLocal<>();
+	private static final Long2ObjectOpenHashMap<ThreadProfilingControl> threadStat = new Long2ObjectOpenHashMap<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
+		long threadId = Thread.currentThread().getId();
+
 		FinalBoolean working = enabled;
 
 		if(!working.value)
 			return;
 
-		ThreadProfilingControl control = threadStat.get();
+		ThreadProfilingControl control = threadStat.get(threadId);
 
 		if (control == null) {
 			control = ProfilerDataHolder.getInstance().getThreadControl();
-			threadStat.set(control);
+			threadStat.put(threadId, control);
 		}
 
 		control.lock.lockInterruptibly();
@@ -74,10 +77,10 @@ public class Statistics {
 	}
 
 	private static void updateStatOnLeave(boolean exception) throws InterruptedException {
+		long threadId = Thread.currentThread().getId();
+		ThreadProfilingControl control = threadStat.get(threadId);
+		control.lock.lockInterruptibly();
 
-		threadStat.get().lock.lockInterruptibly();
-
-		ThreadProfilingControl control = threadStat.get();
 		ProfilingInfo stat = control.current;
 
 		try {
@@ -110,7 +113,7 @@ public class Statistics {
 			}
 
 		} finally {
-			threadStat.get().lock.unlock();
+			control.lock.unlock();
 		}
 	}
 

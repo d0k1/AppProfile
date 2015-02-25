@@ -14,6 +14,7 @@
           <element id="archive" name="bond-1.0-SNAPSHOT.jar">
             <element id="module-output" name="bond" />
           </element>
+          <element id="library" level="project" name="Maven: it.unimi.dsi:fastutil:6.6.2" />
           <element id="library" level="project" name="Maven: io.netty:netty-all:5.0.0.Alpha1" />
           <element id="library" level="project" name="Maven: org.ow2.asm:asm:5.0.3" />
           <element id="library" level="project" name="Maven: org.ow2.asm:asm-util:5.0.3" />

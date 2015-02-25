@@ -1,10 +1,9 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.metrics.samples.ProfilingInfo;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -12,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ThreadProfilingControl {
 	public final ReentrantLock lock = new ReentrantLock(true);
-	public final Map<Long, ProfilingInfo> roots = new ConcurrentHashMap<>();
-	public final LinkedList<ProfilingInfo> stack = new LinkedList<>();
+	public final Long2ObjectOpenHashMap<ProfilingInfo> roots = new Long2ObjectOpenHashMap<>();
+	public final ObjectArrayList<ProfilingInfo> stack = new ObjectArrayList<>();
 	public ProfilingInfo current = null;
 }

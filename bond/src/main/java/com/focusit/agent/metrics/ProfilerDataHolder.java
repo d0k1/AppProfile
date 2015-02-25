@@ -14,13 +14,13 @@ public class ProfilerDataHolder {
 	private final static ReentrantLock cleanupLock = new ReentrantLock();
 
 	private final static ProfilerDataHolder instance = new ProfilerDataHolder();
-	private final List<ThreadProfilingControl> controls = new ArrayList<>();
+	private final static List<ThreadProfilingControl> controls = new ArrayList<>();
 
 	public static final ProfilerDataHolder getInstance(){
 		return instance;
 	}
 
-	public ThreadProfilingControl getThreadControl(){
+	public static ThreadProfilingControl getThreadControl(){
 		cleanupLock.lock();
 		try {
 

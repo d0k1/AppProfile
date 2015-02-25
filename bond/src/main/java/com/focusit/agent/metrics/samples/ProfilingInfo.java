@@ -1,7 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 /**
  * Created by Denis V. Kirpichenkov on 15.02.15.
@@ -14,7 +13,7 @@ public class ProfilingInfo {
 	public long exceptions = 0;
 	public long minTime = Long.MAX_VALUE;
 	public long maxTime = Long.MIN_VALUE;
-	public Map<Long, ProfilingInfo> childs = new ConcurrentHashMap<>();
+	public Long2ObjectOpenHashMap<ProfilingInfo> childs = new Long2ObjectOpenHashMap<>();
 	public long enterTime = -1;
 	public boolean reset = false;
 }
