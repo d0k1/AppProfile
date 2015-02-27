@@ -4,7 +4,6 @@ import com.focusit.agent.metrics.samples.ProfilingInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -44,8 +43,8 @@ public class ProfilerDataHolder {
 			System.out.print(currentLine);
 		}
 
-		for(Map.Entry<Long, ProfilingInfo> entry : s.childs.entrySet()){
-			totalCount += printMethodStat(s, entry.getValue(), level+1, builder);
+		for(Object entry : s.childs.values()){
+			totalCount += printMethodStat(s, (ProfilingInfo)entry, level+1, builder);
 		}
 
 		return totalCount;
@@ -55,8 +54,8 @@ public class ProfilerDataHolder {
 		long totalCount = 0;
 
 		for(ThreadProfilingControl control:controls) {
-			for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
-				ProfilingInfo s = entry.getValue();
+			for (Object entry : control.roots.values()) {
+				ProfilingInfo s = (ProfilingInfo) entry;
 				totalCount += printMethodStat(null, s, 0, null);
 			}
 		}
@@ -72,8 +71,8 @@ public class ProfilerDataHolder {
 			for (ThreadProfilingControl control : controls) {
 				control.lock.lock();
 				try {
-					for (Map.Entry<Long, ProfilingInfo> entry : control.roots.entrySet()) {
-						ProfilingInfo s = entry.getValue();
+					for (Object entry : control.roots.values()) {
+						ProfilingInfo s = (ProfilingInfo) entry;
 						printMethodStat(null, s, 0, builder);
 					}
 				} finally {

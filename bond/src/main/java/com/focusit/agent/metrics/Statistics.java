@@ -4,6 +4,7 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ProfilingInfo;
 import com.focusit.agent.utils.jmm.FinalBoolean;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 /**
@@ -13,7 +14,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static final Long2ObjectOpenHashMap<ThreadProfilingControl> threadStat = new Long2ObjectOpenHashMap<>();
+	private static final Long2ObjectMap<ThreadProfilingControl> threadStat = new Long2ObjectOpenHashMap<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		long threadId = Thread.currentThread().getId();
@@ -26,7 +27,7 @@ public class Statistics {
 		ThreadProfilingControl control = threadStat.get(threadId);
 
 		if (control == null) {
-			control = ProfilerDataHolder.getInstance().getThreadControl();
+			control = ProfilerDataHolder.getThreadControl();
 			threadStat.put(threadId, control);
 		}
 

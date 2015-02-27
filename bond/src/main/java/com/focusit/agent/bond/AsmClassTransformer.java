@@ -8,9 +8,6 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-
 /**
  * Class transformer based on asm
  * Created by Denis V. Kirpichenkov on 25.11.14.
@@ -30,10 +27,6 @@ public class AsmClassTransformer implements ClassFileTransformer {
 		}
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-
-		if(className.equalsIgnoreCase("java.lang.Thread")) {
-			cw.visitField(ACC_PUBLIC + ACC_FINAL, "control", "Lcom/focusit/agent/metrics/ThreadProfilingControl", null, null).visitEnd();
-		}
 
 		ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw, className);
 		ClassReader cr = new ClassReader(classfileBuffer);
