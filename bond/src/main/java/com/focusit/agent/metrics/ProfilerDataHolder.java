@@ -1,9 +1,11 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.metrics.samples.ProfilingInfo;
+import com.focusit.agent.utils.common.BondLongObjectMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -13,7 +15,7 @@ public class ProfilerDataHolder {
 	private final static ReentrantLock cleanupLock = new ReentrantLock();
 
 	private final static ProfilerDataHolder instance = new ProfilerDataHolder();
-	private final static List<ThreadProfilingControl> controls = new ArrayList<>();
+	private final static List<ThreadProfilingControl> controls = new ArrayList<>(1024);
 
 	public static final ProfilerDataHolder getInstance(){
 		return instance;
@@ -32,8 +34,8 @@ public class ProfilerDataHolder {
 		}
 	}
 
-	private long printMethodStat(ProfilingInfo parent, ProfilingInfo s, int level, StringBuilder builder){
-		long totalCount = s.count;
+	private long printMethodStat(ProfilingInfo parent, final ProfilingInfo s, final int level, final StringBuilder builder){
+		final AtomicLong totalCount = new AtomicLong(s.count);
 
 	    String currentLine = String.format("\"%d\";\"%d\";\"%s\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\";\"%d\"\r\n", s.exceptions, s.threadId, parent==null?"null":parent.toString(), level, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
 
@@ -43,38 +45,51 @@ public class ProfilerDataHolder {
 			System.out.print(currentLine);
 		}
 
-		for(Object entry : s.childs.values()){
-			totalCount += printMethodStat(s, (ProfilingInfo)entry, level+1, builder);
-		}
+		s.childs.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+			@Override
+			public void process(long key, ProfilingInfo value) {
+				totalCount.addAndGet(printMethodStat(s, value, level + 1, builder));
+			}
+		});
 
-		return totalCount;
+		return totalCount.get();
 	}
 
 	public void printData(){
-		long totalCount = 0;
+		final AtomicLong totalCount = new AtomicLong(0);
 
 		for(ThreadProfilingControl control:controls) {
-			for (Object entry : control.roots.values()) {
-				ProfilingInfo s = (ProfilingInfo) entry;
-				totalCount += printMethodStat(null, s, 0, null);
-			}
+			control.roots.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+				@Override
+				public void process(long key, ProfilingInfo value) {
+
+					totalCount.addAndGet(printMethodStat(null, value, 0, null));
+				}
+			});
 		}
-		System.out.println("Total call count "+totalCount);
+		System.out.println("Total call count "+totalCount.get());
 	}
 
-	public String getStringData(){
+	public String getStringData() throws InterruptedException {
 		cleanupLock.lock();
 
 		try {
-			StringBuilder builder = new StringBuilder();
+			final StringBuilder builder = new StringBuilder();
 
 			for (ThreadProfilingControl control : controls) {
-				control.lock.lock();
+
+				//TODO Add unsafe volatile write
+				control.useLock = true;
+
+				control.condition.await();
+				control.condition.signal();
 				try {
-					for (Object entry : control.roots.values()) {
-						ProfilingInfo s = (ProfilingInfo) entry;
-						printMethodStat(null, s, 0, builder);
-					}
+					control.roots.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+						@Override
+						public void process(long key, ProfilingInfo value) {
+							printMethodStat(null, value, 0, builder);
+						}
+					});
 				} finally {
 					control.lock.unlock();
 				}

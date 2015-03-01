@@ -1,7 +1,6 @@
 package com.focusit.agent.metrics.samples;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import com.focusit.agent.utils.common.BondLongObjectMap;
 
 /**
  * Created by Denis V. Kirpichenkov on 15.02.15.
@@ -14,7 +13,7 @@ public class ProfilingInfo {
 	public long exceptions = 0;
 	public long minTime = Long.MAX_VALUE;
 	public long maxTime = Long.MIN_VALUE;
-	public Long2ObjectMap<ProfilingInfo> childs = new Long2ObjectOpenHashMap<>();
+	public BondLongObjectMap<ProfilingInfo> childs = new BondLongObjectMap<>(1000);
 	public long enterTime = -1;
 	public boolean reset = false;
 }

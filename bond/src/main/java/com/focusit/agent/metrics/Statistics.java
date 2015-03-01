@@ -3,9 +3,8 @@ package com.focusit.agent.metrics;
 import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ProfilingInfo;
+import com.focusit.agent.utils.common.BondThreadLocal;
 import com.focusit.agent.utils.jmm.FinalBoolean;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 /**
  * Class to dump profiling data to it's own temporary buffer.
@@ -14,7 +13,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static final Long2ObjectMap<ThreadProfilingControl> threadStat = new Long2ObjectOpenHashMap<>();
+	private static final BondThreadLocal<ThreadProfilingControl> threadStat = new BondThreadLocal<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		long threadId = Thread.currentThread().getId();
@@ -31,7 +30,13 @@ public class Statistics {
 			threadStat.put(threadId, control);
 		}
 
-		control.lock.lockInterruptibly();
+		boolean locking = control.useLock;
+
+		if(locking) {
+			control.lock.lock();
+			control.condition.signal();
+			control.condition.await();
+		}
 
 		try {
 
@@ -73,14 +78,23 @@ public class Statistics {
 			stat.threadId = Thread.currentThread().getId();
 			stat.enterTime = GlobalTime.getCurrentTime();
 		} finally {
-			control.lock.unlock();
+			if(locking) {
+				control.lock.unlock();
+			}
 		}
 	}
 
 	private static void updateStatOnLeave(boolean exception) throws InterruptedException {
 		long threadId = Thread.currentThread().getId();
 		ThreadProfilingControl control = threadStat.get(threadId);
-		control.lock.lockInterruptibly();
+
+		boolean locking = control.useLock;
+
+		if(locking) {
+			control.lock.lock();
+			control.condition.signal();
+			control.condition.await();
+		}
 
 		ProfilingInfo stat = control.current;
 
@@ -90,8 +104,8 @@ public class Statistics {
 				return;
 			}
 
-			Long leave = GlobalTime.getCurrentTime();
-			Long time = leave - stat.enterTime;
+			long leave = GlobalTime.getCurrentTime();
+			long time = leave - stat.enterTime;
 			stat.enterTime = -1;
 
 			if (stat.minTime > time) {
@@ -114,7 +128,9 @@ public class Statistics {
 			}
 
 		} finally {
-			control.lock.unlock();
+			if(locking) {
+				control.lock.unlock();
+			}
 		}
 	}
 

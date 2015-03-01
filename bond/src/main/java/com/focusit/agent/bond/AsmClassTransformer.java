@@ -14,6 +14,8 @@ import java.security.ProtectionDomain;
  */
 public class AsmClassTransformer implements ClassFileTransformer {
 
+	byte threadClass[] = null;
+
 	public AsmClassTransformer(Instrumentation instrumentation) {
 	}
 
@@ -26,8 +28,14 @@ public class AsmClassTransformer implements ClassFileTransformer {
 			return classfileBuffer;
 		}
 
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+		if(className.equalsIgnoreCase("java.lang.Thread")){
+			if(threadClass==null)
+				return classfileBuffer;
 
+			return threadClass;
+		}
+
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 		ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw, className);
 		ClassReader cr = new ClassReader(classfileBuffer);
 		cr.accept(mcw, ClassReader.EXPAND_FRAMES);

@@ -91,7 +91,7 @@ public class Agent
             for (Class cls : instrumentation.getAllLoadedClasses())
             {
 
-                if (AgentConfiguration.isClassExcluded(cls.getName()))
+                if (!cls.getName().equalsIgnoreCase("java.lang.Thread") && AgentConfiguration.isClassExcluded(cls.getName()))
                 {
                     continue;
                 }

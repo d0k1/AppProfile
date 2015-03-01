@@ -85,7 +85,7 @@ public class AgentManager {
 		}
 	}
 
-	public static String getProfilerData(){
+	public static String getProfilerData() throws InterruptedException {
 		return ProfilerDataHolder.getInstance().getStringData();
 	}
 }
