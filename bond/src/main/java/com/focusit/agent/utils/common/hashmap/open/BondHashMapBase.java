@@ -1,4 +1,7 @@
-package com.focusit.agent.utils.common.hash;
+package com.focusit.agent.utils.common.hashmap.open;
+
+import com.focusit.agent.utils.common.hashmap.HashFunctions;
+import com.focusit.agent.utils.common.hashmap.PrimeFinder;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -8,15 +11,14 @@ import java.io.ObjectOutput;
 /**
  * Created by Denis V. Kirpichenkov on 01.03.15.
  */
-abstract public class THash implements Externalizable {
-	@SuppressWarnings( { "UnusedDeclaration" } )
+abstract public class BondHashMapBase implements Externalizable {
 	static final long serialVersionUID = -1792948471915530295L;
 
 	/** the load above which rehashing occurs. */
 	protected static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
 	/**
-	 * the default initial capacity for the hash table.  This is one
+	 * the default initial capacity for the openhash table.  This is one
 	 * less than a prime value because one is added to it when
 	 * searching for a prime capacity to account for the free slot
 	 * required by open addressing. Thus, the real default capacity is
@@ -25,10 +27,10 @@ abstract public class THash implements Externalizable {
 	protected static final int DEFAULT_CAPACITY = 16;
 
 
-	/** the current number of occupied slots in the hash. */
+	/** the current number of occupied slots in the openhash. */
 	protected transient int _size;
 
-	/** the current number of free slots in the hash. */
+	/** the current number of free slots in the openhash. */
 	protected transient int _free;
 
 	/**
@@ -65,7 +67,7 @@ abstract public class THash implements Externalizable {
 	 * Creates a new <code>THash</code> instance with the default
 	 * capacity and load factor.
 	 */
-	public THash() {
+	public BondHashMapBase() {
 		this( DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR );
 	}
 
@@ -77,7 +79,7 @@ abstract public class THash implements Externalizable {
 	 *
 	 * @param initialCapacity an <code>int</code> value
 	 */
-	public THash( int initialCapacity ) {
+	public BondHashMapBase(int initialCapacity) {
 		this( initialCapacity, DEFAULT_LOAD_FACTOR );
 	}
 
@@ -91,7 +93,7 @@ abstract public class THash implements Externalizable {
 	 * @param initialCapacity an <code>int</code> value
 	 * @param loadFactor      a <code>float</code> value
 	 */
-	public THash( int initialCapacity, float loadFactor ) {
+	public BondHashMapBase(int initialCapacity, float loadFactor) {
 		super();
 		_loadFactor = loadFactor;
 
@@ -99,7 +101,7 @@ abstract public class THash implements Externalizable {
 		// found to be a pretty good starting auto-compaction factor.
 		_autoCompactionFactor = loadFactor;
 
-		setUp( HashFunctions.fastCeil( initialCapacity / loadFactor ) );
+		setUp( HashFunctions.fastCeil(initialCapacity / loadFactor) );
 	}
 
 
@@ -123,7 +125,7 @@ abstract public class THash implements Externalizable {
 	}
 
 
-	/** @return the current physical capacity of the hash table. */
+	/** @return the current physical capacity of the openhash table. */
 	abstract public int capacity();
 
 
@@ -137,8 +139,8 @@ abstract public class THash implements Externalizable {
 	 */
 	public void ensureCapacity( int desiredCapacity ) {
 		if ( desiredCapacity > ( _maxSize - size() ) ) {
-			rehash( PrimeFinder.nextPrime( Math.max( size() + 1,
-				HashFunctions.fastCeil( ( desiredCapacity + size() ) / _loadFactor ) + 1 ) ) );
+			rehash( PrimeFinder.nextPrime(Math.max(size() + 1,
+				HashFunctions.fastCeil((desiredCapacity + size()) / _loadFactor) + 1)) );
 			computeMaxSize( capacity() );
 		}
 	}

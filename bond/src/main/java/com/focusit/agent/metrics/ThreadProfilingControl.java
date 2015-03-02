@@ -1,7 +1,7 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.metrics.samples.ProfilingInfo;
-import com.focusit.agent.utils.common.BondLongObjectMap;
+import com.focusit.agent.utils.common.LongObjectRedBlackTree;
 
 import java.util.LinkedList;
 import java.util.concurrent.locks.Condition;
@@ -14,7 +14,7 @@ public class ThreadProfilingControl {
 	public final ReentrantLock lock = new ReentrantLock(true);
 	public final Condition condition = lock.newCondition();
 	public boolean useLock = false;
-	public final BondLongObjectMap<ProfilingInfo> roots = new BondLongObjectMap<>(1000);
+	public final LongObjectRedBlackTree<ProfilingInfo> roots = new LongObjectRedBlackTree<>();
 	public final LinkedList<ProfilingInfo> stack = new LinkedList<>();
 	public ProfilingInfo current = null;
 }

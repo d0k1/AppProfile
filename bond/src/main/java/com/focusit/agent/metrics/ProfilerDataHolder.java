@@ -1,7 +1,7 @@
 package com.focusit.agent.metrics;
 
 import com.focusit.agent.metrics.samples.ProfilingInfo;
-import com.focusit.agent.utils.common.BondLongObjectMap;
+import com.focusit.agent.utils.common.LongObjectRedBlackTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +45,7 @@ public class ProfilerDataHolder {
 			System.out.print(currentLine);
 		}
 
-		s.childs.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+		s.childs.forEach(new LongObjectRedBlackTree.IterateFunction<ProfilingInfo>() {
 			@Override
 			public void process(long key, ProfilingInfo value) {
 				totalCount.addAndGet(printMethodStat(s, value, level + 1, builder));
@@ -59,7 +59,7 @@ public class ProfilerDataHolder {
 		final AtomicLong totalCount = new AtomicLong(0);
 
 		for(ThreadProfilingControl control:controls) {
-			control.roots.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+			control.roots.forEach(new LongObjectRedBlackTree.IterateFunction<ProfilingInfo>() {
 				@Override
 				public void process(long key, ProfilingInfo value) {
 
@@ -84,7 +84,7 @@ public class ProfilerDataHolder {
 				control.condition.await();
 				control.condition.signal();
 				try {
-					control.roots.forEach(new BondLongObjectMap.IterateFunction<ProfilingInfo>() {
+					control.roots.forEach(new LongObjectRedBlackTree.IterateFunction<ProfilingInfo>() {
 						@Override
 						public void process(long key, ProfilingInfo value) {
 							printMethodStat(null, value, 0, builder);

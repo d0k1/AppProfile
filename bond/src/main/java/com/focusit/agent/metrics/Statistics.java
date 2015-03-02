@@ -52,6 +52,7 @@ public class Statistics {
 				// если не бывали в таком методе раньше
 				if(stat == null){
 					stat = new ProfilingInfo();
+					stat.methodId = methodId;
 					control.roots.put(methodId, stat);
 					control.current = stat;
 				} else {

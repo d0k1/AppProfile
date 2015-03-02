@@ -1,4 +1,4 @@
-package com.focusit.agent.utils.common.hash;
+package com.focusit.agent.utils.common.hashmap;
 
 //   Copyright (c) 1999 CERN - European Organization for Nuclear Research.
 

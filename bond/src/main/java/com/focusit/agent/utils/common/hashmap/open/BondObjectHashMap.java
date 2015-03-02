@@ -1,4 +1,4 @@
-package com.focusit.agent.utils.common.hash;
+package com.focusit.agent.utils.common.hashmap.open;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Created by Denis V. Kirpichenkov on 01.03.15.
  */
-public class TObjectHash<K, V> extends THash {
+public class BondObjectHashMap<K, V> extends BondHashMapBase {
 
 	@SuppressWarnings({"UnusedDeclaration"})
 	static final long serialVersionUID = -3461112548087185871L;
@@ -38,7 +38,7 @@ public class TObjectHash<K, V> extends THash {
 	 * Creates a new <code>TObjectHash</code> instance with the
 	 * default capacity and load factor.
 	 */
-	public TObjectHash() {
+	public BondObjectHashMap() {
 		super();
 	}
 
@@ -91,7 +91,7 @@ public class TObjectHash<K, V> extends THash {
 	 *
 	 * @param initialCapacity an <code>int</code> value
 	 */
-	public TObjectHash(int initialCapacity) {
+	public BondObjectHashMap(int initialCapacity) {
 		super(initialCapacity);
 	}
 
@@ -104,7 +104,7 @@ public class TObjectHash<K, V> extends THash {
 	 * @param loadFactor      used to calculate the threshold over which
 	 *                        rehashing takes place.
 	 */
-	public TObjectHash(int initialCapacity, float loadFactor) {
+	public BondObjectHashMap(int initialCapacity, float loadFactor) {
 		super(initialCapacity, loadFactor);
 	}
 
@@ -121,7 +121,7 @@ public class TObjectHash<K, V> extends THash {
 
 
 	/**
-	 * initializes the Object set of this hash table.
+	 * initializes the Object set of this openhash table.
 	 *
 	 * @param initialCapacity an <code>int</code> value
 	 * @return an <code>int</code> value
@@ -298,7 +298,7 @@ public class TObjectHash<K, V> extends THash {
 	 *
 	 * @param key an <code>Object</code> value
 	 * @return the index of a FREE slot at which key can be inserted
-	 *         or, if key is already stored in the hash, the negative value of
+	 *         or, if key is already stored in the openhash, the negative value of
 	 *         that index, minus 1: -index -1.
 	 */
 	protected int insertKey(K key) {
@@ -338,7 +338,7 @@ public class TObjectHash<K, V> extends THash {
 		final Object[] set = _set;
 		final int length = set.length;
 		// already FULL or REMOVED, must probe
-		// compute the double hash
+		// compute the double openhash
 		final int probe = 1 + (hash % (length - 2));
 
 		final int loopIndex = index;
@@ -447,8 +447,8 @@ public class TObjectHash<K, V> extends THash {
 	 * to the general contract for java.lang.Object.
 	 *
 	 *
-	 * @param o1 the first of the equal elements with unequal hash codes.
-	 * @param o2 the second of the equal elements with unequal hash codes.
+	 * @param o1 the first of the equal elements with unequal openhash codes.
+	 * @param o2 the second of the equal elements with unequal openhash codes.
 	 * @throws IllegalArgumentException the whole point of this method.
 	 */
 	protected final void throwObjectContractViolation(Object o1, Object o2)
@@ -464,8 +464,8 @@ public class TObjectHash<K, V> extends THash {
 	 * to the general contract for java.lang.Object.
 	 *
 	 *
-	 * @param o1 the first of the equal elements with unequal hash codes.
-	 * @param o2 the second of the equal elements with unequal hash codes.
+	 * @param o1 the first of the equal elements with unequal openhash codes.
+	 * @param o2 the second of the equal elements with unequal openhash codes.
 	 * @param size
 	 *@param oldSize
 	 * @param oldKeys @throws IllegalArgumentException the whole point of this method.
@@ -486,8 +486,8 @@ public class TObjectHash<K, V> extends THash {
 	 * to the general contract for java.lang.Object.
 	 *
 	 *
-	 * @param o1 the first of the equal elements with unequal hash codes.
-	 * @param o2 the second of the equal elements with unequal hash codes.
+	 * @param o1 the first of the equal elements with unequal openhash codes.
+	 * @param o2 the second of the equal elements with unequal openhash codes.
 	 * @throws IllegalArgumentException the whole point of this method.
 	 */
 	protected final IllegalArgumentException buildObjectContractViolation(Object o1, Object o2, String extra ) {
