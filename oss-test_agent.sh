@@ -6,4 +6,4 @@ CMD="-Dagent.config=agent.properties -classpath example/target/example-1.0-SNAPS
 
 echo ${CMD}
 
-java ${CMD} > result.txt
+sudo /opt/oracle-studio/bin/amd64/collect -o oss-expirement.1.er -d /tmp -p high -S on -h on -j on java ${CMD} > result.txt

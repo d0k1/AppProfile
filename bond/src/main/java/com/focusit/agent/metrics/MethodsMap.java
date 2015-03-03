@@ -15,7 +15,7 @@ public class MethodsMap {
 	private static final int INITIAL_SIZE = 1500000;
 	private static final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	private static final List<String> methods = new ArrayList<>(INITIAL_SIZE);
-	private static final ConcurrentHashMap<String, Long> methodIndexes = new ConcurrentHashMap<>(INITIAL_SIZE);;
+	private static final ConcurrentHashMap<String, Long> methodIndexes = new ConcurrentHashMap<>(INITIAL_SIZE);
 	private static final AtomicLong lastIndex = new AtomicLong(0);
 
 	public static long addMethod(String method){

@@ -7,11 +7,11 @@ package com.focusit.agent.bond.time;
 public class GlobalTime {
 
 	public static long getCurrentTime() {
-		return System.nanoTime();
+		return 0L;//System.nanoTime();
 	}
 
 	public static long getCurrentTimeInMillis() {
-		return System.currentTimeMillis();
+		return 0L;//System.currentTimeMillis();
 	}
 
 	public void start() {

@@ -37,7 +37,7 @@ public class ProfilerDataHolder {
 	private long printMethodStat(ProfilingInfo parent, final ProfilingInfo s, final int level, final StringBuilder builder){
 		final AtomicLong totalCount = new AtomicLong(s.count);
 
-	    String currentLine = String.format("\"%d\";\"%d\";\"%s\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\";\"%d\"\r\n", s.exceptions, s.threadId, parent==null?"null":parent.toString(), level, MethodsMap.getMethod(s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
+	    String currentLine = String.format("\"%d\";\"%d\";\"%s\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\";\"%d\"\r\n", s.exceptions, s.threadId, parent==null?"null":parent.toString(), level, MethodsMap.getMethod((int) s.methodId), s.count, s.minTime, s.maxTime, s.totalTime);
 
 		if(builder!=null){
 			builder.append(currentLine);
