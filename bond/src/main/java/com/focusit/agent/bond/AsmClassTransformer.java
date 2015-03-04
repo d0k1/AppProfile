@@ -14,8 +14,6 @@ import java.security.ProtectionDomain;
  */
 public class AsmClassTransformer implements ClassFileTransformer {
 
-	byte threadClass[] = null;
-
 	public AsmClassTransformer(Instrumentation instrumentation) {
 	}
 
@@ -24,15 +22,8 @@ public class AsmClassTransformer implements ClassFileTransformer {
 
 		String className = fullyQualifiedClassName.replace("/", ".");
 
-		if(!className.equalsIgnoreCase("java.lang.Thread") && AgentConfiguration.isClassExcluded(className)) {
+		if(AgentConfiguration.isClassExcluded(className)) {
 			return classfileBuffer;
-		}
-
-		if(className.equalsIgnoreCase("java.lang.Thread")){
-			if(threadClass==null)
-				return classfileBuffer;
-
-			return threadClass;
 		}
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
