@@ -13,6 +13,7 @@ public class ProfilingInfo {
 	public long exceptions = 0;
 	public long minTime = Long.MAX_VALUE;
 	public long maxTime = Long.MIN_VALUE;
+	public ProfilingInfo prevCall = null;
 	public LongObjectRedBlackTree<ProfilingInfo> childs = new LongObjectRedBlackTree<>();
 	public long enterTime = -1;
 	public boolean reset = false;

@@ -111,7 +111,6 @@ public class ProfilerDataHolder {
 
 				try{
 					ctrl.current = null;
-					ctrl.stack.clear();
 					ctrl.roots.clear();
 				} finally {
 					ctrl.lock.unlock();

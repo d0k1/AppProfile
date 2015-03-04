@@ -15,6 +15,5 @@ public class ThreadProfilingControl {
 	public final Condition condition = lock.newCondition();
 	public boolean useLock = false;
 	public final LongObjectRedBlackTree<ProfilingInfo> roots = new LongObjectRedBlackTree<>();
-	public final LinkedList<ProfilingInfo> stack = new LinkedList<>();
 	public ProfilingInfo current = null;
 }

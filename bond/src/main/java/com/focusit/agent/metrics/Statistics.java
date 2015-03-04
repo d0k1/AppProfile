@@ -4,6 +4,7 @@ import com.focusit.agent.bond.AgentConfiguration;
 import com.focusit.agent.bond.time.GlobalTime;
 import com.focusit.agent.metrics.samples.ProfilingInfo;
 import com.focusit.agent.utils.common.BondThreadLocal;
+import com.focusit.agent.utils.common.LongObjectRedBlackTree;
 import com.focusit.agent.utils.jmm.FinalBoolean;
 
 /**
@@ -13,7 +14,7 @@ import com.focusit.agent.utils.jmm.FinalBoolean;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static final BondThreadLocal<ThreadProfilingControl> threadStat = new BondThreadLocal<>();
+	private static final LongObjectRedBlackTree<ThreadProfilingControl> threadStat = new LongObjectRedBlackTree<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		long threadId = Thread.currentThread().getId();
@@ -69,7 +70,7 @@ public class Statistics {
 				}
 
 				// кладем в стек потока текущий метод
-				control.stack.push(control.current);
+				stat.prevCall = control.current;
 				// текущим становиться stat метод
 				control.current = stat;
 			}
@@ -101,13 +102,12 @@ public class Statistics {
 
 		try {
 
-			if (stat == null || stat.reset) {
+			if (stat == null) {
 				return;
 			}
 
 			long leave = GlobalTime.getCurrentTime();
 			long time = leave - stat.enterTime;
-			stat.enterTime = -1;
 
 			if (stat.minTime > time) {
 				stat.minTime = time;
@@ -122,8 +122,8 @@ public class Statistics {
 				stat.exceptions += 1;
 			}
 
-			if(control.stack.size()>0){
-				control.current = control.stack.pop();
+			if(stat.prevCall!=null){
+				control.current = stat.prevCall;
 			} else {
 				control.current = null;
 			}
