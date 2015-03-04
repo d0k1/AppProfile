@@ -17,10 +17,6 @@ public class LongObjectRedBlackTree<Value> {
 
 	private Node root;     // root of the BST
 
-	private static final long compareLongs(long x, long y) {
-		return x - y;
-	}
-
 	/**
 	 * **********************************************************************
 	 * Node helper methods
@@ -72,7 +68,7 @@ public class LongObjectRedBlackTree<Value> {
 	// value associated with the given key in subtree rooted at x; null if no such key
 	private Value get(Node x, long key) {
 		while (x != null) {
-			long cmp = compareLongs(key, x.key);
+			long cmp = (key - x.key);
 			if (cmp < 0) x = x.left;
 			else if (cmp > 0) x = x.right;
 			else return x.val;
@@ -108,7 +104,7 @@ public class LongObjectRedBlackTree<Value> {
 	private Node put(Node h, long key, Value val) {
 		if (h == null) return new Node(key, val, RED, 1);
 
-		long cmp = compareLongs(key, h.key);
+		long cmp = (key - h.key);
 		if (cmp < 0) h.left = put(h.left, key, val);
 		else if (cmp > 0) h.right = put(h.right, key, val);
 		else h.val = val;
@@ -202,18 +198,18 @@ public class LongObjectRedBlackTree<Value> {
 	private Node delete(Node h, long key) {
 		// assert get(h, key) != null;
 
-		if (compareLongs(key, h.key) < 0) {
+		if ((key- h.key) < 0) {
 			if (!isRed(h.left) && !isRed(h.left.left))
 				h = moveRedLeft(h);
 			h.left = delete(h.left, key);
 		} else {
 			if (isRed(h.left))
 				h = rotateRight(h);
-			if (compareLongs(key, h.key) == 0 && (h.right == null))
+			if ((key- h.key) == 0 && (h.right == null))
 				return null;
 			if (!isRed(h.right) && !isRed(h.right.left))
 				h = moveRedRight(h);
-			if (compareLongs(key, h.key) == 0) {
+			if ((key- h.key) == 0) {
 				Node x = min(h.right);
 				h.key = x.key;
 				h.val = x.val;
@@ -366,7 +362,7 @@ public class LongObjectRedBlackTree<Value> {
 	// the largest key in the subtree rooted at x less than or equal to the given key
 	private Node floor(Node x, long key) {
 		if (x == null) return null;
-		long cmp = compareLongs(key, x.key);
+		long cmp = (key- x.key);
 		if (cmp == 0) return x;
 		if (cmp < 0) return floor(x.left, key);
 		Node t = floor(x.right, key);
@@ -384,7 +380,7 @@ public class LongObjectRedBlackTree<Value> {
 	// the smallest key in the subtree rooted at x greater than or equal to the given key
 	private Node ceiling(Node x, long key) {
 		if (x == null) return null;
-		long cmp = compareLongs(key, x.key);
+		long cmp = (key- x.key);
 		if (cmp == 0) return x;
 		if (cmp > 0) return ceiling(x.right, key);
 		Node t = ceiling(x.left, key);
@@ -417,7 +413,7 @@ public class LongObjectRedBlackTree<Value> {
 	// number of keys less than key in the subtree rooted at x
 	private int rank(long key, Node x) {
 		if (x == null) return 0;
-		long cmp = compareLongs(key, x.key);
+		long cmp = (key- x.key);
 		if (cmp < 0) return rank(key, x.left);
 		else if (cmp > 0) return 1 + size(x.left) + rank(key, x.right);
 		else return size(x.left);
@@ -445,8 +441,8 @@ public class LongObjectRedBlackTree<Value> {
 
 	private void keys(Node x, IterateFunction<Value> function, long lo, long hi) {
 		if (x == null) return;
-		long cmplo = compareLongs(lo, x.key);
-		long cmphi = compareLongs(hi, x.key);
+		long cmplo = (lo- x.key);
+		long cmphi = (hi- x.key);
 		if (cmplo < 0) keys(x.left, function, lo, hi);
 		if (cmplo <= 0 && cmphi >= 0) function.process(x.key, x.val);
 		if (cmphi > 0) keys(x.right, function, lo, hi);
@@ -469,8 +465,8 @@ public class LongObjectRedBlackTree<Value> {
 	// to the queue
 	private void keys(Node x, Collection<Long> queue, long lo, long hi) {
 		if (x == null) return;
-		long cmplo = compareLongs(lo, x.key);
-		long cmphi = compareLongs(hi, x.key);
+		long cmplo = (lo- x.key);
+		long cmphi = (hi- x.key);
 		if (cmplo < 0) keys(x.left, queue, lo, hi);
 		if (cmplo <= 0 && cmphi >= 0) queue.add(x.key);
 		if (cmphi > 0) keys(x.right, queue, lo, hi);
@@ -478,7 +474,7 @@ public class LongObjectRedBlackTree<Value> {
 
 	// number keys between lo and hi
 	public int size(long lo, long hi) {
-		if (compareLongs(lo, hi) > 0) return 0;
+		if ((lo- hi) > 0) return 0;
 		if (contains(hi)) return rank(hi) - rank(lo) + 1;
 		else return rank(hi) - rank(lo);
 	}
@@ -508,8 +504,8 @@ public class LongObjectRedBlackTree<Value> {
 	// Credit: Bob Dondero's elegant solution
 	private boolean isBST(Node x, long min, long max) {
 		if (x == null) return true;
-		if (min != NULL_KEY && compareLongs(x.key, min) <= 0) return false;
-		if (max != NULL_KEY && compareLongs(x.key, max) >= 0) return false;
+		if (min != NULL_KEY && (x.key- min) <= 0) return false;
+		if (max != NULL_KEY && (x.key- max) >= 0) return false;
 		return isBST(x.left, min, x.key) && isBST(x.right, x.key, max);
 	}
 
