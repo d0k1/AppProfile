@@ -15,7 +15,6 @@ public class LongObjectRedBlackTreeTest {
 	@Test
 	public void testInit(){
 		LongObjectRedBlackTree<TestData> map = new LongObjectRedBlackTree<>();
-		Assert.assertEquals(map.size(), 0);
 	}
 
 	@Test
@@ -32,8 +31,6 @@ public class LongObjectRedBlackTreeTest {
 		for(long index:indexes) {
 			map.put(index, new TestData(""+index));
 		}
-
-		Assert.assertEquals(map.size(), 5);
 	}
 
 	@Test

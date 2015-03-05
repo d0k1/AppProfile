@@ -14,7 +14,7 @@ import com.focusit.agent.utils.jmm.FinalBoolean;
  */
 public class Statistics {
 	public static FinalBoolean enabled = new FinalBoolean(AgentConfiguration.isStatisticsEnabled());
-	private static final LongObjectRedBlackTree<ThreadProfilingControl> threadStat = new LongObjectRedBlackTree<>();
+	private static final BondThreadLocal<ThreadProfilingControl> threadStat = new BondThreadLocal<>();
 
 	public static void storeEnter(long methodId) throws InterruptedException {
 		long threadId = Thread.currentThread().getId();

@@ -8,41 +8,50 @@ import java.util.concurrent.atomic.AtomicLong;
  * Created by Denis V. Kirpichenkov on 03.03.15.
  */
 public class HeavyLoadProfilerExample {
-	public final static AtomicLong methodId = new AtomicLong(0L);
 
 	public static Runnable getRunnable(){
 		return new Runnable() {
+			public final AtomicLong methodId = new AtomicLong(0L);
+
 			void store() throws InterruptedException {
-				Statistics.storeEnter(methodId.get());
+				Statistics.storeEnter(methodId.getAndIncrement());
 			}
 
 			void leave() throws InterruptedException {
-				Statistics.storeLeave(methodId.get());
+				Statistics.storeLeave(methodId.getAndDecrement());
 			}
 			@Override
 			public void run() {
-				for(int i=0;i<3000;i++){
-					if(i%2==0){
+				int tries = 100;
+				for(int i=0;i<tries;i++){
 						try {
 							store();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-					}else {
 						try {
 							leave();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-					}
 				}
 			}
 		};
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		Thread t = new Thread(getRunnable());
-		t.start();
-		t.join();
+		int threads = 20;
+		Thread t[] = new Thread[threads];
+		for(int i=0;i<threads;i++){
+			t[i] = new Thread(getRunnable());
+		}
+
+		for(int i=0;i<threads;i++) {
+			t[i].start();
+		}
+
+		for(int i=0;i<threads;i++) {
+			t[i].join();
+		}
 	}
 }
