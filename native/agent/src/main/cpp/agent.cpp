@@ -79,57 +79,7 @@ void
 add_demo_jar_to_bootclasspath(jvmtiEnv *jvmti, char *demo_name)
 {
     jvmtiError error;
-    char      *file_sep;
-    int        max_len;
-    char      *java_home;
-    char       jar_path[FILENAME_MAX+1];
-
-    java_home = NULL;
-    error = (jvmti)->GetSystemProperty("java.home", &java_home);
-    check_jvmti_error(jvmti, error, "Cannot get java.home property value");
-    if ( java_home == NULL || java_home[0] == 0 ) {
-        fatal_error("ERROR: Java home not found\n");
-    }
-
-#ifdef WIN32
-    file_sep = "\\";
-#else
-    file_sep = "/";
-#endif
-
-    max_len = (int)(strlen(java_home) + strlen(demo_name)*2 +
-                         strlen(file_sep)*5 +
-                         16 /* ".." "demo" "jvmti" ".jar" NULL */ );
-    if ( max_len > (int)sizeof(jar_path) ) {
-        fatal_error("ERROR: Path to jar file too long\n");
-    }
-    (void)strcpy(jar_path, java_home);
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, "demo");
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, "jvmti");
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, demo_name);
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, demo_name);
-    (void)strcat(jar_path, ".jar");
-    error = (jvmti)->AddToBootstrapClassLoaderSearch((const char*)jar_path);
-    check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
-
-    (void)strcpy(jar_path, java_home);
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, "..");
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, "demo");
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, "jvmti");
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, demo_name);
-    (void)strcat(jar_path, file_sep);
-    (void)strcat(jar_path, demo_name);
-    (void)strcat(jar_path, ".jar");
-
-    error = (jvmti)->AddToBootstrapClassLoaderSearch((const char*)jar_path);
+    error = (jvmti)->AddToBootstrapClassLoaderSearch((const char*)demo_name);
     check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
 }
 /* Enter a critical section by doing a JVMTI Raw Monitor Enter */
@@ -273,7 +223,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     check_jvmti_error(jvmti, error, "Cannot create raw monitor");
 
     /* Add demo jar file to boot classpath */
-    //add_demo_jar_to_bootclasspath(jvmti, "mtrace");
+    add_demo_jar_to_bootclasspath(jvmti, "mtrace.jar");
 
     
     /* We return JNI_OK to signify success */
