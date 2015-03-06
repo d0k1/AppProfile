@@ -18,7 +18,7 @@ include(CheckFunctionExists)
 set(SRC "src/main/cpp")
 #set(SRC_TEST "src/test/cpp")
 set(BIN "build")
-set(OUTPUT "lagent")
+set(OUTPUT "agent")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN})
 
 ##########################################################
@@ -27,6 +27,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN})
 find_package(PkgConfig REQUIRED)
 
 find_package(JNI REQUIRED)
+include_directories("src/java_crw_demo")
 include_directories(${JAVA_INCLUDE_PATH})
 include_directories(${JAVA_INCLUDE_PATH2})
 

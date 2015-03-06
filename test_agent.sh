@@ -6,4 +6,5 @@ CMD="-Dagent.config=agent.properties -classpath example/target/example-1.0-SNAPS
 
 echo ${CMD}
 
-java ${CMD} > result.txt
+java ${CMD} 
+#> result.txt

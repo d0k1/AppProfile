@@ -1,266 +1,281 @@
-#include <stdio.h>
-#include <string.h>
-
-#include <string>
-#include <jvmti.h>
-
 #include "globals.h"
+#include "java_crw_demo.h"
 
-// This has to be here, or the VM turns off class loading events.
-// And AsyncGetCallTrace needs class loading events to be turned on!
-void JNICALL OnClassLoad(jvmtiEnv *jvmti_env, JNIEnv *jni_env, jthread thread,
-        jclass klass) {
-    IMPLICITLY_USE(jvmti_env);
-    IMPLICITLY_USE(jni_env);
-    IMPLICITLY_USE(thread);
-    IMPLICITLY_USE(klass);
+#define MTRACE_class        Mtrace          /* Name of class we are using */
+#define MTRACE_entry        method_entry    /* Name of java entry method */
+#define MTRACE_exit         method_exit     /* Name of java exit method */
+#define MTRACE_native_entry _method_entry   /* Name of java entry native */
+#define MTRACE_native_exit  _method_exit    /* Name of java exit native */
+#define MTRACE_engaged      engaged         /* Name of java static field */
+
+
+typedef struct {
+    /* JVMTI Environment */
+    jvmtiEnv      *jvmti;
+    jboolean       vm_is_dead;
+    jboolean       vm_is_started;
+    /* Data access Lock */
+    jrawMonitorID  lock;
+} GlobalAgentData;
+
+static GlobalAgentData *gdata;
+
+void stdout_message(const char * format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    (void)vfprintf(stdout, format, ap);
+    va_end(ap);
 }
 
-// Calls GetClassMethods on a given class to force the creation of
-// jmethodIDs of it.
-void CreateJMethodIDsForClass(jvmtiEnv *jvmti, jclass klass) {
-/*
-    jint method_count;
-    JvmtiScopedPtr<jmethodID> methods(jvmti);
-    jvmtiError e = jvmti->GetClassMethods(klass, &method_count, methods.GetRef());
-    if (e != JVMTI_ERROR_NONE && e != JVMTI_ERROR_CLASS_NOT_PREPARED) {
-        // JVMTI_ERROR_CLASS_NOT_PREPARED is okay because some classes may
-        // be loaded but not prepared at this point.
-        JvmtiScopedPtr<char> ksig(jvmti);
-        JVMTI_ERROR((jvmti->GetClassSignature(klass, ksig.GetRef(), NULL)));
-        logError("Failed to create method IDs for methods in class %s with error %d ",
-                 ksig.Get(), e);
-    }
-*/
+void fatal_error(const char * format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    (void)vfprintf(stderr, format, ap);
+    (void)fflush(stderr);
+    va_end(ap);
+    exit(3);
 }
 
-void JNICALL OnVMInit(jvmtiEnv *jvmti, JNIEnv *jniEnv, jthread thread) {
-    IMPLICITLY_USE(thread);
-/*
-    // Forces the creation of jmethodIDs of the classes that had already
-    // been loaded (eg java.lang.Object, java.lang.ClassLoader) and
-    // OnClassPrepare() misses.
-    jint class_count;
-    JvmtiScopedPtr<jclass> classes(jvmti);
-    JVMTI_ERROR((jvmti->GetLoadedClasses(&class_count, classes.GetRef())));
-    jclass *classList = classes.Get();
-    for (int i = 0; i < class_count; ++i) {
-        jclass klass = classList[i];
-        CreateJMethodIDsForClass(jvmti, klass);
-    }
-    prof->start(jniEnv);
-*/
-}
+void check_jvmti_error(jvmtiEnv *jvmti, jvmtiError errnum, const char *str)
+{
+    if ( errnum != JVMTI_ERROR_NONE ) {
+        char       *errnum_str;
 
-void JNICALL OnClassPrepare(jvmtiEnv *jvmti_env, JNIEnv *jni_env,
-        jthread thread, jclass klass) {
-    IMPLICITLY_USE(jni_env);
-    IMPLICITLY_USE(thread);
-/*
-    // We need to do this to "prime the pump", as it were -- make sure
-    // that all of the methodIDs have been initialized internally, for
-    // AsyncGetCallTrace.  I imagine it slows down class loading a mite,
-    // but honestly, how fast does class loading have to be?
-*/
-    CreateJMethodIDsForClass(jvmti_env, klass);
-}
+        errnum_str = NULL;
+        (jvmti)->GetErrorName(errnum, &errnum_str);
 
-void JNICALL OnVMDeath(jvmtiEnv *jvmti_env, JNIEnv *jni_env) {
-    IMPLICITLY_USE(jvmti_env);
-    IMPLICITLY_USE(jni_env);
-/*
-    prof->stop();
-*/
-}
-
-static bool PrepareJvmti(jvmtiEnv *jvmti) {
-    // Set the list of permissions to do the various internal VM things
-    // we want to do.
-    jvmtiCapabilities caps;
-
-    memset(&caps, 0, sizeof(caps));
-    caps.can_generate_all_class_hook_events = 1;
-
-    caps.can_get_source_file_name = 1;
-    caps.can_get_line_numbers = 1;
-    caps.can_get_bytecodes = 1;
-    caps.can_get_constant_pool = 1;
-
-    jvmtiCapabilities all_caps;
-    int error;
-
-    if (JVMTI_ERROR_NONE ==
-            (error = jvmti->GetPotentialCapabilities(&all_caps))) {
-        // This makes sure that if we need a capability, it is one of the
-        // potential capabilities.  The technique isn't wonderful, but it
-        // is compact and as likely to be compatible between versions as
-        // anything else.
-        char *has = reinterpret_cast<char *>(&all_caps);
-        const char *should_have = reinterpret_cast<const char *>(&caps);
-        for (int i = 0; i < sizeof(all_caps); i++) {
-            if ((should_have[i] != 0) && (has[i] == 0)) {
-                return false;
-            }
-        }
-
-        // This adds the capabilities.
-        if ((error = jvmti->AddCapabilities(&caps)) != JVMTI_ERROR_NONE) {
-            logError("Failed to add capabilities with error %d\n", error);
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool RegisterJvmti(jvmtiEnv *jvmti) {
-    // Create the list of callbacks to be called on given events.
-    jvmtiEventCallbacks *callbacks = new jvmtiEventCallbacks();
-    memset(callbacks, 0, sizeof(jvmtiEventCallbacks));
-
-    callbacks->VMInit = &OnVMInit;
-    callbacks->VMDeath = &OnVMDeath;
-
-    callbacks->ClassLoad = &OnClassLoad;
-    callbacks->ClassPrepare = &OnClassPrepare;
-
-    JVMTI_ERROR_1(
-            (jvmti->SetEventCallbacks(callbacks, sizeof(jvmtiEventCallbacks))),
-            false);
-
-    jvmtiEvent events[] = {JVMTI_EVENT_CLASS_LOAD, JVMTI_EVENT_CLASS_PREPARE,
-            JVMTI_EVENT_VM_DEATH, JVMTI_EVENT_VM_INIT};
-
-    size_t num_events = sizeof(events) / sizeof(jvmtiEvent);
-
-    // Enable the callbacks to be triggered when the events occur.
-    // Events are enumerated in jvmstatagent.h
-    for (int i = 0; i < num_events; i++) {
-        JVMTI_ERROR_1(
-                (jvmti->SetEventNotificationMode(JVMTI_ENABLE, events[i], NULL)),
-                false);
-    }
-
-    return true;
-}
-/*
-static void parseArguments(char *options, ConfigurationOptions &configuration) {
-    configuration.initializeDefaults();
-    char* next = options;
-    for (char *key = options; next != NULL; key = next + 1) {
-        char *value = strchr(key, '=');
-        next = strchr(key, ',');
-        if (value == NULL) {
-            logError("No value for key %s\n", key);
-            continue;
-        } else {
-            value++;
-            if (strstr(key, "interval") == key) {
-                configuration.samplingInterval = atoi(value);
-            } else if (strstr(key, "logPath") == key) {
-                size_t  size = (next == 0) ? strlen(key) : (size_t) (next - value);
-                configuration.logFilePath = (char*) malloc(size * sizeof(char));
-                strncpy(configuration.logFilePath, value, size);
-            } else {
-                logError("Unknown configuration option: %s\n", key);
-            }
-        }
+        fatal_error("ERROR: JVMTI: %d(%s): %s\n", errnum,
+                (errnum_str==NULL?"Unknown":errnum_str),
+                (str==NULL?"":str));
     }
 }
-*/
-AGENTEXPORT jint JNICALL Agent_OnLoad(JavaVM *jvm, char *options, void *reserved) {
-    IMPLICITLY_USE(reserved);
-    int err;
-    jvmtiEnv *jvmti;
-//    parseArguments(options, *CONFIGURATION);
 
-    if ((err = (jvm->GetEnv(reinterpret_cast<void **>(&jvmti), JVMTI_VERSION))) !=
-            JNI_OK) {
-        logError("JVMTI initialisation Error %d\n", err);
-        return 1;
-    }
+void
+deallocate(jvmtiEnv *jvmti, void *ptr)
+{
+    jvmtiError error;
 
-    /*
-      JNIEnv *jniEnv;
-      if ((err = (vm->GetEnv(reinterpret_cast<void **>(&jniEnv),
-      JNI_VERSION_1_6))) != JNI_OK) {
-        logError("JNI Error %d\n", err);
-        return 1;
-      }
-      */
-
-    if (!PrepareJvmti(jvmti)) {
-        logError("Failed to initialize JVMTI.  Continuing...\n");
-        return 0;
-    }
-
-    if (!RegisterJvmti(jvmti)) {
-//        logError("Failed to enable JVMTI events.  Continuing...\n");
-        // We fail hard here because we may have failed in the middle of
-        // registering callbacks, which will leave the system in an
-        // inconsistent state.
-        return 1;
-    }
-
-//    Asgct::SetAsgct(Accessors::GetJvmFunction<ASGCTType>("AsyncGetCallTrace"));
-
-//    prof = new Profiler(jvm, jvmti, CONFIGURATION);
-
-    return 0;
+    error = (jvmti)->Deallocate((unsigned char *)ptr);
+    check_jvmti_error(jvmti, error, "Cannot deallocate memory");
 }
 
-AGENTEXPORT jint JNICALL Agent_OnAttach(JavaVM *jvm, char *options, void *reserved) {
-    IMPLICITLY_USE(reserved);
-    int err;
-    jvmtiEnv *jvmti;
-//    parseArguments(options, *CONFIGURATION);
+/* Allocation of JVMTI managed memory */
+void *
+allocate(jvmtiEnv *jvmti, jint len)
+{
+    jvmtiError error;
+    void      *ptr;
 
-    if ((err = (jvm->GetEnv(reinterpret_cast<void **>(&jvmti), JVMTI_VERSION))) !=
-            JNI_OK) {
-        logError("JVMTI initialisation Error %d\n", err);
-        return 1;
+    error = (jvmti)->Allocate(len, (unsigned char **)&ptr);
+    check_jvmti_error(jvmti, error, "Cannot allocate memory");
+    return ptr;
+}
+
+void
+add_demo_jar_to_bootclasspath(jvmtiEnv *jvmti, char *demo_name)
+{
+    jvmtiError error;
+    char      *file_sep;
+    int        max_len;
+    char      *java_home;
+    char       jar_path[FILENAME_MAX+1];
+
+    java_home = NULL;
+    error = (jvmti)->GetSystemProperty("java.home", &java_home);
+    check_jvmti_error(jvmti, error, "Cannot get java.home property value");
+    if ( java_home == NULL || java_home[0] == 0 ) {
+        fatal_error("ERROR: Java home not found\n");
     }
 
-    /*
-      JNIEnv *jniEnv;
-      if ((err = (vm->GetEnv(reinterpret_cast<void **>(&jniEnv),
-      JNI_VERSION_1_6))) != JNI_OK) {
-        logError("JNI Error %d\n", err);
-        return 1;
-      }
-      */
+#ifdef WIN32
+    file_sep = "\\";
+#else
+    file_sep = "/";
+#endif
 
-    if (!PrepareJvmti(jvmti)) {
-        logError("Failed to initialize JVMTI.  Continuing...\n");
-        return 0;
+    max_len = (int)(strlen(java_home) + strlen(demo_name)*2 +
+                         strlen(file_sep)*5 +
+                         16 /* ".." "demo" "jvmti" ".jar" NULL */ );
+    if ( max_len > (int)sizeof(jar_path) ) {
+        fatal_error("ERROR: Path to jar file too long\n");
+    }
+    (void)strcpy(jar_path, java_home);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "demo");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "jvmti");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, ".jar");
+    error = (jvmti)->AddToBootstrapClassLoaderSearch((const char*)jar_path);
+    check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
+
+    (void)strcpy(jar_path, java_home);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "..");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "demo");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "jvmti");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, ".jar");
+
+    error = (jvmti)->AddToBootstrapClassLoaderSearch((const char*)jar_path);
+    check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
+}
+/* Enter a critical section by doing a JVMTI Raw Monitor Enter */
+static void enter_critical_section(jvmtiEnv *jvmti)
+{
+    jvmtiError error;
+
+    error = jvmti->RawMonitorEnter(gdata->lock);
+    check_jvmti_error(jvmti, error, "Cannot enter with raw monitor");
+}
+
+/* Exit a critical section by doing a JVMTI Raw Monitor Exit */
+static void exit_critical_section(jvmtiEnv *jvmti)
+{
+    jvmtiError error;
+
+    error = jvmti->RawMonitorExit(gdata->lock);
+    check_jvmti_error(jvmti, error, "Cannot exit with raw monitor");
+}
+
+static void MTRACE_native_entry(JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum)
+{
+}
+
+static void MTRACE_native_exit(JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum)
+{
+}
+
+static void JNICALL cbVMStart(jvmtiEnv *jvmti, JNIEnv *env)
+{
+}
+
+static void JNICALL cbVMInit(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
+{
+}
+
+static void JNICALL cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
+{
+}
+
+static void JNICALL cbThreadStart(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
+{
+}
+
+static void JNICALL cbThreadEnd(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
+{
+}
+
+static void JNICALL cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env, jclass class_being_redefined, jobject loader, const char* name, jobject protection_domain, jint class_data_len, const unsigned char* class_data, jint* new_class_data_len, unsigned char** new_class_data)
+{
+}
+
+JNIEXPORT void JNICALL
+Agent_OnUnload(JavaVM *vm)
+{
+}
+
+JNIEXPORT jint JNICALL
+Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+{
+    static GlobalAgentData data;
+    jvmtiEnv              *jvmti;
+    jvmtiError             error;
+    jint                   res;
+    jvmtiCapabilities      capabilities;
+    jvmtiEventCallbacks    callbacks;
+
+        /* Setup initial global agent data area
+     *   Use of static/extern data should be handled carefully here.
+     *   We need to make sure that we are able to cleanup after ourselves
+     *     so anything allocated in this library needs to be freed in
+     *     the Agent_OnUnload() function.
+     */
+    (void)memset((void*)&data, 0, sizeof(data));
+    gdata = &data;
+
+    /* First thing we need to do is get the jvmtiEnv* or JVMTI environment */
+    res = vm->GetEnv((void **)&jvmti, JVMTI_VERSION_1);
+    if (res != JNI_OK) {
+        /* This means that the VM was unable to obtain this version of the
+         *   JVMTI interface, this is a fatal error.
+         */
+        fatal_error("ERROR: Unable to access JVMTI Version 1 (0x%x),"
+                " is your JDK a 5.0 or newer version?"
+                " JNIEnv's GetEnv() returned %d\n",
+               JVMTI_VERSION_1, res);
     }
 
-    if (!RegisterJvmti(jvmti)) {
-//        logError("Failed to enable JVMTI events.  Continuing...\n");
-        // We fail hard here because we may have failed in the middle of
-        // registering callbacks, which will leave the system in an
-        // inconsistent state.
-        return 1;
-    }
+    /* Here we save the jvmtiEnv* for Agent_OnUnload(). */
+    gdata->jvmti = jvmti;
 
-//    Asgct::SetAsgct(Accessors::GetJvmFunction<ASGCTType>("AsyncGetCallTrace"));
+        /* Immediately after getting the jvmtiEnv* we need to ask for the
+     *   capabilities this agent will need. In this case we need to make
+     *   sure that we can get all class load hooks.
+     */
+    (void)memset(&capabilities,0, sizeof(capabilities));
+    capabilities.can_generate_all_class_hook_events  = 1;
+    error = (jvmti)->AddCapabilities(&capabilities);
+    check_jvmti_error(jvmti, error, "Unable to get necessary JVMTI capabilities.");
 
-//    prof = new Profiler(jvm, jvmti, CONFIGURATION);
+    /* Next we need to provide the pointers to the callback functions to
+     *   to this jvmtiEnv*
+     */
+    (void)memset(&callbacks,0, sizeof(callbacks));
+    /* JVMTI_EVENT_VM_START */
+    callbacks.VMStart           = &cbVMStart;
+    /* JVMTI_EVENT_VM_INIT */
+    callbacks.VMInit            = &cbVMInit;
+    /* JVMTI_EVENT_VM_DEATH */
+    callbacks.VMDeath           = &cbVMDeath;
+    /* JVMTI_EVENT_CLASS_FILE_LOAD_HOOK */
+    callbacks.ClassFileLoadHook = &cbClassFileLoadHook;
+    /* JVMTI_EVENT_THREAD_START */
+    callbacks.ThreadStart       = &cbThreadStart;
+    /* JVMTI_EVENT_THREAD_END */
+    callbacks.ThreadEnd         = &cbThreadEnd;
+    error = (jvmti)->SetEventCallbacks(&callbacks, (jint)sizeof(callbacks));
+    check_jvmti_error(jvmti, error, "Cannot set jvmti callbacks");
 
-    return 0;
-}
-AGENTEXPORT void JNICALL Agent_OnUnload(JavaVM *vm) {
-    IMPLICITLY_USE(vm);
-}
-/*
-void bootstrapHandle(int signum, siginfo_t *info, void *context) {
-//    prof->handle(signum, info, context);
-}
-*/
+    /* At first the only initial events we are interested in are VM
+     *   initialization, VM death, and Class File Loads.
+     *   Once the VM is initialized we will request more events.
+     */
+    error = (jvmti)->SetEventNotificationMode(JVMTI_ENABLE,
+                          JVMTI_EVENT_VM_START, (jthread)NULL);
+    check_jvmti_error(jvmti, error, "Cannot set event notification");
+    error = (jvmti)->SetEventNotificationMode(JVMTI_ENABLE,
+                          JVMTI_EVENT_VM_INIT, (jthread)NULL);
+    check_jvmti_error(jvmti, error, "Cannot set event notification");
+    error = (jvmti)->SetEventNotificationMode(JVMTI_ENABLE,
+                          JVMTI_EVENT_VM_DEATH, (jthread)NULL);
+    check_jvmti_error(jvmti, error, "Cannot set event notification");
+    error = (jvmti)->SetEventNotificationMode(JVMTI_ENABLE,
+                          JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, (jthread)NULL);
+    check_jvmti_error(jvmti, error, "Cannot set event notification");
 
-void logError(const char *__restrict format, ...) {
-    va_list arg;
+    /* Here we create a raw monitor for our use in this agent to
+     *   protect critical sections of code.
+     */
+    error = (jvmti)->CreateRawMonitor("agent data", &(gdata->lock));
+    check_jvmti_error(jvmti, error, "Cannot create raw monitor");
 
-    va_start(arg, format);
-    fprintf(stderr, format, arg);
-    va_end(arg);
+    /* Add demo jar file to boot classpath */
+    //add_demo_jar_to_bootclasspath(jvmti, "mtrace");
+
+    
+    /* We return JNI_OK to signify success */
+    return JNI_OK;
 }
