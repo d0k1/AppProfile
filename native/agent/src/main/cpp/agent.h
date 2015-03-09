@@ -14,8 +14,6 @@
 
 /* Utility functions */
 
-#include "../../agent_util/agent_util.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +25,11 @@ void  check_jvmti_error(jvmtiEnv *jvmti, jvmtiError errnum, const char *str);
 void  deallocate(jvmtiEnv *jvmti, void *ptr);
 void *allocate(jvmtiEnv *jvmti, jint len);
 */
+JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1entry(JNIEnv *, jclass, jobject, jint, jint);
+JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1exit(JNIEnv *, jclass, jobject, jint, jint);
+
+JNIEXPORT void JNICALL Java_Mtrace__1method_1entry(JNIEnv *, jclass, jobject, jint, jint);
+JNIEXPORT void JNICALL Java_Mtrace__1method_1exit(JNIEnv *, jclass, jobject, jint, jint);
 
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);

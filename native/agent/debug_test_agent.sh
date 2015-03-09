@@ -4,6 +4,6 @@ CMD="-Dagent.config=agent.properties -classpath ../../example/target/example-1.0
 
 echo ${CMD}
 
-/home/doki/source/jdk8u-dev/build/linux-x86_64-normal-server-slowdebug/jdk/bin/java -d64 -Xcheck:jni -Xverify:all -agentpath:/home/doki/source/agent/native/agent/build/libagent.so ${CMD} 
+/home/doki/source/jdk8u-dev/build/linux-x86_64-normal-server-slowdebug/jdk/bin/java -d64 -Xcheck:jni -Xverify:all -agentpath:/home/doki/source/agent/native/agent/build/libbond.so ${CMD} 
 
 #> result.txt
