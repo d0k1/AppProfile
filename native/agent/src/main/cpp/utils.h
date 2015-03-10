@@ -17,33 +17,20 @@
  *
  */
 
-#ifndef SIMPLECALLCOUNTERPROFILER_H
-#define SIMPLECALLCOUNTERPROFILER_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#include "abstracttracingprofiler.h"
-#include <map>
-#include "javamethodinfo.h"
+#include <vector>
+#include <string>
+#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
-
-struct CallStatistics final {
-  unsigned int callCount;
-  unsigned int returnCount;
-  JavaMethodInfo *method;
-};
-
-class SimpleCallCounterProfiler final : public AbstractTracingProfiler 
+using namespace boost;
+class Utils
 {
 public:
-  SimpleCallCounterProfiler();
-  virtual void methodEntry(int cnum, int mnum) override;
-  virtual void methodExit(int cnum, int mnum) override;
-  virtual void printOnExit() override;
-  
-  virtual void methodInstrumented(JavaMethodInfo *info) override;
-  virtual void threadStarted(JavaThreadInfo *info);
-private:
-  map<pthread_t, map<unsigned long, CallStatistics>*> statByThread;
+  static vector<string> splitString(string value, const char *separator);
 };
 
-#endif // SIMPLECALLCOUNTERPROFILER_H
+#endif // UTILS_H

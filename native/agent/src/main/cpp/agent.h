@@ -33,7 +33,7 @@ JNIEXPORT void JNICALL Java_Mtrace__1method_1exit(JNIEnv *, jclass, jobject, jin
 
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
 JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);
-
+JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char *options, void *reserved);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */

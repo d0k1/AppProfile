@@ -27,6 +27,7 @@
 #include "javathreadinfo.h"
 #include <sys/types.h>
 #include <pthread.h>
+#include "agentoptions.h"
 
 using namespace std;
 
@@ -54,7 +55,10 @@ public:
   JavaThreadInfo getCurrentThreadInfo();
   
   string getEnvVariable(string name);
+  
+  AgentOptions *getOptions();
 private:
+  AgentOptions *options;
   int loadedClasses;
   
   jvmtiEnv *jvmti;

@@ -26,17 +26,25 @@ SimpleCallCounterProfiler::SimpleCallCounterProfiler(){
 }
 
 void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
+  /*
   CallStatistics stat;
   stat.callCount=0;
   stat.returnCount=0;
   stat.method = info;
   statistics.emplace(info->getMethodId(), stat);
+  */
 }
 
 void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum){
   getRuntime()->agentGlobalLock();
   
   JavaMethodInfo *method = getClasses()->getMethodInfo(cnum, mnum);
+  auto it = statByThread.find(getRuntime()->getCurrentThreadInfo().getProcessTid());
+  if(it==statByThread.end()){
+  } else {
+    
+  }
+  //statByThread.at(getRuntime()->getCurrentThreadInfo().getProcessTid()
   statistics.at(method->getMethodId()).callCount++;
   
   getRuntime()->agentGlobalUnlock();
@@ -78,4 +86,8 @@ void SimpleCallCounterProfiler::printOnExit(){
   cout << "Total calls processed " << total<<endl;
   
   getRuntime()->agentGlobalUnlock();
+}
+
+void SimpleCallCounterProfiler::threadStarted ( JavaThreadInfo* info) {
+  //statByThread.emplace(info->getProcessTid(), new map<unsigned long, CallStatistics>());
 }

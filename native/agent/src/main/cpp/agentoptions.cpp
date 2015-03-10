@@ -18,10 +18,14 @@
  */
 
 #include "agentoptions.h"
+#include "utils.h"
 #include <iostream>
+#include <regex>
+#include <boost/algorithm/string.hpp>
 
-AgentOptions::AgentOptions(string properties){
+AgentOptions::AgentOptions(string filename){
   options_description desc("Options");
+  variables_map vm;
   
   desc.add_options()("agent.exclude", boost::program_options::value<std::string>(&agentExclude));
   desc.add_options()("agent.exclude.ingore", boost::program_options::value<std::string>(&agentExcludeIgnore));
@@ -29,8 +33,68 @@ AgentOptions::AgentOptions(string properties){
   desc.add_options()("agent.include.ingore", boost::program_options::value<std::string>(&agentIncludeIgnore));
   desc.add_options()("agent.appId", boost::program_options::value<std::string>(&appId));
   
-  ifstream settings_file( properties , std::ifstream::in );
-  store( parse_config_file( settings_file , desc ), vm );
+  ifstream settings_file( filename , std::ifstream::in );
+  store( parse_config_file( settings_file , desc, true ), vm );
   notify( vm );    
   settings_file.close();
+  
+  excludes = Utils::splitString(agentExclude, ",");
+  cout << "excludes.size = " <<excludes.size()<<endl;
+
+  excludesIgnore = Utils::splitString(agentExcludeIgnore, ",");
+  cout << "excludesIgnore.size = " <<excludesIgnore.size()<<endl;
+
+  includes = Utils::splitString(agentInclude, ",");
+  cout << "includes.size = " <<includes.size()<<endl;
+
+  includesIgnore = Utils::splitString(agentIncludeIgnore, ",");
+  cout << "includesIgnore.size = " <<includesIgnore.size()<<endl; 
+}
+
+bool matchMask(string value, string regexp){
+  if(regexp.length()<3 || !boost::algorithm::starts_with(regexp, ".*")){
+    return false;
+  }
+  regex e(regexp);
+  
+  return regex_match(value, e);
+}
+bool AgentOptions::isClassExcluded(const char *klass){
+  string className(klass);
+  boost::algorithm::replace_all<string>(className, "/", ".");
+  bool skip = false;
+
+  for(auto it=excludes.begin();it!=excludes.end();++it){
+    if (boost::algorithm::starts_with(className, *it) || *it == "*" || matchMask(className, *it)){
+      skip = true;
+      break;
+    }
+  }
+
+  for(auto it=excludesIgnore.begin();it!=excludesIgnore.end();++it){
+    if(boost::algorithm::starts_with(className, *it)){
+      skip = false;
+      break;
+    }
+  }
+  
+  for(auto it=includes.begin();it!=includes.end();++it){
+    if (boost::algorithm::starts_with(className, *it) || *it == "*" || matchMask(className, *it)){
+      skip = false;
+      break;
+    } else {
+      if(!skip){
+	skip = true;
+      }
+    }
+  }
+  
+  for(auto it=includesIgnore.begin();it!=includesIgnore.end();++it){
+    if(boost::algorithm::starts_with(className, *it)){
+      skip = false;
+      break;
+    }
+  }
+
+  return skip;
 }

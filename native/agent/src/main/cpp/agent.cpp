@@ -257,7 +257,10 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
             *new_class_data     = NULL;
 
             // The tracker class itself? 
-            if ( /*interested((char*)classname, "", gdata->include, gdata->exclude) &&  */strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
+            if ( !runtime->getOptions()->isClassExcluded(classname) && strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
+		
+		cout << classname << " instrumenting " << endl;
+		
                 jint           cnum;
                 int            system_class;
                 unsigned char *new_image;
@@ -325,6 +328,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     }
 
     runtime = new AgentRuntime ( jvmti );
+    
     tracingProfiler->setData ( runtime, classes, threads );
 
     ( void ) memset ( &capabilities,0, sizeof ( capabilities ) );

@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  Denis V. Kirpichenkov <email>
+ * Copyright (C) 2015  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,36 +17,16 @@
  *
  */
 
-#ifndef AGENTOPTIONS_H
-#define AGENTOPTIONS_H
+#include "utils.h"
 
-#include <boost/program_options.hpp>
-#include <iostream>
-#include <fstream>
+vector<string> Utils::splitString(string value, const char *separator){
+  vector<string> res;
+  typedef tokenizer<char_separator<char> > tokenizer;
+  char_separator<char> sepa(separator);
+  tokenizer tokens(value, sepa);
+  for (const auto& t : tokens) {
+    res.push_back(string(t));
+  }
 
-using namespace boost::program_options;
-using namespace std;
-
-class AgentOptions
-{
-public:
-  AgentOptions(string filename);    
-
-  bool isClassExcluded(const char *klass);
-  bool test(){return false;};
-private:
-  
-  string agentExclude;
-  string agentExcludeIgnore;
-  string agentInclude;
-  string agentIncludeIgnore;
-  string appId;
-  
-  vector<string> excludes;
-  vector<string> excludesIgnore;
-  
-  vector<string> includes;
-  vector<string> includesIgnore;
-};
-
-#endif // AGENTOPTIONS_H
+  return res;
+}

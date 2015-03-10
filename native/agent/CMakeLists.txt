@@ -26,7 +26,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN})
 # Libraries & Code
 
 find_package(PkgConfig REQUIRED)
-FIND_PACKAGE( Boost 1.55 COMPONENTS program_options REQUIRED )
+FIND_PACKAGE( Boost 1.55 COMPONENTS program_options system REQUIRED )
 
 find_package(JNI REQUIRED)
 include_directories("src/java_crw_demo")
@@ -35,7 +35,7 @@ include_directories(${JAVA_INCLUDE_PATH2})
 include_directories( ${Boost_INCLUDE_DIR} )
 
 set(SOURCE_FILES
-    ${SRC}/agent.cpp ${SRC}/agentoptions.cpp  ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c)
+    ${SRC}/agent.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c)
 
 
 ##########################################################

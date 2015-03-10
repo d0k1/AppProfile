@@ -23,9 +23,20 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
+AgentOptions *AgentRuntime::getOptions(){
+  return options;
+}
+
 string AgentRuntime::getEnvVariable(string name)
 {
-  return "";
+  agentGlobalLock();
+  char *value;
+  jvmtiError error = ( jvmti )->GetSystemProperty(name.c_str(), &value);
+  JVMTIExitIfError(error, "Cannot get environment value" );
+  string result(value);
+  JVMTIFree(value);
+  agentGlobalUnlock();
+  return result;
 }
 
 void AgentRuntime::VmStarted(){
@@ -59,9 +70,13 @@ void AgentRuntime::agentGlobalUnlock(){
 }
 
 AgentRuntime::AgentRuntime( jvmtiEnv* jvmti ):jvmti(jvmti),vm_dead(false),vm_started(false) {
-  auto error = ( jvmti )->CreateRawMonitor ( "agenGlobalLock", & ( lock ) );
+  auto error = ( jvmti )->CreateRawMonitor ( "agentGlobalLock", & ( lock ) );
   
   JVMTIExitIfError(error, "Cannot create raw monitor" );  
+  
+  string propertiesFile = getEnvVariable("agent.config");
+  
+  options = new AgentOptions(propertiesFile);
 }
 
 JavaThreadInfo AgentRuntime::getThreadInfo(jthread thread){
@@ -85,7 +100,7 @@ JavaThreadInfo AgentRuntime::getThreadInfo(jthread thread){
 
 JavaThreadInfo getCurrentThreadInfo(){
   auto ptid = pthread_self();
-  auto stid = (pid_t)syscall(__NR_gettid);
+  auto stid = -1;//(pid_t)syscall(__NR_gettid);
   
   return JavaThreadInfo(stid, ptid);
 }
