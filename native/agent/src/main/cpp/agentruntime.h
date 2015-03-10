@@ -52,6 +52,8 @@ public:
   
   JavaThreadInfo getThreadInfo(jthread thread);
   JavaThreadInfo getCurrentThreadInfo();
+  
+  string getEnvVariable(string name);
 private:
   int loadedClasses;
   

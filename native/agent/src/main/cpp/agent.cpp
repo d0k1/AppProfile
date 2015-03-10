@@ -234,12 +234,12 @@ static void JNICALL cbThreadEnd ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread )
 static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass class_being_redefined, jobject loader, const char* name, jobject protection_domain, jint class_data_len, const unsigned char* class_data, jint* new_class_data_len, unsigned char** new_class_data ) {
     runtime->agentGlobalLock();
     {
-        /* It's possible we get here right after VmDeath event, be careful */
+        // It's possible we get here right after VmDeath event, be careful
         if ( !runtime->isVmDead() ) {
 
             const char *classname;
 
-            /* Name could be NULL */
+            // Name could be NULL
             if ( name == NULL ) {
                 classname = java_crw_demo_classname ( class_data, class_data_len,
                                                       NULL );
@@ -256,9 +256,8 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
             *new_class_data_len = 0;
             *new_class_data     = NULL;
 
-            /* The tracker class itself? */
-            if ( /*interested((char*)classname, "", gdata->include, gdata->exclude)
-                  &&  */strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
+            // The tracker class itself? 
+            if ( /*interested((char*)classname, "", gdata->include, gdata->exclude) &&  */strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
                 jint           cnum;
                 int            system_class;
                 unsigned char *new_image;
@@ -266,10 +265,7 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
 
                 cnum = classes->addClass ( classname );
 
-                /* Is it a system class? If the class load is before VmStart
-                 *   then we will consider it a system class that should
-                 *   be treated carefully. (See java_crw_demo)
-                 */
+                //  Is it a system class? If the class load is before VmStart then we will consider it a system class that should be treated carefully. (See java_crw_demo)
                 system_class = 0;
                 if ( !runtime->isVmStarted() ) {
                     system_class = 1;
@@ -278,7 +274,6 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
                 new_image = NULL;
                 new_length = 0;
 
-                /* Call the class file reader/write demo code */
                 java_crw_demo ( cnum,
                                 classname,
                                 class_data,
@@ -294,21 +289,18 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
                                 NULL,
                                 &mnum_callbacks );
 
-                /* If we got back a new class image, return it back as "the"
-                 *   new class image. This must be JVMTI Allocate space.
-                 */
+                // If we got back a new class image, return it back as "the" new class image. This must be JVMTI Allocate space.                
                 if ( new_length > 0 ) {
                     unsigned char *jvmti_space;
 
                     jvmti_space = ( unsigned char * ) runtime->JVMTIAllocate ( ( jint ) new_length );
                     ( void ) memcpy ( ( void* ) jvmti_space, ( void* ) new_image, ( int ) new_length );
                     *new_class_data_len = ( jint ) new_length;
-                    *new_class_data     = jvmti_space; /* VM will deallocate */
+                    *new_class_data = jvmti_space; 
                 }
 
-                /* Always free up the space we get from java_crw_demo() */
                 if ( new_image != NULL ) {
-                    ( void ) free ( ( void* ) new_image ); /* Free malloc() space with free() */
+                    ( void ) free ( ( void* ) new_image ); 
                 }
             }
             ( void ) free ( ( void* ) classname );
@@ -317,9 +309,6 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
     runtime->agentGlobalUnlock();
 }
 
-/* Agent_OnLoad: This is called immediately after the shared library is
- *   loaded. This is the first code executed.
- */
 JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved ) {
     jvmtiEnv              *jvmti;
     jvmtiError             error;
@@ -327,12 +316,8 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     jvmtiCapabilities      capabilities;
     jvmtiEventCallbacks    callbacks;
 
-    /* First thing we need to do is get the jvmtiEnv* or JVMTI environment */
     res = ( vm )->GetEnv ( ( void ** ) &jvmti, JVMTI_VERSION_1 );
     if ( res != JNI_OK ) {
-        /* This means that the VM was unable to obtain this version of the
-         *   JVMTI interface, this is a fatal error.
-         */
         fatal_error ( "ERROR: Unable to access JVMTI Version 1 (0x%x),"
                       " is your JDK a 5.0 or newer version?"
                       " JNIEnv's GetEnv() returned %d\n",
@@ -342,90 +327,38 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     runtime = new AgentRuntime ( jvmti );
     tracingProfiler->setData ( runtime, classes, threads );
 
-    /* Parse any options supplied on java command line */
-//    parse_agent_options ( options );
-
-    /* Immediately after getting the jvmtiEnv* we need to ask for the
-     *   capabilities this agent will need. In this case we need to make
-     *   sure that we can get all class load hooks.
-     */
     ( void ) memset ( &capabilities,0, sizeof ( capabilities ) );
     capabilities.can_generate_all_class_hook_events  = 1;
     error = ( jvmti )->AddCapabilities ( &capabilities );
     runtime->JVMTIExitIfError ( error, "Unable to get necessary JVMTI capabilities." );
 
-    /* Next we need to provide the pointers to the callback functions to
-     *   to this jvmtiEnv*
-     */
     ( void ) memset ( &callbacks,0, sizeof ( callbacks ) );
-    /* JVMTI_EVENT_VM_START */
     callbacks.VMStart           = &cbVMStart;
-    /* JVMTI_EVENT_VM_INIT */
     callbacks.VMInit            = &cbVMInit;
-    /* JVMTI_EVENT_VM_DEATH */
     callbacks.VMDeath           = &cbVMDeath;
-    /* JVMTI_EVENT_CLASS_FILE_LOAD_HOOK */
     callbacks.ClassFileLoadHook = &cbClassFileLoadHook;
-    /* JVMTI_EVENT_THREAD_START */
     callbacks.ThreadStart       = &cbThreadStart;
-    /* JVMTI_EVENT_THREAD_END */
     callbacks.ThreadEnd         = &cbThreadEnd;
     error = ( jvmti )->SetEventCallbacks ( &callbacks, ( jint ) sizeof ( callbacks ) );
     runtime->JVMTIExitIfError ( error, "Cannot set jvmti callbacks" );
 
-    /* At first the only initial events we are interested in are VM
-     *   initialization, VM death, and Class File Loads.
-     *   Once the VM is initialized we will request more events.
-     */
-    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE,
-            JVMTI_EVENT_VM_START, ( jthread ) NULL );
+    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_VM_START, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
-    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE,
-            JVMTI_EVENT_VM_INIT, ( jthread ) NULL );
+    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_VM_INIT, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
-    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE,
-            JVMTI_EVENT_VM_DEATH, ( jthread ) NULL );
+    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_VM_DEATH, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
-    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE,
-            JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, ( jthread ) NULL );
+    error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
 
-    /* Add demo jar file to boot classpath */
     runtime->JVMTIAddJarToClasspath ( "mtrace.jar" );
 
-    /* We return JNI_OK to signify success */
     return JNI_OK;
 }
 
-/* Agent_OnUnload: This is called immediately before the shared library is
- *   unloaded. This is the last code executed.
- */
+JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char *options, void *reserved){
+  return Agent_OnLoad(vm, options, reserved);
+}
+
 JNIEXPORT void JNICALL Agent_OnUnload ( JavaVM *vm ) {
-    /* Make sure all malloc/calloc/strdup space is freed */
-    /*
-        if ( gdata->classes != NULL ) {
-            int cnum;
-
-            for ( cnum = 0 ; cnum < gdata->ccount ; cnum++ ) {
-                ClassInfo *cp;
-
-                cp = gdata->classes + cnum;
-                ( void ) free ( ( void* ) cp->name );
-                if ( cp->mcount > 0 ) {
-                    int mnum;
-
-                    for ( mnum = 0 ; mnum < cp->mcount ; mnum++ ) {
-                        MethodInfo *mp;
-
-                        mp = cp->methods + mnum;
-                        ( void ) free ( ( void* ) mp->name );
-                        ( void ) free ( ( void* ) mp->signature );
-                    }
-                    ( void ) free ( ( void* ) cp->methods );
-                }
-            }
-            ( void ) free ( ( void* ) gdata->classes );
-            gdata->classes = NULL;
-        }
-    */
 }

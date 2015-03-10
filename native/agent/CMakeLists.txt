@@ -26,14 +26,16 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN})
 # Libraries & Code
 
 find_package(PkgConfig REQUIRED)
+FIND_PACKAGE( Boost 1.55 COMPONENTS program_options REQUIRED )
 
 find_package(JNI REQUIRED)
 include_directories("src/java_crw_demo")
 include_directories(${JAVA_INCLUDE_PATH})
 include_directories(${JAVA_INCLUDE_PATH2})
+include_directories( ${Boost_INCLUDE_DIR} )
 
 set(SOURCE_FILES
-    ${SRC}/agent.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c)
+    ${SRC}/agent.cpp ${SRC}/agentoptions.cpp  ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c)
 
 
 ##########################################################
@@ -55,4 +57,4 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}")
 set(STATIC_LIBS "libgcc libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS "-static ${STATIC_LIBS}") 
 add_library(${OUTPUT} SHARED ${SOURCE_FILES})
-target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} c stdc++ dl)
+target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} ${Boost_LIBRARIES} c stdc++ dl)

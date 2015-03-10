@@ -4,7 +4,6 @@ CMD="-Dagent.config=agent.properties -classpath ../../example/target/example-1.0
 
 echo ${CMD}
 
-#/usr/lib/jvm/java-7-oracle/bin/java -d64 -Xcheck:jni -Xverify:all -agentpath:/home/doki/source/agent/native/agent/build/libagent.so ${CMD} 
-/usr/lib/jvm/java-8-oracle/bin/java -agentpath:/home/doki/source/agent/native/agent/build/libbond.so -version
+/usr/lib/jvm/java-7-oracle/bin/java -agentpath:./build/libbond.so -version
 
 #> result.txt

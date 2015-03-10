@@ -23,6 +23,11 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
+string AgentRuntime::getEnvVariable(string name)
+{
+  return "";
+}
+
 void AgentRuntime::VmStarted(){
   vm_started = true;
 }
