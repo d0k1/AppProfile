@@ -29,8 +29,9 @@ void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
 }
 
 void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){  
-  //auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = (unsigned long)(*(long *)thread);
+  auto info = getRuntime()->getCurrentThreadInfo();
+  unsigned long threadKey = info.getProcessTid();
+  //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
   map<unsigned long, CallStatistics*> *stat = nullptr;
@@ -58,8 +59,9 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
 }
 
 void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
-  //auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = (unsigned long)*(long *)thread;
+  auto info = getRuntime()->getCurrentThreadInfo();
+  unsigned long threadKey = info.getProcessTid();
+  //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
   map<unsigned long, CallStatistics*> *stat = nullptr;
@@ -117,8 +119,8 @@ void SimpleCallCounterProfiler::printOnExit(){
 }
 
 void SimpleCallCounterProfiler::threadStarted(jobject thread){
-  auto stat = new map<unsigned long, CallStatistics*>();
-  statByThread.emplace((unsigned long)*(long *)thread, stat);
+//  auto stat = new map<unsigned long, CallStatistics*>();
+//  statByThread.emplace((unsigned long)*(long *)thread, stat);
 }
 
 void SimpleCallCounterProfiler::threadStopped(jobject thread){

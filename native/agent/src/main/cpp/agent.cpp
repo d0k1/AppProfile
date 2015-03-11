@@ -44,28 +44,21 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
     }
 }
 
-/* Java Native Method for entry */
-static void MTRACE_native_entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    tracingProfiler->methodEntry ( cnum, mnum, thread );
+//https://bugs.openjdk.java.net/browse/JDK-7013347
+JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1entry ( jint cnum, jint mnum ) {
+  tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
-/* Java Native Method for exit */
-static void MTRACE_native_exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    tracingProfiler->methodExit ( cnum, mnum, thread );
-}
-
-JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    MTRACE_native_entry ( env, klass, thread, cnum, mnum );
-}
-JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    MTRACE_native_exit ( env, klass, thread, cnum, mnum );
+//https://bugs.openjdk.java.net/browse/JDK-7013347
+JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1exit ( jint cnum, jint mnum ) {
+  tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
 JNIEXPORT void JNICALL Java_Mtrace__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    MTRACE_native_entry ( env, klass, thread, cnum, mnum );
+  tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 JNIEXPORT void JNICALL Java_Mtrace__1method_1exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    MTRACE_native_exit ( env, klass, thread, cnum, mnum );
+  tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
 /* Callback for JVMTI_EVENT_VM_START */
@@ -79,7 +72,8 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
         /* Java Native Methods for class */
 
         static JNINativeMethod registry[4] = {
-            {
+
+	    {
                 STRING ( MTRACE_native_entry ), "(Ljava/lang/Object;II)V",
                 ( void* ) &JavaCritical_Mtrace__1method_1entry
             },
@@ -91,6 +85,7 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
                 STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
                 ( void* ) &JavaCritical_Mtrace__1method_1exit
             },
+	    
             {
                 STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
                 ( void* ) &Java_Mtrace__1method_1exit
@@ -260,7 +255,7 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
             // The tracker class itself? 
             if ( !runtime->getOptions()->isClassExcluded(classname) && strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
 		
-		cout << classname << " instrumenting " << endl;
+		//cout << classname << " instrumenting " << endl;
 		
                 jint           cnum;
                 int            system_class;
