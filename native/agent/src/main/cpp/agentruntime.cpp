@@ -98,7 +98,7 @@ JavaThreadInfo AgentRuntime::getThreadInfo(jthread thread){
   return JavaThreadInfo(name, stid, ptid);
 }
 
-JavaThreadInfo getCurrentThreadInfo(){
+JavaThreadInfo AgentRuntime::getCurrentThreadInfo(){
   auto ptid = pthread_self();
   auto stid = -1;//(pid_t)syscall(__NR_gettid);
   

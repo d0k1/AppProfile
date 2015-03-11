@@ -19,6 +19,10 @@
 
 #include "javaclassesinfo.h"
 
+JavaMethodInfo *JavaClassesInfo::getMethodById(unsigned long id){
+  return methods.at(id);
+}
+
 JavaClassesInfo::JavaClassesInfo():methodsCounter(0){
 }
 
@@ -45,11 +49,19 @@ string JavaClassesInfo::getClass(unsigned int id){
 }
 
 JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, string methodName, string methodSignature){
-  return classes[classId]->addMethod(methodName, methodSignature, methodsCounter++);
+  unsigned long id = methodsCounter++;
+  
+  auto result = classes[classId]->addMethod(methodName, methodSignature, id);
+  methods.emplace(id, result);
+  return result;
 }
 
 JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, const char *methodName, const char *methodSignature){
-  return classes[classId]->addMethod(methodName, methodSignature, methodsCounter++);
+  unsigned long id = methodsCounter++;
+  
+  auto result = classes[classId]->addMethod(methodName, methodSignature, id);
+  methods.emplace(id, result);
+  return result;
 }
 
 JavaMethodInfo *JavaClassesInfo::getMethodInfo(unsigned int classId, unsigned int methodId){

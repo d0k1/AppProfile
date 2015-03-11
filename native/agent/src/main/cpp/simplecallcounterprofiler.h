@@ -29,21 +29,21 @@ using namespace std;
 struct CallStatistics final {
   unsigned int callCount;
   unsigned int returnCount;
-  JavaMethodInfo *method;
 };
 
 class SimpleCallCounterProfiler final : public AbstractTracingProfiler 
 {
 public:
   SimpleCallCounterProfiler();
-  virtual void methodEntry(int cnum, int mnum) override;
-  virtual void methodExit(int cnum, int mnum) override;
+  virtual void methodEntry(int cnum, int mnum, jobject thread) override;
+  virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
   
   virtual void methodInstrumented(JavaMethodInfo *info) override;
-  virtual void threadStarted(JavaThreadInfo *info);
+  virtual void threadStarted(jobject thread);
+  virtual void threadStopped(jobject thread);
 private:
-  map<pthread_t, map<unsigned long, CallStatistics>*> statByThread;
+  map<unsigned long, map<unsigned long, CallStatistics*>*> statByThread;
 };
 
 #endif // SIMPLECALLCOUNTERPROFILER_H

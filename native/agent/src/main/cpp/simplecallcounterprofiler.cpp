@@ -26,68 +26,100 @@ SimpleCallCounterProfiler::SimpleCallCounterProfiler(){
 }
 
 void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
-  /*
-  CallStatistics stat;
-  stat.callCount=0;
-  stat.returnCount=0;
-  stat.method = info;
-  statistics.emplace(info->getMethodId(), stat);
-  */
 }
 
-void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum){
-  getRuntime()->agentGlobalLock();
+void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){  
+  //auto info = getRuntime()->getCurrentThreadInfo();
+  unsigned long threadKey = (unsigned long)(*(long *)thread);
+  auto it = statByThread.find(threadKey);
   
-  JavaMethodInfo *method = getClasses()->getMethodInfo(cnum, mnum);
-  auto it = statByThread.find(getRuntime()->getCurrentThreadInfo().getProcessTid());
+  map<unsigned long, CallStatistics*> *stat = nullptr;
+  
   if(it==statByThread.end()){
+    stat = new map<unsigned long, CallStatistics*>();
+    statByThread.emplace(threadKey, stat);
   } else {
-    
+    stat = (it->second);
   }
-  //statByThread.at(getRuntime()->getCurrentThreadInfo().getProcessTid()
-  statistics.at(method->getMethodId()).callCount++;
   
-  getRuntime()->agentGlobalUnlock();
+  CallStatistics *call = nullptr;
+  
+  auto method = getClasses()->getMethodInfo(cnum, mnum);
+  auto stat_it = stat->find(method->getMethodId()); 
+  
+  if(stat_it == stat->end()){
+    call = new CallStatistics();
+    stat->emplace(method->getMethodId(), call);
+  } else {
+    call = (stat_it->second);
+  }
+  
+  call->callCount++;
 }
 
-void SimpleCallCounterProfiler::methodExit(int cnum, int mnum){
-  getRuntime()->agentGlobalLock();
-
-  JavaMethodInfo *method = getClasses()->getMethodInfo(cnum, mnum);
-  statistics.at(method->getMethodId()).returnCount++;
-
-  getRuntime()->agentGlobalUnlock();
+void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
+  //auto info = getRuntime()->getCurrentThreadInfo();
+  unsigned long threadKey = (unsigned long)*(long *)thread;
+  auto it = statByThread.find(threadKey);
+  
+  map<unsigned long, CallStatistics*> *stat = nullptr;
+  
+  if(it!=statByThread.end()){
+    stat = (it->second);
+  }
+  
+  if(stat!=nullptr){
+    CallStatistics *call = nullptr;
+    
+    auto method = getClasses()->getMethodInfo(cnum, mnum);
+    auto stat_it = stat->find(method->getMethodId()); 
+    
+    if(stat_it != stat->end()){
+      call = (stat_it->second);
+    }
+    
+    call->returnCount++;
+  }
 }
 
 void SimpleCallCounterProfiler::printOnExit(){
   getRuntime()->agentGlobalLock();
 
-  unsigned int calls = 0;
+  unsigned int calls1 = 0;
   unsigned long total = 0;
+
+  cout << "Threads " << statByThread.size() <<endl;
   
-  for(auto it=statistics.begin();it!=statistics.end();it++){
-      CallStatistics stat = it->second;
+  for(auto it=statByThread.begin();it!=statByThread.end();it++){
+      cout << "Thread " << it->first << " " << endl;
+      map<unsigned long, CallStatistics*> *calls = it->second;
+      cout << "\t" << "calls: " << calls->size() <<endl;
       
-      if(stat.callCount>0){
-	calls++;
+      for(auto call_it=calls->begin();call_it!=calls->end();call_it++){	
+	CallStatistics stat = *call_it->second;
+	calls1++;
 	total += stat.callCount;
 	
-	cout << stat.method->getClass()->getName();
+	auto method = getClasses()->getMethodById(call_it->first);
+	cout << "\t" << method->getClass()->getName();
 	
-	//stat.method->getClass()->getName() << "#" <<
-	cout << "#" <<  stat.method->getName()<<stat.method->getSignature() << " calls " << stat.callCount << " returns "<<stat.returnCount <<endl;
+	cout << "#" <<  method->getName()<<method->getSignature() << " calls " << stat.callCount << " returns "<<stat.returnCount <<endl;
       }
   }
-  
+
   cout << "Threads runned: " << getThreads()->getThreadCount() << endl;
   cout << "Classes loaded: " << getClasses()->getClassesCount() << endl;
   cout << "Methods instrumented: " << getClasses()->getMethodsCount() << endl;
-  cout << "Total method used " << calls <<endl;
+  cout << "Total method used " << calls1 <<endl;
   cout << "Total calls processed " << total<<endl;
   
   getRuntime()->agentGlobalUnlock();
 }
 
-void SimpleCallCounterProfiler::threadStarted ( JavaThreadInfo* info) {
-  //statByThread.emplace(info->getProcessTid(), new map<unsigned long, CallStatistics>());
+void SimpleCallCounterProfiler::threadStarted(jobject thread){
+  auto stat = new map<unsigned long, CallStatistics*>();
+  statByThread.emplace((unsigned long)*(long *)thread, stat);
+}
+
+void SimpleCallCounterProfiler::threadStopped(jobject thread){
 }

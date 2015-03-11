@@ -59,6 +59,7 @@ bool matchMask(string value, string regexp){
   
   return regex_match(value, e);
 }
+
 bool AgentOptions::isClassExcluded(const char *klass){
   string className(klass);
   boost::algorithm::replace_all<string>(className, "/", ".");

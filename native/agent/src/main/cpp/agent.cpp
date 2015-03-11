@@ -46,12 +46,12 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
 
 /* Java Native Method for entry */
 static void MTRACE_native_entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    tracingProfiler->methodEntry ( cnum, mnum );
+    tracingProfiler->methodEntry ( cnum, mnum, thread );
 }
 
 /* Java Native Method for exit */
 static void MTRACE_native_exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
-    tracingProfiler->methodExit ( cnum, mnum );
+    tracingProfiler->methodExit ( cnum, mnum, thread );
 }
 
 JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
@@ -208,7 +208,7 @@ static void JNICALL cbThreadStart ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread
 
             JavaThreadInfo info = runtime->getThreadInfo ( thread );
             threads->addThread ( info );
-	    tracingProfiler->threadStarted(&info);
+	    tracingProfiler->threadStarted(thread);
             cout << "ThreadStart " << info.getName() << endl;
         }
     }
@@ -223,7 +223,8 @@ static void JNICALL cbThreadEnd ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread )
         if ( !runtime->isVmDead() ) {
             JavaThreadInfo info = runtime->getThreadInfo ( thread );
             threads->setThreadDead ( info );
-
+	    tracingProfiler->threadStopped(thread);
+	    
             cout << "ThreadEnd " << info.getName() << endl;
         }
     }

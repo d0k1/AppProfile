@@ -24,7 +24,7 @@
 #include "javamethodinfo.h"
 
 #include <vector>
-
+#include <map>
 using namespace std;
 
 class JavaClassesInfo
@@ -45,8 +45,10 @@ public:
   
   JavaMethodInfo *getMethodInfo(unsigned int classId, unsigned int methodId);
   
+  JavaMethodInfo *getMethodById(unsigned long id);
 private:
   unsigned long methodsCounter;
+  map<unsigned long, JavaMethodInfo*> methods;
   vector<JavaClassInfo*> classes;
 };
 

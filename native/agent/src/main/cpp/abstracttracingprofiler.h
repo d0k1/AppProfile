@@ -30,12 +30,13 @@ public:
   
   virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads) final;
   
-  virtual void methodEntry(int cnum, int mnum)=0;
-  virtual void methodExit(int cnum, int mnum)=0;
+  virtual void methodEntry(int cnum, int mnum, jobject thread)=0;
+  virtual void methodExit(int cnum, int mnum, jobject thread)=0;
   virtual void printOnExit()=0;
 
   virtual void methodInstrumented(JavaMethodInfo *info)=0;
-  virtual void threadStarted(JavaThreadInfo *)=0;
+  virtual void threadStarted(jobject thread)=0;
+  virtual void threadStopped(jobject thread)=0;
 protected:
   
   virtual AgentRuntime *getRuntime() final;
