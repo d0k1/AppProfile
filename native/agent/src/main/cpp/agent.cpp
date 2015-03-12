@@ -10,19 +10,12 @@
 #include "threadcallstackprofiler.h"
 #include <iostream>
 
-/* ------------------------------------------------------------------- */
-/* Some constant maximum sizes */
-
-#define MAX_TOKEN_LENGTH        16
-#define MAX_THREAD_NAME_LENGTH  512
-#define MAX_METHOD_NAME_LENGTH  1024
-
-#define MTRACE_class        Agent           /* Name of class we are using */
-#define MTRACE_entry        method_entry    /* Name of java entry method */
-#define MTRACE_exit         method_exit     /* Name of java exit method */
-#define MTRACE_native_entry _method_entry   /* Name of java entry native */
-#define MTRACE_native_exit  _method_exit    /* Name of java exit native */
-#define MTRACE_engaged      engaged         /* Name of java static field */
+#define Agent_class        Agent           /* Name of class we are using */
+#define Agent_method_entry        method_entry    /* Name of java entry method */
+#define Agent_method_exit         method_exit     /* Name of java exit method */
+#define Agent_native_method_entry _method_entry   /* Name of java entry native */
+#define Agent_native_method_exit  _method_exit    /* Name of java exit native */
+#define Agent_VM_started      engaged         /* Name of java static field */
 
 /* C macros to create strings from tokens */
 #define _STRING(s) #s
@@ -78,20 +71,20 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
         static JNINativeMethod registry[4] = {
 
 	    {
-                STRING ( MTRACE_native_entry ), "(Ljava/lang/Object;II)V",
+                STRING ( Agent_native_method_entry ), "(Ljava/lang/Object;II)V",
                 ( void* ) &JavaCritical_Agent__1method_1entry
             },
             {
-                STRING ( MTRACE_native_entry ), "(Ljava/lang/Object;II)V",
+                STRING ( Agent_native_method_entry ), "(Ljava/lang/Object;II)V",
                 ( void* ) &Java_Agent__1method_1entry
             },
             {
-                STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
+                STRING ( Agent_native_method_exit ),  "(Ljava/lang/Object;II)V",
                 ( void* ) &JavaCritical_Agent__1method_1exit
             },
 	    
             {
-                STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
+                STRING ( Agent_native_method_exit ),  "(Ljava/lang/Object;II)V",
                 ( void* ) &Java_Agent__1method_1exit
             }
         };
@@ -100,23 +93,23 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
         cout<< "VMStart" <<endl;
 
         /* Register Natives for class whose methods we use */
-        klass = ( env )->FindClass ( STRING ( MTRACE_class ) );
+        klass = ( env )->FindClass ( STRING ( Agent_class ) );
         if ( klass == NULL ) {
             fatal_error ( "ERROR: JNI: Cannot find %s with FindClass\n",
-                          STRING ( MTRACE_class ) );
+                          STRING ( Agent_class ) );
         }
 
         rc = ( env )->RegisterNatives ( klass, registry, 4 );
         if ( rc != 0 ) {
             fatal_error ( "ERROR: JNI: Cannot register native methods for %s\n",
-                          STRING ( MTRACE_class ) );
+                          STRING ( Agent_class ) );
         }
 
         /* Engage calls. */
-        field = ( env )->GetStaticFieldID ( klass, STRING ( MTRACE_engaged ), "I" );
+        field = ( env )->GetStaticFieldID ( klass, STRING ( Agent_VM_started ), "I" );
         if ( field == NULL ) {
             fatal_error ( "ERROR: JNI: Cannot get field from %s\n",
-                          STRING ( MTRACE_class ) );
+                          STRING ( Agent_class ) );
         }
         ( env )->SetStaticIntField ( klass, field, 1 );
 
@@ -164,16 +157,16 @@ static void JNICALL cbVMDeath ( jvmtiEnv *jvmti, JNIEnv *env ) {
         /* The VM has died. */
         cout<< "VMDeath" << endl;
 
-        /* Disengage calls in MTRACE_class. */
-        klass = ( env )->FindClass ( STRING ( MTRACE_class ) );
+        /* Disengage calls in Agent_class. */
+        klass = ( env )->FindClass ( STRING ( Agent_class ) );
         if ( klass == NULL ) {
             fatal_error ( "ERROR: JNI: Cannot find %s with FindClass\n",
-                          STRING ( MTRACE_class ) );
+                          STRING ( Agent_class ) );
         }
-        field = ( env )->GetStaticFieldID ( klass, STRING ( MTRACE_engaged ), "I" );
+        field = ( env )->GetStaticFieldID ( klass, STRING ( Agent_VM_started ), "I" );
         if ( field == NULL ) {
             fatal_error ( "ERROR: JNI: Cannot get field from %s\n",
-                          STRING ( MTRACE_class ) );
+                          STRING ( Agent_class ) );
         }
         ( env )->SetStaticIntField ( klass, field, 0 );
 
@@ -257,7 +250,7 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
             *new_class_data     = NULL;
 
             // The tracker class itself? 
-            if ( !runtime->getOptions()->isClassExcluded(classname) && strcmp ( classname, STRING ( MTRACE_class ) ) != 0 ) {
+            if ( !runtime->getOptions()->isClassExcluded(classname) && strcmp ( classname, STRING ( Agent_class ) ) != 0 ) {
 		
 		//cout << classname << " instrumenting " << endl;
 		
@@ -282,9 +275,9 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
                                 class_data,
                                 class_data_len,
                                 system_class,
-                                STRING ( MTRACE_class ), "L" STRING ( MTRACE_class ) ";",
-                                STRING ( MTRACE_entry ), "(II)V",
-                                STRING ( MTRACE_exit ), "(II)V",
+                                STRING ( Agent_class ), "L" STRING ( Agent_class ) ";",
+                                STRING ( Agent_method_entry ), "(II)V",
+                                STRING ( Agent_method_exit ), "(II)V",
                                 NULL, NULL,
                                 NULL, NULL,
                                 &new_image,
