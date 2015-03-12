@@ -59,20 +59,6 @@ bool AgentOptions::isClassExcluded(const char *klass){
   boost::algorithm::replace_all<string>(className, "/", ".");
   bool skip = false;
 
-  for(auto it=excludes.begin();it!=excludes.end();++it){
-    if (boost::algorithm::starts_with(className, *it) || *it == "*" || matchMask(className, *it)){
-      skip = true;
-      break;
-    }
-  }
-
-  for(auto it=excludesIgnore.begin();it!=excludesIgnore.end();++it){
-    if(boost::algorithm::starts_with(className, *it)){
-      skip = false;
-      break;
-    }
-  }
-  
   for(auto it=includes.begin();it!=includes.end();++it){
     if (boost::algorithm::starts_with(className, *it) || *it == "*" || matchMask(className, *it)){
       skip = false;
@@ -91,6 +77,20 @@ bool AgentOptions::isClassExcluded(const char *klass){
     }
   }
 
+  for(auto it=excludes.begin();it!=excludes.end();++it){
+    if (boost::algorithm::starts_with(className, *it) || *it == "*" || matchMask(className, *it)){
+      skip = true;
+      break;
+    }
+  }
+  
+  for(auto it=excludesIgnore.begin();it!=excludesIgnore.end();++it){
+    if(boost::algorithm::starts_with(className, *it)){
+      skip = false;
+      break;
+    }
+  }
+  
   return skip;
 }
 

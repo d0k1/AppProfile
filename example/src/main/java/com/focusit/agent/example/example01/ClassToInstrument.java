@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Created by Denis V. Kirpichenkov on 27.11.14.
  */
-public class ClassToInstrument extends AbstractTest implements TestInterface {
+public class ClassToInstrument extends AbstractTest implements TestInterfaceEnhancerBySpringCGLIB1 {
 	public ClassToInstrument(){
 		int i = 0;
 		i++;

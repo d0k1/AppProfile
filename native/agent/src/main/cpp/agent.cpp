@@ -36,7 +36,7 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
 
     for ( int mnum = 0 ; mnum < mcount ; mnum++ ) {
         JavaMethodInfo *method = classes->addClassMethod ( cnum, names[mnum], sigs[mnum] );
-	//cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
+	cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
 	tracingProfiler->methodInstrumented(method);
     }
 }
