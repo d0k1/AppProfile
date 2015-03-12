@@ -5,9 +5,10 @@ package com.focusit.agent.example.example01;
  */
 public abstract class AbstractTest implements TestInterface {
 	public void foo(){
-		for(int j=0;j<100;){
+		int test = 0;
+		for(int j=0;j<5;){
 			j++;
-			bar();
+			test+=bar();
 		}
 	}
 
@@ -20,5 +21,5 @@ public abstract class AbstractTest implements TestInterface {
 //		}
 //	}
 
-	public abstract void bar();
+	public abstract int bar();
 }

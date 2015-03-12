@@ -12,10 +12,12 @@ public class ClassToInstrument extends AbstractTest implements TestInterface {
 		System.out.println("constructor");
 	}
 
-	public void bar(){
-		for(int i=0;i<10000;){
-			i++;
+	public int bar(){
+		int result = 0;
+		for(result=0;result<10000;){
+			result++;
 		}
+		return result;
 	}
 
 	public void bar2() throws IOException {

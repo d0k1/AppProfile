@@ -5,7 +5,9 @@
 #include "javaclassesinfo.h"
 #include "javathreadsinfo.h"
 #include "javathreadinfo.h"
+#include "abstracttracingprofiler.h"
 #include "simplecallcounterprofiler.h"
+#include "threadcallstackprofiler.h"
 #include <iostream>
 
 /* ------------------------------------------------------------------- */
@@ -15,7 +17,7 @@
 #define MAX_THREAD_NAME_LENGTH  512
 #define MAX_METHOD_NAME_LENGTH  1024
 
-#define MTRACE_class        Mtrace          /* Name of class we are using */
+#define MTRACE_class        Agent           /* Name of class we are using */
 #define MTRACE_entry        method_entry    /* Name of java entry method */
 #define MTRACE_exit         method_exit     /* Name of java exit method */
 #define MTRACE_native_entry _method_entry   /* Name of java entry native */
@@ -33,31 +35,33 @@ using namespace std;
 static AgentRuntime *runtime;
 static JavaClassesInfo *classes = new JavaClassesInfo();
 static JavaThreadsInfo *threads = new JavaThreadsInfo();
-static SimpleCallCounterProfiler *tracingProfiler = new SimpleCallCounterProfiler();
+//static SimpleCallCounterProfiler *tracingProfiler = new SimpleCallCounterProfiler();
+static ThreadCallStackProfiler *tracingProfiler = new ThreadCallStackProfiler();
 
 /* Callback from java_crw_demo() that gives us mnum mappings */
 static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs, int mcount ) {
 
     for ( int mnum = 0 ; mnum < mcount ; mnum++ ) {
         JavaMethodInfo *method = classes->addClassMethod ( cnum, names[mnum], sigs[mnum] );
+	//cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
 	tracingProfiler->methodInstrumented(method);
     }
 }
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
-JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1entry ( jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL JavaCritical_Agent__1method_1entry ( jint cnum, jint mnum ) {
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
-JNIEXPORT void JNICALL JavaCritical_Mtrace__1method_1exit ( jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL JavaCritical_Agent__1method_1exit ( jint cnum, jint mnum ) {
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
-JNIEXPORT void JNICALL Java_Mtrace__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL Java_Agent__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
-JNIEXPORT void JNICALL Java_Mtrace__1method_1exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL Java_Agent__1method_1exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
@@ -75,20 +79,20 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
 
 	    {
                 STRING ( MTRACE_native_entry ), "(Ljava/lang/Object;II)V",
-                ( void* ) &JavaCritical_Mtrace__1method_1entry
+                ( void* ) &JavaCritical_Agent__1method_1entry
             },
             {
                 STRING ( MTRACE_native_entry ), "(Ljava/lang/Object;II)V",
-                ( void* ) &Java_Mtrace__1method_1entry
+                ( void* ) &Java_Agent__1method_1entry
             },
             {
                 STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
-                ( void* ) &JavaCritical_Mtrace__1method_1exit
+                ( void* ) &JavaCritical_Agent__1method_1exit
             },
 	    
             {
                 STRING ( MTRACE_native_exit ),  "(Ljava/lang/Object;II)V",
-                ( void* ) &Java_Mtrace__1method_1exit
+                ( void* ) &Java_Agent__1method_1exit
             }
         };
 
@@ -351,7 +355,8 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
 
-    runtime->JVMTIAddJarToClasspath ( "mtrace.jar" );
+    cout << "Adding helper jar at " << runtime->getOptions()->getHelperJar().c_str() << endl;
+    runtime->JVMTIAddJarToClasspath ( runtime->getOptions()->getHelperJar().c_str() );
 
     return JNI_OK;
 }

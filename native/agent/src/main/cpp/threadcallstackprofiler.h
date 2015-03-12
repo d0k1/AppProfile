@@ -17,19 +17,25 @@
  *
  */
 
-#ifndef SIMPLECALLCOUNTERPROFILER_H
-#define SIMPLECALLCOUNTERPROFILER_H
+#ifndef THREADCALLSTACKPROFILER_H
+#define THREADCALLSTACKPROFILER_H
 
 #include "abstracttracingprofiler.h"
 #include <map>
-#include "javamethodinfo.h"
 
 using namespace std;
 
-class SimpleCallCounterProfiler final : public AbstractTracingProfiler 
+struct ThreadControl final {
+  map<unsigned long, CallStatistics *> roots;
+  CallStatistics *current;
+  
+  ThreadControl():current(nullptr){};
+};
+
+class ThreadCallStackProfiler : public AbstractTracingProfiler
 {
 public:
-  SimpleCallCounterProfiler();
+  ThreadCallStackProfiler();
   virtual void methodEntry(int cnum, int mnum, jobject thread) override;
   virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
@@ -38,7 +44,7 @@ public:
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);
 private:
-  map<unsigned long, map<unsigned long, CallStatistics*>*> statByThread;
+  map<unsigned long, ThreadControl*> statByThread;
 };
 
-#endif // SIMPLECALLCOUNTERPROFILER_H
+#endif // THREADCALLSTACKPROFILER_H

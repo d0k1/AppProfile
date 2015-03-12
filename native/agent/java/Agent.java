@@ -43,7 +43,7 @@
  *    injections of all class files.
  */
 
-public class Mtrace {
+public class Agent {
 
     /* Master switch that activates methods. */
 

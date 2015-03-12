@@ -32,6 +32,7 @@ AgentOptions::AgentOptions(string filename){
   desc.add_options()("agent.include", boost::program_options::value<std::string>(&agentInclude));
   desc.add_options()("agent.include.ingore", boost::program_options::value<std::string>(&agentIncludeIgnore));
   desc.add_options()("agent.appId", boost::program_options::value<std::string>(&appId));
+  desc.add_options()("helper.jar", boost::program_options::value<std::string>(&helperJar));
   
   ifstream settings_file( filename , std::ifstream::in );
   store( parse_config_file( settings_file , desc, true ), vm );
@@ -39,16 +40,9 @@ AgentOptions::AgentOptions(string filename){
   settings_file.close();
   
   excludes = Utils::splitString(agentExclude, ",");
-  cout << "excludes.size = " <<excludes.size()<<endl;
-
   excludesIgnore = Utils::splitString(agentExcludeIgnore, ",");
-  cout << "excludesIgnore.size = " <<excludesIgnore.size()<<endl;
-
   includes = Utils::splitString(agentInclude, ",");
-  cout << "includes.size = " <<includes.size()<<endl;
-
   includesIgnore = Utils::splitString(agentIncludeIgnore, ",");
-  cout << "includesIgnore.size = " <<includesIgnore.size()<<endl; 
 }
 
 bool matchMask(string value, string regexp){
@@ -98,4 +92,8 @@ bool AgentOptions::isClassExcluded(const char *klass){
   }
 
   return skip;
+}
+
+string AgentOptions::getHelperJar(){
+  return helperJar;
 }

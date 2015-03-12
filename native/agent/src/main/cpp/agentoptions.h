@@ -33,7 +33,7 @@ public:
   AgentOptions(string filename);    
 
   bool isClassExcluded(const char *klass);
-  bool test(){return false;};
+  string getHelperJar();
 private:
   
   string agentExclude;
@@ -41,6 +41,7 @@ private:
   string agentInclude;
   string agentIncludeIgnore;
   string appId;
+  string helperJar;
   
   vector<string> excludes;
   vector<string> excludesIgnore;

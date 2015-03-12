@@ -24,6 +24,22 @@
 #include "javathreadsinfo.h"
 #include "agentruntime.h"
 
+#include <map>
+
+using namespace std;
+
+struct CallStatistics final {
+  unsigned int callCount;
+  unsigned int returnCount;
+  unsigned long nanosMin;
+  unsigned long nanosMax;
+  unsigned long nanosMean;
+  unsigned long nanosMediana;
+  
+  CallStatistics *prevCall;
+  map<unsigned long, CallStatistics*> childs;
+};
+
 class AbstractTracingProfiler
 {
 public:

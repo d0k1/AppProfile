@@ -35,7 +35,7 @@ include_directories(${JAVA_INCLUDE_PATH2})
 include_directories( ${Boost_INCLUDE_DIR} )
 
 set(SOURCE_FILES
-    ${SRC}/agent.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c)
+    ${SRC}/agent.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c ${SRC}/threadcallstackprofiler.cpp)
 
 
 ##########################################################
@@ -46,7 +46,7 @@ set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wno-write-strings -Wno-unused -Wl,--no-
 #set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wno-sign-compare -Wno-strict-overflow")
 #set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wnon-virtual-dtor -Woverloaded-virtual")
 
-set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option  -O3")
+set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option  -g3")
 set(GLOBAL_COPTS "${GLOBAL_COPTS} -funsigned-char -fno-asynchronous-unwind-tables -msse2 -D__STDC_FORMAT_MACROS")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}  -pthread -std=c++14")

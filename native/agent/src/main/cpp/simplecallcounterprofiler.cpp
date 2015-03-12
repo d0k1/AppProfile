@@ -29,11 +29,11 @@ void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
 }
 
 void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){  
+  auto method = getClasses()->getMethodInfo(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   unsigned long threadKey = info.getProcessTid();
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
-  
   map<unsigned long, CallStatistics*> *stat = nullptr;
   
   if(it==statByThread.end()){
@@ -45,7 +45,6 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
   
   CallStatistics *call = nullptr;
   
-  auto method = getClasses()->getMethodInfo(cnum, mnum);
   auto stat_it = stat->find(method->getMethodId()); 
   
   if(stat_it == stat->end()){
@@ -97,7 +96,7 @@ void SimpleCallCounterProfiler::printOnExit(){
       map<unsigned long, CallStatistics*> *calls = it->second;
       cout << "\t" << "calls: " << calls->size() <<endl;
       
-      for(auto call_it=calls->begin();call_it!=calls->end();call_it++){	
+      for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
 	CallStatistics stat = *call_it->second;
 	calls1++;
 	total += stat.callCount;
