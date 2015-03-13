@@ -11,11 +11,11 @@
 #include <iostream>
 
 #define Agent_class        Agent           /* Name of class we are using */
-#define Agent_method_entry        method_entry    /* Name of java entry method */
-#define Agent_method_exit         method_exit     /* Name of java exit method */
-#define Agent_native_method_entry _method_entry   /* Name of java entry native */
-#define Agent_native_method_exit  _method_exit    /* Name of java exit native */
-#define Agent_VM_started      engaged         /* Name of java static field */
+#define Agent_method_entry        agent_entry    /* Name of java entry method */
+#define Agent_method_exit         agent_exit     /* Name of java exit method */
+#define Agent_native_method_entry native_entry   /* Name of java entry native */
+#define Agent_native_method_exit  native_exit    /* Name of java exit native */
+#define Agent_VM_started      ready         /* Name of java static field */
 
 /* C macros to create strings from tokens */
 #define _STRING(s) #s
@@ -42,19 +42,19 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
 }
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
-JNIEXPORT void JNICALL JavaCritical_Agent__1method_1entry ( jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL JavaCritical_Agent_native_1entry( jint cnum, jint mnum ) {
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
-JNIEXPORT void JNICALL JavaCritical_Agent__1method_1exit ( jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL JavaCritical_Agent_native_1exit ( jint cnum, jint mnum ) {
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
-JNIEXPORT void JNICALL Java_Agent__1method_1entry ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL Java_Agent_native_1entry( JNIEnv *env, jclass klass, jint cnum, jint mnum ) {
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
-JNIEXPORT void JNICALL Java_Agent__1method_1exit ( JNIEnv *env, jclass klass, jobject thread, jint cnum, jint mnum ) {
+JNIEXPORT void JNICALL Java_Agent_native_1exit( JNIEnv *env, jclass klass, jint cnum, jint mnum ) {
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
@@ -71,21 +71,21 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
         static JNINativeMethod registry[4] = {
 
 	    {
-                STRING ( Agent_native_method_entry ), "(Ljava/lang/Object;II)V",
-                ( void* ) &JavaCritical_Agent__1method_1entry
+                STRING ( Agent_native_method_entry ), "(II)V",
+                ( void* ) &JavaCritical_Agent_native_1entry
             },
             {
-                STRING ( Agent_native_method_entry ), "(Ljava/lang/Object;II)V",
-                ( void* ) &Java_Agent__1method_1entry
+                STRING ( Agent_native_method_entry ), "(II)V",
+                ( void* ) &Java_Agent_native_1entry
             },
             {
-                STRING ( Agent_native_method_exit ),  "(Ljava/lang/Object;II)V",
-                ( void* ) &JavaCritical_Agent__1method_1exit
+                STRING ( Agent_native_method_exit ),  "(II)V",
+                ( void* ) &JavaCritical_Agent_native_1exit
             },
 	    
             {
-                STRING ( Agent_native_method_exit ),  "(Ljava/lang/Object;II)V",
-                ( void* ) &Java_Agent__1method_1exit
+                STRING ( Agent_native_method_exit ),  "(II)V",
+                ( void* ) &Java_Agent_native_1exit
             }
         };
 
