@@ -138,3 +138,9 @@ void ThreadCallStackProfiler::threadStarted(jobject thread){
 
 void ThreadCallStackProfiler::threadStopped(jobject thread){
 }
+
+void ThreadCallStackProfiler::reset() {
+}
+
+string ThreadCallStackProfiler::printCsv(){
+}

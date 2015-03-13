@@ -23,6 +23,8 @@
 #include "abstracttracingprofiler.h"
 #include <map>
 
+#include <string>
+
 using namespace std;
 
 struct ThreadControl final {
@@ -43,6 +45,10 @@ public:
   virtual void methodInstrumented(JavaMethodInfo *info) override;
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);
+  
+  virtual void reset() override final;
+  virtual string printCsv() override final;
+  
 private:
   map<unsigned long, ThreadControl*> statByThread;
 };

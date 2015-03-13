@@ -15,11 +15,19 @@
 #define Agent_method_exit         agent_exit     /* Name of java exit method */
 #define Agent_native_method_entry native_entry   /* Name of java entry native */
 #define Agent_native_method_exit  native_exit    /* Name of java exit native */
+
+#define Agent_native_method_reset  native_reset    /* Name of java exit native */
+#define Agent_native_method_pause  native_pause    /* Name of java exit native */
+#define Agent_native_method_resume native_resume    /* Name of java exit native */
+#define Agent_native_method_csv  native_csv    /* Name of java exit native */
+
 #define Agent_VM_started      ready         /* Name of java static field */
 
 /* C macros to create strings from tokens */
 #define _STRING(s) #s
 #define STRING(s) _STRING(s)
+
+#include <atomic>
 
 /* ------------------------------------------------------------------- */
 
@@ -28,6 +36,9 @@ using namespace std;
 static AgentRuntime *runtime;
 static JavaClassesInfo *classes = new JavaClassesInfo();
 static JavaThreadsInfo *threads = new JavaThreadsInfo();
+
+static atomic<bool> paused(false);
+
 //static SimpleCallCounterProfiler *tracingProfiler = new SimpleCallCounterProfiler();
 static ThreadCallStackProfiler *tracingProfiler = new ThreadCallStackProfiler();
 
@@ -43,19 +54,52 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
 JNIEXPORT void JNICALL JavaCritical_Agent_native_1entry( jint cnum, jint mnum ) {
+  if(paused.load()) {
+    return;
+  }
+  
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
 //https://bugs.openjdk.java.net/browse/JDK-7013347
 JNIEXPORT void JNICALL JavaCritical_Agent_native_1exit ( jint cnum, jint mnum ) {
+  if(paused.load()) {
+    return;
+  }
+  
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
 JNIEXPORT void JNICALL Java_Agent_native_1entry( JNIEnv *env, jclass klass, jint cnum, jint mnum ) {
+  if(paused.load()) {
+    return;
+  }
+  
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
+
 JNIEXPORT void JNICALL Java_Agent_native_1exit( JNIEnv *env, jclass klass, jint cnum, jint mnum ) {
+  if(paused.load()) {
+    return;
+  }
+  
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
+}
+
+JNIEXPORT void JNICALL Java_Agent_native_1reset(JNIEnv *, jclass){
+  tracingProfiler->reset();
+}
+
+JNIEXPORT void JNICALL Java_Agent_native_1resume(JNIEnv *, jclass){
+  paused.store(false);
+}
+
+JNIEXPORT void JNICALL Java_Agent_native_1pause(JNIEnv *, jclass){
+  paused.store(true);
+}
+
+JNIEXPORT jstring JNICALL Java_Agent_native_1csv(JNIEnv *, jclass){
+  return nullptr;
 }
 
 /* Callback for JVMTI_EVENT_VM_START */
@@ -68,7 +112,7 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
 
         /* Java Native Methods for class */
 
-        static JNINativeMethod registry[4] = {
+        static JNINativeMethod registry[8] = {
 
 	    {
                 STRING ( Agent_native_method_entry ), "(II)V",
@@ -81,13 +125,28 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
             {
                 STRING ( Agent_native_method_exit ),  "(II)V",
                 ( void* ) &JavaCritical_Agent_native_1exit
-            },
-	    
+            },	    
             {
                 STRING ( Agent_native_method_exit ),  "(II)V",
                 ( void* ) &Java_Agent_native_1exit
-            }
-        };
+            },
+	    {
+	      STRING ( Agent_native_method_reset ),  "()V",
+	      ( void* ) &Java_Agent_native_1reset
+	    },
+	    {
+	      STRING ( Agent_native_method_resume ),  "()V",
+	      ( void* ) &Java_Agent_native_1resume
+	    },
+	    {
+	      STRING ( Agent_native_method_pause ),  "()V",
+	      ( void* ) &Java_Agent_native_1pause
+	    },
+	    {
+	      "native_csv",  "()Ljava/lang/String;",
+	      ( jstring* ) &Java_Agent_native_1csv
+	    }
+	};
 
         /* The VM has started. */
         cout<< "VMStart" <<endl;
@@ -99,7 +158,7 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
                           STRING ( Agent_class ) );
         }
 
-        rc = ( env )->RegisterNatives ( klass, registry, 4 );
+        rc = ( env )->RegisterNatives ( klass, registry, 8 );
         if ( rc != 0 ) {
             fatal_error ( "ERROR: JNI: Cannot register native methods for %s\n",
                           STRING ( Agent_class ) );

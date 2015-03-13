@@ -25,6 +25,7 @@
 #include "agentruntime.h"
 
 #include <map>
+#include <string>
 
 using namespace std;
 
@@ -53,6 +54,9 @@ public:
   virtual void methodInstrumented(JavaMethodInfo *info)=0;
   virtual void threadStarted(jobject thread)=0;
   virtual void threadStopped(jobject thread)=0;
+  
+  virtual void reset()=0;
+  virtual string printCsv()=0;
 protected:
   
   virtual AgentRuntime *getRuntime() final;

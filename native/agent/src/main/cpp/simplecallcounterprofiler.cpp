@@ -124,3 +124,9 @@ void SimpleCallCounterProfiler::threadStarted(jobject thread){
 
 void SimpleCallCounterProfiler::threadStopped(jobject thread){
 }
+
+void SimpleCallCounterProfiler::reset() {
+}
+
+string SimpleCallCounterProfiler::printCsv(){
+}

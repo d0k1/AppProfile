@@ -23,6 +23,7 @@
 #include "abstracttracingprofiler.h"
 #include <map>
 #include "javamethodinfo.h"
+#include <string>
 
 using namespace std;
 
@@ -37,6 +38,10 @@ public:
   virtual void methodInstrumented(JavaMethodInfo *info) override;
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);
+  
+  virtual void reset() override final;
+  virtual string printCsv() override final;
+  
 private:
   map<unsigned long, map<unsigned long, CallStatistics*>*> statByThread;
 };

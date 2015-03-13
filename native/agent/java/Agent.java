@@ -1,4 +1,3 @@
-
 public class Agent {
 
     private static int ready = 0;
@@ -19,19 +18,24 @@ public class Agent {
             native_exit(cnum, mnum);
         }
     }
-
-    public static Unsafe getUnsafe() {
-      try {
-	  Field f = Unsafe.class.getDeclaredField("theUnsafe");
-	  f.setAccessible(true);
-	  return (Unsafe)f.get(null);
-      } catch (Exception e) { /* ... */ }
-    }
-
     
-    public static void pause(){
+    private static native void native_pause();
+    public static void agent_pause(){
+      native_pause();
     }
     
-    public static void resume(){
+    private static native void native_resume();
+    public static void agent_resume(){
+      native_resume();
+    }
+
+    private static native void native_reset();
+    public static void agent_reset(){
+	native_reset();
+    }
+    
+    private static native String native_csv();
+    public static String agent_csv(){
+      return native_csv();
     }
 }
