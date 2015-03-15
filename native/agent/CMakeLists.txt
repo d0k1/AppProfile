@@ -26,13 +26,27 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN})
 # Libraries & Code
 
 find_package(PkgConfig REQUIRED)
-FIND_PACKAGE( Boost 1.55 COMPONENTS program_options system REQUIRED )
+
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+unset(Boost_INCLUDE_DIR CACHE)
+unset(Boost_LIBRARY_DIRS CACHE)
+
+set(Boost_NO_SYSTEM_PATHS TRUE) 
+
+if (Boost_NO_SYSTEM_PATHS)
+  set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../3p/boost")
+  set(BOOST_INCLUDE_DIRS "${BOOST_ROOT}/include")
+  set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
+endif (Boost_NO_SYSTEM_PATHS)
+
+FIND_PACKAGE( Boost 1.55 COMPONENTS program_options system thread REQUIRED )
 
 find_package(JNI REQUIRED)
 include_directories("src/java_crw_demo")
 include_directories(${JAVA_INCLUDE_PATH})
 include_directories(${JAVA_INCLUDE_PATH2})
-include_directories( ${Boost_INCLUDE_DIR} )
+include_directories( ${Boost_INCLUDE_DIRS} )
 
 set(SOURCE_FILES
     ${SRC}/agent.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c ${SRC}/threadcallstackprofiler.cpp)
@@ -54,7 +68,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}")
 
 ##########################################################
 # Build
-set(STATIC_LIBS "libgcc libstdc++ ${Boost_LIBRARIES}")
+set(STATIC_LIBS "libc libstdc++ libpthread ${Boost_LIBRARIES}")
 set(CMAKE_EXE_LINKER_FLAGS "-static ${STATIC_LIBS}") 
 add_library(${OUTPUT} SHARED ${SOURCE_FILES})
-target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} ${Boost_LIBRARIES} c stdc++ dl)
+target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} ${Boost_LIBRARIES} c stdc++ pthread sl)
