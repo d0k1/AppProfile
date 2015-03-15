@@ -36,6 +36,7 @@ public:
   string getSignature(){return signature;};
   unsigned long getMethodId();
   JavaClassInfo *getClass();
+  string getFQN();
 private:
   unsigned long methodId;
   string name;

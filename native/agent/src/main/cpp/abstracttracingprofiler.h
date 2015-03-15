@@ -27,6 +27,8 @@
 #include <map>
 #include <string>
 
+class AgentRuntime;
+
 using namespace std;
 
 struct CallStatistics final {

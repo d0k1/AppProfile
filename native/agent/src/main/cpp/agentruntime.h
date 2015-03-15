@@ -31,6 +31,8 @@
 
 using namespace std;
 
+class AgentOptions;
+
 class AgentRuntime
 {
   

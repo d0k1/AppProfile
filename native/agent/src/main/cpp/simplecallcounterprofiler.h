@@ -43,7 +43,7 @@ public:
   virtual string printCsv() override final;
   
 private:
-  map<unsigned long, map<unsigned long, CallStatistics*>*> statByThread;
+  map<pthread_t, map<unsigned long, CallStatistics*>*> statByThread;
 };
 
 #endif // SIMPLECALLCOUNTERPROFILER_H

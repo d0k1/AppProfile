@@ -19,8 +19,10 @@
 
 #include "simplecallcounterprofiler.h"
 #include <iostream>
+#include <boost/format.hpp>
 
 using namespace std;
+using boost::format;
 
 SimpleCallCounterProfiler::SimpleCallCounterProfiler(){
 }
@@ -31,7 +33,7 @@ void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
 void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){  
   auto method = getClasses()->getMethodInfo(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = info.getProcessTid();
+  pthread_t threadKey = info.getProcessTid();
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   map<unsigned long, CallStatistics*> *stat = nullptr;
@@ -59,7 +61,7 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
 
 void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = info.getProcessTid();
+  pthread_t threadKey = info.getProcessTid();
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
@@ -85,7 +87,7 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
 
 void SimpleCallCounterProfiler::printOnExit(){
   getRuntime()->agentGlobalLock();
-
+  
   unsigned int calls1 = 0;
   unsigned long total = 0;
 
@@ -113,20 +115,51 @@ void SimpleCallCounterProfiler::printOnExit(){
   cout << "Methods instrumented: " << getClasses()->getMethodsCount() << endl;
   cout << "Total method used " << calls1 <<endl;
   cout << "Total calls processed " << total<<endl;
-  
+
   getRuntime()->agentGlobalUnlock();
 }
 
 void SimpleCallCounterProfiler::threadStarted(jobject thread){
-//  auto stat = new map<unsigned long, CallStatistics*>();
-//  statByThread.emplace((unsigned long)*(long *)thread, stat);
 }
 
 void SimpleCallCounterProfiler::threadStopped(jobject thread){
 }
 
 void SimpleCallCounterProfiler::reset() {
+  for(auto it=statByThread.begin();it!=statByThread.end();it++){
+    map<unsigned long, CallStatistics*> *calls = it->second;
+    
+    for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
+      CallStatistics *stat = call_it->second;
+
+      stat->callCount=0;
+      stat->returnCount=0;
+      stat->nanosMax=0;
+      stat->nanosMin=0;
+      stat->nanosMean=0;
+      stat->nanosMediana=0;
+      stat->prevCall=nullptr;
+    }
+  }
 }
 
 string SimpleCallCounterProfiler::printCsv(){
+  string result = "threadId;methodName;callCount;returnCount\r\n";
+  
+  for(auto it=statByThread.begin();it!=statByThread.end();it++){
+    map<unsigned long, CallStatistics*> *calls = it->second;
+    pthread_t threadId = it->first;
+    
+    for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
+      auto method = getClasses()->getMethodById(call_it->first);
+      string methodName = method->getFQN();
+      
+      format line("%d;%s;%d;%d\r\n");
+      CallStatistics *stat = call_it->second;
+      line % threadId % methodName % stat->callCount % stat->returnCount;
+      result.append(line.str());
+    }
+  }
+  
+  return result;
 }

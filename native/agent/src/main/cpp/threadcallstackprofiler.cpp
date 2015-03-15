@@ -18,6 +18,9 @@
  */
 
 #include "threadcallstackprofiler.h"
+#include <boost/format.hpp>
+
+using boost::format;
 
 ThreadCallStackProfiler::ThreadCallStackProfiler(){
 }
@@ -25,7 +28,7 @@ ThreadCallStackProfiler::ThreadCallStackProfiler(){
 void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   auto method = getClasses()->getMethodInfo(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = info.getProcessTid();  
+  pthread_t threadKey = info.getProcessTid();  
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
@@ -77,7 +80,7 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto info = getRuntime()->getCurrentThreadInfo();
-  unsigned long threadKey = info.getProcessTid();  
+  pthread_t threadKey = info.getProcessTid();  
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
@@ -107,7 +110,7 @@ void make_shift(int level){
     cout << "\t";
 }
 
-void printCalls(JavaClassesInfo *classes, map<unsigned long, CallStatistics *> stats, int level){  
+void printCalls(JavaClassesInfo *classes, map<unsigned long, CallStatistics *> &stats, int level){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     auto method = classes->getMethodById(it->first);    
@@ -122,11 +125,13 @@ void ThreadCallStackProfiler::printOnExit(){
   getRuntime()->agentGlobalLock();
   
   cout << "Threads " << statByThread.size() <<endl;
+
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     cout << "Thread " << it->first << " " << endl;
     ThreadControl *ctrl = it->second;
     printCalls(getClasses(), ctrl->roots, 1);
   }
+
   getRuntime()->agentGlobalUnlock();
 }
 
@@ -139,8 +144,63 @@ void ThreadCallStackProfiler::threadStarted(jobject thread){
 void ThreadCallStackProfiler::threadStopped(jobject thread){
 }
 
-void ThreadCallStackProfiler::reset() {
+void resetCalls(map<unsigned long, CallStatistics *> &stats){  
+  for(auto it=stats.begin();it!=stats.end();it++){
+    CallStatistics *stat = it->second;
+    
+    stat->callCount=0;
+    stat->returnCount=0;
+    stat->nanosMax=0;
+    stat->nanosMin=0;
+    stat->nanosMean=0;
+    stat->nanosMediana=0;
+    stat->prevCall=nullptr;
+    resetCalls(stat->childs);
+  }
 }
 
+void ThreadCallStackProfiler::reset() {
+  getRuntime()->agentGlobalLock();
+  
+  for(auto it=statByThread.begin();it!=statByThread.end();it++){
+    ThreadControl *ctrl = it->second;
+    ctrl->current = nullptr;
+    resetCalls(ctrl->roots);
+  }
+  getRuntime()->agentGlobalUnlock();
+}
+
+string printCall(JavaClassesInfo *classes, pthread_t threadId, map<unsigned long, CallStatistics *> &stats, unsigned long parentId){
+  
+  string result("");
+  
+  for(auto it=stats.begin();it!=stats.end();it++){
+    auto method = classes->getMethodById(it->first);    
+    string methodName = method->getFQN();
+    
+    format line("%d;%d;%d;%s;%d;%d\r\n");   
+    CallStatistics *stat = it->second;
+    
+    line % threadId % parentId % (unsigned long)stat % methodName % stat->callCount % stat->returnCount;
+    result.append(line.str());
+    result.append(printCall(classes, threadId, stat->childs, (unsigned long)stat));
+  }
+  
+  return result;
+}
+
+
 string ThreadCallStackProfiler::printCsv(){
+  getRuntime()->agentGlobalLock();
+  
+  string result = "threadId;parentId;methodId;methodName;callCount;returnCount\r\n";
+  
+  for(auto it=statByThread.begin();it!=statByThread.end();it++){
+    ThreadControl *ctrl = it->second;
+    result += printCall(getClasses(), it->first, ctrl->roots, 0);
+  }
+  
+  getRuntime()->agentGlobalUnlock();  
+  
+  return result;
 }

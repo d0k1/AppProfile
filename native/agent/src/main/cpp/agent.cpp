@@ -40,14 +40,18 @@ static JavaThreadsInfo *threads = new JavaThreadsInfo();
 static atomic<bool> paused(false);
 
 //static SimpleCallCounterProfiler *tracingProfiler = new SimpleCallCounterProfiler();
-static ThreadCallStackProfiler *tracingProfiler = new ThreadCallStackProfiler();
+static AbstractTracingProfiler *tracingProfiler = nullptr;//new ThreadCallStackProfiler();
 
 /* Callback from java_crw_demo() that gives us mnum mappings */
 static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs, int mcount ) {
 
     for ( int mnum = 0 ; mnum < mcount ; mnum++ ) {
         JavaMethodInfo *method = classes->addClassMethod ( cnum, names[mnum], sigs[mnum] );
-	cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
+	
+	if(runtime->getOptions()->isPrintInstrumentedClasses()){
+	  cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
+	}
+	
 	tracingProfiler->methodInstrumented(method);
     }
 }
@@ -98,11 +102,12 @@ JNIEXPORT void JNICALL Java_Agent_native_1pause(JNIEnv *, jclass){
   paused.store(true);
 }
 
-JNIEXPORT jstring JNICALL Java_Agent_native_1csv(JNIEnv *, jclass){
-  return nullptr;
+JNIEXPORT jstring JNICALL Java_Agent_native_1csv(JNIEnv *env, jclass){
+  string data = tracingProfiler->printCsv();
+  jstring result = env->NewStringUTF(data.c_str());
+  return result;
 }
 
-/* Callback for JVMTI_EVENT_VM_START */
 static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
     runtime->agentGlobalLock();
     {
@@ -149,7 +154,9 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
 	};
 
         /* The VM has started. */
-        cout<< "VMStart" <<endl;
+	if(runtime->getOptions()->isPrintVMEvents()){
+	  cout<< "VMStart" <<endl;
+	}
 
         /* Register Natives for class whose methods we use */
         klass = ( env )->FindClass ( STRING ( Agent_class ) );
@@ -179,7 +186,6 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
     runtime->agentGlobalUnlock ();
 }
 
-/* Callback for JVMTI_EVENT_VM_INIT */
 static void JNICALL cbVMInit ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread ) {
     runtime->agentGlobalLock();
     {
@@ -187,12 +193,14 @@ static void JNICALL cbVMInit ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread ) {
 
         /* The VM has started. */
         JavaThreadInfo info = runtime->getThreadInfo ( thread );
-        cout << "VMInit " << info.getName() << endl;
+	
+	if(runtime->getOptions()->isPrintVMEvents()){
+	  cout << "VMInit " << info.getName() << endl;
+	}
 
         /* The VM is now initialized, at this time we make our requests
          *   for additional events.
          */
-
         for ( int i=0; i < ( int ) ( sizeof ( events ) /sizeof ( jvmtiEvent ) ); i++ ) {
             jvmtiError error;
 
@@ -214,7 +222,9 @@ static void JNICALL cbVMDeath ( jvmtiEnv *jvmti, JNIEnv *env ) {
         jfieldID field;
 
         /* The VM has died. */
-        cout<< "VMDeath" << endl;
+	if(runtime->getOptions()->isPrintVMEvents()){
+	  cout<< "VMDeath" << endl;
+	}
 
         /* Disengage calls in Agent_class. */
         klass = ( env )->FindClass ( STRING ( Agent_class ) );
@@ -244,13 +254,14 @@ static void JNICALL cbVMDeath ( jvmtiEnv *jvmti, JNIEnv *env ) {
         runtime->VmDead();
 
         /* Dump out stats */
-        tracingProfiler->printOnExit();
+	if(runtime->getOptions()->isTracingProfilerPrintOnExit()){
+	  tracingProfiler->printOnExit();
+	}
     }
     runtime->agentGlobalUnlock();
 
 }
 
-/* Callback for JVMTI_EVENT_THREAD_START */
 static void JNICALL cbThreadStart ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread ) {
     runtime->agentGlobalLock ();
     {
@@ -260,13 +271,15 @@ static void JNICALL cbThreadStart ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread
             JavaThreadInfo info = runtime->getThreadInfo ( thread );
             threads->addThread ( info );
 	    tracingProfiler->threadStarted(thread);
-            cout << "ThreadStart " << info.getName() << endl;
+	    
+	    if(runtime->getOptions()->isPrintVMEvents()){
+	      cout << "ThreadStart " << info.getName() << endl;
+	    }
         }
     }
     runtime->agentGlobalUnlock();
 }
 
-/* Callback for JVMTI_EVENT_THREAD_END */
 static void JNICALL cbThreadEnd ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread ) {
     runtime->agentGlobalLock();
     {
@@ -276,7 +289,9 @@ static void JNICALL cbThreadEnd ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread )
             threads->setThreadDead ( info );
 	    tracingProfiler->threadStopped(thread);
 	    
-            cout << "ThreadEnd " << info.getName() << endl;
+	    if(runtime->getOptions()->isPrintVMEvents()){
+	      cout << "ThreadEnd " << info.getName() << endl;
+	    }
         }
     }
     runtime->agentGlobalUnlock();
@@ -380,7 +395,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     }
 
     runtime = new AgentRuntime ( jvmti );
-    
+    tracingProfiler = runtime->getOptions()->getTracingProfiler();
     tracingProfiler->setData ( runtime, classes, threads );
 
     ( void ) memset ( &capabilities,0, sizeof ( capabilities ) );
@@ -407,7 +422,9 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     error = ( jvmti )->SetEventNotificationMode ( JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, ( jthread ) NULL );
     runtime->JVMTIExitIfError ( error, "Cannot set event notification" );
 
-    cout << "Adding helper jar at " << runtime->getOptions()->getHelperJar().c_str() << endl;
+    if(runtime->getOptions()->isPrintVMEvents()){
+      cout << "Adding helper jar at " << runtime->getOptions()->getHelperJar().c_str() << endl;
+    }
     runtime->JVMTIAddJarToClasspath ( runtime->getOptions()->getHelperJar().c_str() );
 
     return JNI_OK;

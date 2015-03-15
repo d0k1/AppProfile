@@ -50,7 +50,7 @@ public:
   virtual string printCsv() override final;
   
 private:
-  map<unsigned long, ThreadControl*> statByThread;
+  map<pthread_t, ThreadControl*> statByThread;
 };
 
 #endif // THREADCALLSTACKPROFILER_H

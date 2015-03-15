@@ -32,3 +32,12 @@ unsigned long JavaMethodInfo::getMethodId(){
 JavaClassInfo *JavaMethodInfo::getClass(){
   return classInfo;
 }
+
+string JavaMethodInfo::getFQN(){
+  string methodName(getClass()->getName());
+  methodName+="#";
+  methodName+=getName();
+  methodName+=getSignature();
+  
+  return methodName;
+}

@@ -23,9 +23,12 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
+#include "abstracttracingprofiler.h"
 
 using namespace boost::program_options;
 using namespace std;
+
+class AbstractTracingProfiler;
 
 class AgentOptions
 {
@@ -34,8 +37,15 @@ public:
 
   bool isClassExcluded(const char *klass);
   string getHelperJar();
-private:
   
+  AbstractTracingProfiler *getTracingProfiler();
+  bool isTracingProfilerPrintOnExit();
+  bool isPrintVMEvents();
+  bool isPrintInstrumentedClasses();
+private:
+  bool printVMEvents;
+  bool printInstrumentedClassnames;
+  bool profilerPrintOnExit;
   string agentExclude;
   string agentExcludeIgnore;
   string agentInclude;
@@ -48,6 +58,8 @@ private:
   
   vector<string> includes;
   vector<string> includesIgnore;
+  
+  AbstractTracingProfiler *tracingProfiler;
 };
 
 #endif // AGENTOPTIONS_H

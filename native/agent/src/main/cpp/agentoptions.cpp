@@ -23,9 +23,17 @@
 #include <regex>
 #include <boost/algorithm/string.hpp>
 
+#include "simplecallcounterprofiler.h"
+#include "threadcallstackprofiler.h"
+
 AgentOptions::AgentOptions(string filename){
   options_description desc("Options");
   variables_map vm;
+  
+  string tracingProfilerType;
+  string printOnExitValue;
+  string printVMEventsValue;
+  string printInstrumentedClassnamesValue;
   
   desc.add_options()("agent.exclude", boost::program_options::value<std::string>(&agentExclude));
   desc.add_options()("agent.exclude.ingore", boost::program_options::value<std::string>(&agentExcludeIgnore));
@@ -33,7 +41,12 @@ AgentOptions::AgentOptions(string filename){
   desc.add_options()("agent.include.ingore", boost::program_options::value<std::string>(&agentIncludeIgnore));
   desc.add_options()("agent.appId", boost::program_options::value<std::string>(&appId));
   desc.add_options()("helper.jar", boost::program_options::value<std::string>(&helperJar));
+  desc.add_options()("tracing.profiler", boost::program_options::value<std::string>(&tracingProfilerType));
+  desc.add_options()("tracing.profiler.print.on.exit", boost::program_options::value<std::string>(&printOnExitValue));
   
+  desc.add_options()("print.vm.events", boost::program_options::value<std::string>(&printVMEventsValue));
+  desc.add_options()("print.instrumented.classes", boost::program_options::value<std::string>(&printInstrumentedClassnamesValue));
+
   ifstream settings_file( filename , std::ifstream::in );
   store( parse_config_file( settings_file , desc, true ), vm );
   notify( vm );    
@@ -43,6 +56,30 @@ AgentOptions::AgentOptions(string filename){
   excludesIgnore = Utils::splitString(agentExcludeIgnore, ",");
   includes = Utils::splitString(agentInclude, ",");
   includesIgnore = Utils::splitString(agentIncludeIgnore, ",");
+  
+  if(printOnExitValue=="true"){
+    profilerPrintOnExit = true;
+  } else {
+    profilerPrintOnExit = false;
+  }
+  
+  if(printVMEventsValue=="true"){
+    printVMEvents = true;
+  } else {
+    printVMEvents = false;
+  }
+  
+  if(printInstrumentedClassnamesValue=="true"){
+    printInstrumentedClassnames = true;
+  } else {
+    printInstrumentedClassnames = false;
+  }
+  
+  if(tracingProfilerType.length()==0 || tracingProfilerType=="simple"){
+    tracingProfiler = new SimpleCallCounterProfiler();
+  }else if(tracingProfilerType=="threadcallstack"){
+    tracingProfiler = new ThreadCallStackProfiler();
+  }
 }
 
 bool matchMask(string value, string regexp){
@@ -96,4 +133,20 @@ bool AgentOptions::isClassExcluded(const char *klass){
 
 string AgentOptions::getHelperJar(){
   return helperJar;
+}
+
+AbstractTracingProfiler *AgentOptions::getTracingProfiler(){
+  return tracingProfiler;
+}
+
+bool AgentOptions::isTracingProfilerPrintOnExit(){
+  return profilerPrintOnExit;
+}
+
+bool AgentOptions::isPrintVMEvents(){
+  return printVMEvents;
+}
+
+bool AgentOptions::isPrintInstrumentedClasses(){
+  return printInstrumentedClassnames;
 }
