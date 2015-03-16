@@ -19,14 +19,14 @@
 
 #include "threadcallstackprofiler.h"
 #include <boost/format.hpp>
-
+#include "utils.h"
 using boost::format;
 
 ThreadCallStackProfiler::ThreadCallStackProfiler(){
 }
 
 void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
-  auto method = getClasses()->getMethodInfo(cnum, mnum);
+  auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   pthread_t threadKey = info.getProcessTid();  
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
@@ -47,25 +47,34 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   // если еще не были внтури ниодного метода
   if(stat==nullptr){
     // ищем такой же, для статистики
-    auto root_it = ctrl->roots.find(method->getMethodId());
+    auto root_it = ctrl->roots.find(methodId);
     
     // если не бывали в таком методе раньше
     if(root_it==ctrl->roots.end()){
       stat = new CallStatistics();
-      ctrl->roots.emplace(method->getMethodId(), stat);
+      stat->methodId = methodId;
+      stat->level=1;
+      ctrl->roots.emplace(methodId, stat);
       ctrl->current = stat;
     } else {
       stat = root_it->second;
+      stat->level=1;
     }
   } else {
     // если уже внутри какого-то метода
     // пробуем найти метод внутри текущего, в который уже погружались
-    auto child_it = ctrl->current->childs.find(method->getMethodId());
+    auto child_it = ctrl->current->childs.find(methodId);
     
     // не найден - создаем новый
     if(child_it == ctrl->current->childs.end()){
-      stat = new CallStatistics();
-      ctrl->current->childs.emplace(method->getMethodId(), stat);      
+      if(ctrl->current->level<maxDepth){
+	stat = new CallStatistics();
+	stat->methodId = methodId;
+	stat->level = ctrl->current->level+1;
+	ctrl->current->childs.emplace(methodId, stat);      
+      } else {
+	return;
+      }
     } else {
       stat = child_it->second;
     }
@@ -79,6 +88,7 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
 }
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
+  auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   pthread_t threadKey = info.getProcessTid();  
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
@@ -93,6 +103,10 @@ void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   CallStatistics *stat = ctrl->current;
   
   if(stat==nullptr) {
+    return;
+  }
+  
+  if(stat->methodId!=methodId){
     return;
   }
   
@@ -147,16 +161,16 @@ void ThreadCallStackProfiler::threadStopped(jobject thread){
 void resetCalls(unordered_map<unsigned long, CallStatistics *> &stats){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
-    
     stat->callCount=0;
     stat->returnCount=0;
-    stat->nanosMax=0;
-    stat->nanosMin=0;
-    stat->nanosMean=0;
-    stat->nanosMediana=0;
     stat->prevCall=nullptr;
     resetCalls(stat->childs);
   }
+}
+
+void ThreadCallStackProfiler::setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads){
+  AbstractTracingProfiler::setData(runtime, classes, threads);
+  maxDepth = getRuntime()->getOptions()->getTracingProfilerDepth();
 }
 
 void ThreadCallStackProfiler::reset() {
@@ -181,9 +195,9 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
     format line("%d;%d;%d;%s;%d;%d\r\n");   
     CallStatistics *stat = it->second;
     
-    line % threadId % parentId % (unsigned long)stat % methodName % stat->callCount % stat->returnCount;
+    line % threadId % parentId % (unsigned long)stat->methodId % methodName % stat->callCount % stat->returnCount;
     result.append(line.str());
-    result.append(printCall(classes, threadId, stat->childs, (unsigned long)stat));
+    result.append(printCall(classes, threadId, stat->childs, (unsigned long)stat->methodId));
   }
   
   return result;

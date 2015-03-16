@@ -34,11 +34,8 @@ using namespace std;
 struct CallStatistics final {
   unsigned int callCount;
   unsigned int returnCount;
-  unsigned long nanosMin;
-  unsigned long nanosMax;
-  unsigned long nanosMean;
-  unsigned long nanosMediana;
-  
+  unsigned long methodId;
+  unsigned short level=1;
   CallStatistics *prevCall;
   unordered_map<unsigned long, CallStatistics*> childs;
 };
@@ -47,7 +44,7 @@ class AbstractTracingProfiler
 {
 public:
   
-  virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads) final;
+  virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads);
   
   virtual void methodEntry(int cnum, int mnum, jobject thread)=0;
   virtual void methodExit(int cnum, int mnum, jobject thread)=0;

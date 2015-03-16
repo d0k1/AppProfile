@@ -19,6 +19,11 @@
 
 #include "utils.h"
 
+unsigned long Utils::getMethodId(int cnum, int mnum){
+  unsigned long result = cnum;
+  return result<<32|mnum;
+}
+
 vector<string> Utils::splitString(string value, const char *separator){
   vector<string> res;
   typedef tokenizer<char_separator<char> > tokenizer;

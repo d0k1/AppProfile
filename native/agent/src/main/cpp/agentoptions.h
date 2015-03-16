@@ -42,10 +42,14 @@ public:
   bool isTracingProfilerPrintOnExit();
   bool isPrintVMEvents();
   bool isPrintInstrumentedClasses();
+  bool isCsvOnExit();
+  int getTracingProfilerDepth();
 private:
+  int tracingMaxDepth;
   bool printVMEvents;
   bool printInstrumentedClassnames;
   bool profilerPrintOnExit;
+  bool csvOnExit;
   string agentExclude;
   string agentExcludeIgnore;
   string agentInclude;

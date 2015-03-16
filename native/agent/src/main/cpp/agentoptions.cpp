@@ -26,6 +26,14 @@
 #include "simplecallcounterprofiler.h"
 #include "threadcallstackprofiler.h"
 
+bool AgentOptions::isCsvOnExit(){
+  return csvOnExit;
+}
+
+int AgentOptions::getTracingProfilerDepth(){
+  return tracingMaxDepth;
+}
+
 AgentOptions::AgentOptions(string filename){
   options_description desc("Options");
   variables_map vm;
@@ -34,6 +42,8 @@ AgentOptions::AgentOptions(string filename){
   string printOnExitValue;
   string printVMEventsValue;
   string printInstrumentedClassnamesValue;
+  string csvOnExitValue;
+  string maxDepthValue;
   
   desc.add_options()("agent.exclude", boost::program_options::value<std::string>(&agentExclude));
   desc.add_options()("agent.exclude.ingore", boost::program_options::value<std::string>(&agentExcludeIgnore));
@@ -42,7 +52,9 @@ AgentOptions::AgentOptions(string filename){
   desc.add_options()("agent.appId", boost::program_options::value<std::string>(&appId));
   desc.add_options()("helper.jar", boost::program_options::value<std::string>(&helperJar));
   desc.add_options()("tracing.profiler", boost::program_options::value<std::string>(&tracingProfilerType));
+  desc.add_options()("tracing.profiler.depth", boost::program_options::value<std::string>(&maxDepthValue));
   desc.add_options()("tracing.profiler.print.on.exit", boost::program_options::value<std::string>(&printOnExitValue));
+  desc.add_options()("tracing.profiler.print.on.exit.csv", boost::program_options::value<std::string>(&csvOnExitValue));
   
   desc.add_options()("print.vm.events", boost::program_options::value<std::string>(&printVMEventsValue));
   desc.add_options()("print.instrumented.classes", boost::program_options::value<std::string>(&printInstrumentedClassnamesValue));
@@ -57,6 +69,22 @@ AgentOptions::AgentOptions(string filename){
   includes = Utils::splitString(agentInclude, ",");
   includesIgnore = Utils::splitString(agentIncludeIgnore, ",");
   
+  int defaultDepth = 5;
+  tracingMaxDepth = defaultDepth;
+  if(maxDepthValue.length()==0 || maxDepthValue.length()>2){
+    tracingMaxDepth = defaultDepth;
+  }
+  try{
+    tracingMaxDepth = stoi(maxDepthValue);
+  }catch(...){
+    tracingMaxDepth=defaultDepth;
+  }
+  
+  if(csvOnExitValue=="false"){
+    csvOnExit = false;
+  } else {
+    csvOnExit = true;
+  }
   if(printOnExitValue=="true"){
     profilerPrintOnExit = true;
   } else {

@@ -31,17 +31,18 @@ class JavaMethodInfo;
 class JavaClassInfo
 {
 public:
-  JavaClassInfo(string name);  
-  JavaClassInfo(const char *name);  
+  JavaClassInfo(unsigned int classIndex, string name);  
+  JavaClassInfo(unsigned int classIndex, const char *name);  
   
-  JavaMethodInfo *addMethod(string name, string signature, unsigned long methodId);
-  JavaMethodInfo *addMethod(const char *name, const char *signature, unsigned long methodId);
+  JavaMethodInfo *addMethod(unsigned int methodIndex, string name, string signature, unsigned long methodId);
+  JavaMethodInfo *addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId);
   string getName(){return name;};
   
   unsigned int getMethodCount();
   
   JavaMethodInfo *getMethod(unsigned int methodId);
 private:
+  unsigned int classIndex;
   string name;
   vector<JavaMethodInfo*> methods;
 };

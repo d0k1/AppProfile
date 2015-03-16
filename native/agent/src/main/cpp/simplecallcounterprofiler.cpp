@@ -20,6 +20,7 @@
 #include "simplecallcounterprofiler.h"
 #include <iostream>
 #include <boost/format.hpp>
+#include "utils.h"
 
 using namespace std;
 using boost::format;
@@ -31,7 +32,7 @@ void SimpleCallCounterProfiler::methodInstrumented(JavaMethodInfo *info){
 }
 
 void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){  
-  auto method = getClasses()->getMethodInfo(cnum, mnum);
+  auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   pthread_t threadKey = info.getProcessTid();
   //unsigned long threadKey = (unsigned long)(*(long *)thread);
@@ -47,11 +48,11 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
   
   CallStatistics *call = nullptr;
   
-  auto stat_it = stat->find(method->getMethodId()); 
+  auto stat_it = stat->find(methodId); 
   
   if(stat_it == stat->end()){
     call = new CallStatistics();
-    stat->emplace(method->getMethodId(), call);
+    stat->emplace(methodId, call);
   } else {
     call = (stat_it->second);
   }
@@ -74,8 +75,8 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
   if(stat!=nullptr){
     CallStatistics *call = nullptr;
     
-    auto method = getClasses()->getMethodInfo(cnum, mnum);
-    auto stat_it = stat->find(method->getMethodId()); 
+    auto methodId = Utils::getMethodId(cnum, mnum);
+    auto stat_it = stat->find(methodId); 
     
     if(stat_it != stat->end()){
       call = (stat_it->second);
@@ -136,10 +137,6 @@ void SimpleCallCounterProfiler::reset() {
 
       stat->callCount=0;
       stat->returnCount=0;
-      stat->nanosMax=0;
-      stat->nanosMin=0;
-      stat->nanosMean=0;
-      stat->nanosMediana=0;
       stat->prevCall=nullptr;
     }
   }

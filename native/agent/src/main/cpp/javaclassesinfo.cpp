@@ -18,6 +18,7 @@
  */
 
 #include "javaclassesinfo.h"
+#include "utils.h"
 
 JavaMethodInfo *JavaClassesInfo::getMethodById(unsigned long id){
   return methods.at(id);
@@ -35,12 +36,12 @@ unsigned int JavaClassesInfo::getClassesCount(){
 }
 
 unsigned int JavaClassesInfo::addClass(const char *name){
-  classes.push_back(new JavaClassInfo(name));
+  classes.push_back(new JavaClassInfo(classes.size(), name));
   return classes.size()-1;
 }
 
 unsigned int JavaClassesInfo::addClass(string name){
-  classes.push_back(new JavaClassInfo(name));
+  classes.push_back(new JavaClassInfo(classes.size(), name));
   return classes.size()-1;
 }
 
@@ -48,19 +49,17 @@ string JavaClassesInfo::getClass(unsigned int id){
   return classes[id]->getName();
 }
 
-JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, string methodName, string methodSignature){
-  unsigned long id = methodsCounter++;
-  
-  auto result = classes[classId]->addMethod(methodName, methodSignature, id);
-  methods.emplace(id, result);
+JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, unsigned int methodIndex, string methodName, string methodSignature){
+  methodsCounter++;
+  auto result = classes[classId]->addMethod(methodIndex, methodName, methodSignature, methodsCounter);
+  methods.emplace(Utils::getMethodId(classId, methodIndex), result);
   return result;
 }
 
-JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, const char *methodName, const char *methodSignature){
-  unsigned long id = methodsCounter++;
-  
-  auto result = classes[classId]->addMethod(methodName, methodSignature, id);
-  methods.emplace(id, result);
+JavaMethodInfo *JavaClassesInfo::addClassMethod(unsigned int classId, unsigned int methodIndex, const char *methodName, const char *methodSignature){
+  methodsCounter++;
+  auto result = classes[classId]->addMethod(methodIndex, methodName, methodSignature, methodsCounter);
+  methods.emplace(Utils::getMethodId(classId, methodIndex), result);
   return result;
 }
 

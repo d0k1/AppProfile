@@ -38,6 +38,9 @@ class ThreadCallStackProfiler : public AbstractTracingProfiler
 {
 public:
   ThreadCallStackProfiler();
+  
+  virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads) final;
+  
   virtual void methodEntry(int cnum, int mnum, jobject thread) override;
   virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
@@ -50,6 +53,7 @@ public:
   virtual string printCsv() override final;
   
 private:
+  int maxDepth;
   unordered_map<pthread_t, ThreadControl*> statByThread;
 };
 

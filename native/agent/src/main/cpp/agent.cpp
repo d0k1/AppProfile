@@ -46,7 +46,7 @@ static AbstractTracingProfiler *tracingProfiler = nullptr;//new ThreadCallStackP
 static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs, int mcount ) {
 
     for ( int mnum = 0 ; mnum < mcount ; mnum++ ) {
-        JavaMethodInfo *method = classes->addClassMethod ( cnum, names[mnum], sigs[mnum] );
+        JavaMethodInfo *method = classes->addClassMethod ( cnum, mnum, names[mnum], sigs[mnum] );
 	
 	if(runtime->getOptions()->isPrintInstrumentedClasses()){
 	  cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
@@ -255,7 +255,11 @@ static void JNICALL cbVMDeath ( jvmtiEnv *jvmti, JNIEnv *env ) {
 
         /* Dump out stats */
 	if(runtime->getOptions()->isTracingProfilerPrintOnExit()){
-	  tracingProfiler->printOnExit();
+	  if(runtime->getOptions()->isCsvOnExit()){
+	    cout << tracingProfiler->printCsv() << endl;
+	  } else {
+	    tracingProfiler->printOnExit();
+	  }
 	}
     }
     runtime->agentGlobalUnlock();

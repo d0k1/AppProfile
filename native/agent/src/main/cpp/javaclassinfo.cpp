@@ -23,26 +23,28 @@
 
 using namespace std;
 
-JavaClassInfo::JavaClassInfo(string name){
+JavaClassInfo::JavaClassInfo(unsigned int classIndex, string name){
   this->name = name;
+  this->classIndex = classIndex;
 }
 
-JavaClassInfo::JavaClassInfo(const char *name){
+JavaClassInfo::JavaClassInfo(unsigned int classIndex, const char *name){
   this->name = name;
+  this->classIndex = classIndex;
 }
 
 unsigned int JavaClassInfo::getMethodCount(){
     return methods.size();
 }
 
-JavaMethodInfo *JavaClassInfo::addMethod(string name, string signature, unsigned long methodId) {
-  JavaMethodInfo *info = new JavaMethodInfo(name, signature, methodId, this);
+JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, string name, string signature, unsigned long methodId) {
+  JavaMethodInfo *info = new JavaMethodInfo(classIndex, methodIndex, name, signature, methodId, this);
   methods.push_back(info);
   return info;
 }
 
-JavaMethodInfo *JavaClassInfo::addMethod(const char *name, const char *signature, unsigned long methodId) {
-  JavaMethodInfo *info = new JavaMethodInfo(name, signature, methodId, this);
+JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId) {
+  JavaMethodInfo *info = new JavaMethodInfo(classIndex, methodIndex, name, signature, methodId, this);
   methods.push_back(info);
   
   return info;

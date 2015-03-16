@@ -30,15 +30,18 @@ class JavaClassInfo;
 class JavaMethodInfo
 {
 public:
-  JavaMethodInfo(const char *name, const char *signature, unsigned long methodId, JavaClassInfo *info);
-  JavaMethodInfo(string name, string signature, unsigned long methodId, JavaClassInfo *info);
+  JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId, JavaClassInfo *info);
+  JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, string name, string signature, unsigned long methodId, JavaClassInfo *info);
   string getName(){return name;};
   string getSignature(){return signature;};
   unsigned long getMethodId();
   JavaClassInfo *getClass();
   string getFQN();
 private:
+  unsigned int classIndex;
+  unsigned int methodIndex;
   unsigned long methodId;
+  unsigned long methodCounter;
   string name;
   string signature;  
   JavaClassInfo *classInfo;
