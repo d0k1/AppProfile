@@ -24,7 +24,7 @@
 #include "javathreadsinfo.h"
 #include "agentruntime.h"
 
-#include <map>
+#include <unordered_map>
 #include <string>
 
 class AgentRuntime;
@@ -40,7 +40,7 @@ struct CallStatistics final {
   unsigned long nanosMediana;
   
   CallStatistics *prevCall;
-  map<unsigned long, CallStatistics*> childs;
+  unordered_map<unsigned long, CallStatistics*> childs;
 };
 
 class AbstractTracingProfiler

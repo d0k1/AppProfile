@@ -21,14 +21,14 @@
 #define THREADCALLSTACKPROFILER_H
 
 #include "abstracttracingprofiler.h"
-#include <map>
+#include <unordered_map>
 
 #include <string>
 
 using namespace std;
 
 struct ThreadControl final {
-  map<unsigned long, CallStatistics *> roots;
+  unordered_map<unsigned long, CallStatistics *> roots;
   CallStatistics *current;
   
   ThreadControl():current(nullptr){};
@@ -50,7 +50,7 @@ public:
   virtual string printCsv() override final;
   
 private:
-  map<pthread_t, ThreadControl*> statByThread;
+  unordered_map<pthread_t, ThreadControl*> statByThread;
 };
 
 #endif // THREADCALLSTACKPROFILER_H

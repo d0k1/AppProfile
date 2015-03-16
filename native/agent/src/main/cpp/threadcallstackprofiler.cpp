@@ -110,7 +110,7 @@ void make_shift(int level){
     cout << "\t";
 }
 
-void printCalls(JavaClassesInfo *classes, map<unsigned long, CallStatistics *> &stats, int level){  
+void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long, CallStatistics *> &stats, int level){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     auto method = classes->getMethodById(it->first);    
@@ -144,7 +144,7 @@ void ThreadCallStackProfiler::threadStarted(jobject thread){
 void ThreadCallStackProfiler::threadStopped(jobject thread){
 }
 
-void resetCalls(map<unsigned long, CallStatistics *> &stats){  
+void resetCalls(unordered_map<unsigned long, CallStatistics *> &stats){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     
@@ -170,7 +170,7 @@ void ThreadCallStackProfiler::reset() {
   getRuntime()->agentGlobalUnlock();
 }
 
-string printCall(JavaClassesInfo *classes, pthread_t threadId, map<unsigned long, CallStatistics *> &stats, unsigned long parentId){
+string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<unsigned long, CallStatistics *> &stats, unsigned long parentId){
   
   string result("");
   

@@ -36,7 +36,7 @@ JavaThreadInfo JavaThreadsInfo::getThread(unsigned int id){
 }
 
 void JavaThreadsInfo::setThreadDead(JavaThreadInfo info){
-  map<pthread_t, unsigned int>::iterator it = threadMap.find(info.getProcessTid());
+  auto it = threadMap.find(info.getProcessTid());
   
   if(it==threadMap.end()){
     return;

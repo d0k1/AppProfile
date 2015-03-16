@@ -35,7 +35,7 @@ unset(Boost_LIBRARYDIR CACHE)
 set(Boost_NO_SYSTEM_PATHS TRUE) 
 
 if (Boost_NO_SYSTEM_PATHS)
-  set(BOOST_ROOT "/home/dkirpichenkov/boost1.57")
+  set(BOOST_ROOT "./boost1.57")
   set(BOOST_INCLUDEDIR "${BOOST_ROOT}/boost")
   set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib")
 endif (Boost_NO_SYSTEM_PATHS)

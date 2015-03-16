@@ -21,7 +21,7 @@
 #define JAVATHREADSINFO_H
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include "javathreadinfo.h"
 
 using namespace std;
@@ -36,7 +36,7 @@ public:
     JavaThreadInfo getThread(unsigned int id);
 private:
     vector<JavaThreadInfo> threads;
-    map<pthread_t, unsigned int> threadMap;
+    unordered_map<pthread_t, unsigned int> threadMap;
 };
 
 #endif // JAVATHREADSINFO_H
