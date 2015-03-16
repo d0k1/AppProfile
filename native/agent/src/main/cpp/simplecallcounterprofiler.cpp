@@ -80,8 +80,10 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
     if(stat_it != stat->end()){
       call = (stat_it->second);
     }
-    
-    call->returnCount++;
+
+    if(call!=nullptr){
+	call->returnCount++;
+    }
   }
 }
 

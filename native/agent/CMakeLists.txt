@@ -29,15 +29,15 @@ find_package(PkgConfig REQUIRED)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
-unset(Boost_INCLUDE_DIR CACHE)
-unset(Boost_LIBRARY_DIRS CACHE)
+unset(Boost_INCLUDEDIR CACHE)
+unset(Boost_LIBRARYDIR CACHE)
 
 set(Boost_NO_SYSTEM_PATHS TRUE) 
 
 if (Boost_NO_SYSTEM_PATHS)
-  set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../3p/boost")
-  set(BOOST_INCLUDE_DIRS "${BOOST_ROOT}/include")
-  set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
+  set(BOOST_ROOT "/home/dkirpichenkov/boost1.57")
+  set(BOOST_INCLUDEDIR "${BOOST_ROOT}/boost")
+  set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib")
 endif (Boost_NO_SYSTEM_PATHS)
 
 FIND_PACKAGE( Boost 1.55 COMPONENTS program_options system thread REQUIRED )
@@ -46,7 +46,7 @@ find_package(JNI REQUIRED)
 include_directories("src/java_crw_demo")
 include_directories(${JAVA_INCLUDE_PATH})
 include_directories(${JAVA_INCLUDE_PATH2})
-include_directories( ${Boost_INCLUDE_DIRS} )
+include_directories( ${Boost_INCLUDE_DIR} )
 
 set(SOURCE_FILES
     ${SRC}/agent.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c ${SRC}/threadcallstackprofiler.cpp)
@@ -57,18 +57,14 @@ set(SOURCE_FILES
 
 set(GLOBAL_WARNINGS "-W -Wformat-security -Wno-char-subscripts -Wno-parentheses")
 set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wno-write-strings -Wno-unused -Wl,--no-undefined")
-#set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wno-sign-compare -Wno-strict-overflow")
-#set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wnon-virtual-dtor -Woverloaded-virtual")
 
-set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option  -O3")
+set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option -O2")
 set(GLOBAL_COPTS "${GLOBAL_COPTS} -funsigned-char -fno-asynchronous-unwind-tables -msse2 -D__STDC_FORMAT_MACROS")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}  -pthread -std=c++14")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}")
+set(CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++ ${CMAKE_CXX_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}  -pthread -std=c++14")
+set(CMAKE_C_FLAGS "-static-libgcc -static-libstdc++ ${CMAKE_C_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}")
 
 ##########################################################
 # Build
-set(STATIC_LIBS "libc libstdc++ libpthread ${Boost_LIBRARIES}")
-set(CMAKE_EXE_LINKER_FLAGS "-static ${STATIC_LIBS}") 
 add_library(${OUTPUT} SHARED ${SOURCE_FILES})
-target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} ${Boost_LIBRARIES} c stdc++ pthread sl)
+target_link_libraries(${OUTPUT} ${JNI_LIBRARIES} ${Boost_LIBRARIES})
