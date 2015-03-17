@@ -34,10 +34,10 @@ using namespace std;
 struct CallStatistics final {
   unsigned int callCount;
   unsigned int returnCount;
-  unsigned long methodId;
+  unsigned long long methodId;
   unsigned short level=1;
   CallStatistics *prevCall;
-  unordered_map<unsigned long, CallStatistics*> childs;
+  unordered_map<unsigned long long, CallStatistics*> childs;
 };
 
 class AbstractTracingProfiler

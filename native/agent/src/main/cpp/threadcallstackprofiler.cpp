@@ -29,7 +29,7 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   pthread_t threadKey = info.getProcessTid();  
-  //unsigned long threadKey = (unsigned long)(*(long *)thread);
+  //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
   ThreadControl *ctrl = nullptr;
@@ -91,7 +91,7 @@ void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
   pthread_t threadKey = info.getProcessTid();  
-  //unsigned long threadKey = (unsigned long)(*(long *)thread);
+  //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
   
   ThreadControl *ctrl = nullptr;
@@ -124,7 +124,7 @@ void make_shift(int level){
     cout << "\t";
 }
 
-void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long, CallStatistics *> &stats, int level){  
+void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, CallStatistics *> &stats, int level){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     auto method = classes->getMethodById(it->first);    
@@ -158,7 +158,7 @@ void ThreadCallStackProfiler::threadStarted(jobject thread){
 void ThreadCallStackProfiler::threadStopped(jobject thread){
 }
 
-void resetCalls(unordered_map<unsigned long, CallStatistics *> &stats){  
+void resetCalls(unordered_map<unsigned long long, CallStatistics *> &stats){  
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     stat->callCount=0;
@@ -184,7 +184,7 @@ void ThreadCallStackProfiler::reset() {
   getRuntime()->agentGlobalUnlock();
 }
 
-string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<unsigned long, CallStatistics *> &stats, unsigned long parentId){
+string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<unsigned long long, CallStatistics *> &stats, unsigned long long parentId){
   
   string result("");
   
@@ -195,9 +195,9 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
     format line("%d;%d;%d;%s;%d;%d\r\n");   
     CallStatistics *stat = it->second;
     
-    line % threadId % parentId % (unsigned long)stat->methodId % methodName % stat->callCount % stat->returnCount;
+    line % threadId % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount;
     result.append(line.str());
-    result.append(printCall(classes, threadId, stat->childs, (unsigned long)stat->methodId));
+    result.append(printCall(classes, threadId, stat->childs, (unsigned long long)stat->methodId));
   }
   
   return result;

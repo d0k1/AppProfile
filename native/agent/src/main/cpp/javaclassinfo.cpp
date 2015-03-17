@@ -37,13 +37,13 @@ unsigned int JavaClassInfo::getMethodCount(){
     return methods.size();
 }
 
-JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, string name, string signature, unsigned long methodId) {
+JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, string name, string signature, unsigned long long methodId) {
   JavaMethodInfo *info = new JavaMethodInfo(classIndex, methodIndex, name, signature, methodId, this);
   methods.push_back(info);
   return info;
 }
 
-JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId) {
+JavaMethodInfo *JavaClassInfo::addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long long methodId) {
   JavaMethodInfo *info = new JavaMethodInfo(classIndex, methodIndex, name, signature, methodId, this);
   methods.push_back(info);
   

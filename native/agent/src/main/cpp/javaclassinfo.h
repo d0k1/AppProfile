@@ -34,8 +34,8 @@ public:
   JavaClassInfo(unsigned int classIndex, string name);  
   JavaClassInfo(unsigned int classIndex, const char *name);  
   
-  JavaMethodInfo *addMethod(unsigned int methodIndex, string name, string signature, unsigned long methodId);
-  JavaMethodInfo *addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId);
+  JavaMethodInfo *addMethod(unsigned int methodIndex, string name, string signature, unsigned long long methodId);
+  JavaMethodInfo *addMethod(unsigned int methodIndex, const char *name, const char *signature, unsigned long long methodId);
   string getName(){return name;};
   
   unsigned int getMethodCount();

@@ -28,7 +28,7 @@
 using namespace std;
 
 struct ThreadControl final {
-  unordered_map<unsigned long, CallStatistics *> roots;
+  unordered_map<unsigned long long, CallStatistics *> roots;
   CallStatistics *current;
   
   ThreadControl():current(nullptr){};

@@ -19,8 +19,8 @@
 
 #include "utils.h"
 
-unsigned long Utils::getMethodId(int cnum, int mnum){
-  unsigned long result = cnum;
+unsigned long long Utils::getMethodId(int cnum, int mnum){
+  unsigned long long result = cnum;
   return result<<32|mnum;
 }
 

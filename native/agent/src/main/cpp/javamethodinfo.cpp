@@ -19,15 +19,15 @@
 
 #include "javamethodinfo.h"
 #include "utils.h"
-JavaMethodInfo::JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, const char *name, const char *signature, unsigned long methodId, JavaClassInfo *info):classIndex(classIndex), methodIndex(methodIndex),name(name),signature(signature),methodCounter(methodId),classInfo(info){
+JavaMethodInfo::JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, const char *name, const char *signature, unsigned long long methodId, JavaClassInfo *info):classIndex(classIndex), methodIndex(methodIndex),name(name),signature(signature),methodCounter(methodId),classInfo(info){
   methodId = Utils::getMethodId(classIndex, methodIndex);
 }
 
-JavaMethodInfo::JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, string name, string signature, unsigned long methodId, JavaClassInfo *info):classIndex(classIndex), methodIndex(methodIndex),name(name),signature(signature),methodCounter(methodId),classInfo(info){
+JavaMethodInfo::JavaMethodInfo(unsigned int classIndex, unsigned int methodIndex, string name, string signature, unsigned long long methodId, JavaClassInfo *info):classIndex(classIndex), methodIndex(methodIndex),name(name),signature(signature),methodCounter(methodId),classInfo(info){
   methodId = Utils::getMethodId(classIndex, methodIndex);
 }
 
-unsigned long JavaMethodInfo::getMethodId(){
+unsigned long long JavaMethodInfo::getMethodId(){
   return methodId;
 }
 

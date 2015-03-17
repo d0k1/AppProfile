@@ -20,14 +20,14 @@
 #include "javaclassesinfo.h"
 #include "utils.h"
 
-JavaMethodInfo *JavaClassesInfo::getMethodById(unsigned long id){
+JavaMethodInfo *JavaClassesInfo::getMethodById(unsigned long long id){
   return methods.at(id);
 }
 
 JavaClassesInfo::JavaClassesInfo():methodsCounter(0){
 }
 
-unsigned long JavaClassesInfo::getMethodsCount(){
+unsigned long long JavaClassesInfo::getMethodsCount(){
   return methodsCounter;
 }
 

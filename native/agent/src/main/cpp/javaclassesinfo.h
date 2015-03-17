@@ -38,17 +38,17 @@ public:
   string getClass(unsigned int id);
   
   unsigned int getClassesCount();
-  unsigned long getMethodsCount();
+  unsigned long long getMethodsCount();
   
   JavaMethodInfo *addClassMethod(unsigned int classId, unsigned int methodIndex, string methodName, string methodSignature);
   JavaMethodInfo *addClassMethod(unsigned int classId, unsigned int methodIndex, const char *methodName, const char *methodSignature);
   
   JavaMethodInfo *getMethodInfo(unsigned int classId, unsigned int methodId);
   
-  JavaMethodInfo *getMethodById(unsigned long id);
+  JavaMethodInfo *getMethodById(unsigned long long id);
 private:
-  unsigned long methodsCounter;
-  unordered_map<unsigned long, JavaMethodInfo*> methods;
+  unsigned long long methodsCounter;
+  unordered_map<unsigned long long, JavaMethodInfo*> methods;
   vector<JavaClassInfo*> classes;
 };
 

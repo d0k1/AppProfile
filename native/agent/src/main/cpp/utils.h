@@ -31,7 +31,7 @@ class Utils
 {
 public:
   static vector<string> splitString(string value, const char *separator);
-  static unsigned long getMethodId(int cnum, int mnum);
+  static unsigned long long getMethodId(int cnum, int mnum);
 };
 
 #endif // UTILS_H
