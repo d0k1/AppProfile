@@ -27,6 +27,10 @@ AgentOptions *AgentRuntime::getOptions(){
   return options;
 }
 
+boost::log::sources::severity_logger<boost::log::trivial::severity_level> &AgentRuntime::getLogger(){
+    return logger;
+}
+
 string AgentRuntime::getEnvVariable(string name)
 {
   agentGlobalLock();
@@ -57,58 +61,100 @@ bool AgentRuntime::isVmDead(){
 
 void AgentRuntime::agentGlobalLock(){
   jvmtiError error;
-  
+
   error = ( jvmti )->RawMonitorEnter ( lock );
   JVMTIExitIfError(error, "Cannot enter with raw monitor" );
 }
 
 void AgentRuntime::agentGlobalUnlock(){
   jvmtiError error;
-  
+
   error = ( jvmti )->RawMonitorExit ( lock );
   JVMTIExitIfError(error, "Cannot exit with raw monitor" );
 }
 
+void AgentRuntime::logTrace(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::trace) << "TRACE "<< message;
+}
+
+void AgentRuntime::logDebug(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::debug) << "DEBUG " << message;
+}
+
+void AgentRuntime::logInfo(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::info) << "INFO " << message;
+}
+
+void AgentRuntime::logWarning(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::warning) << "WARN " << message;
+}
+
+void AgentRuntime::logError(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::error) << "ERROR " << message;
+}
+
+void AgentRuntime::logFatal(string message){
+    BOOST_LOG_SEV(getLogger(), boost::log::trivial::fatal) << "FATAL " << message;
+}
+
 AgentRuntime::AgentRuntime( jvmtiEnv* jvmti ):jvmti(jvmti),vm_dead(false),vm_started(false) {
   auto error = ( jvmti )->CreateRawMonitor ( "agentGlobalLock", & ( lock ) );
-  
-  JVMTIExitIfError(error, "Cannot create raw monitor" );  
-  
+
+  JVMTIExitIfError(error, "Cannot create raw monitor" );
+
   string propertiesFile = getEnvVariable("agent.config");
-  
+
   options = new AgentOptions(propertiesFile);
+
+  namespace logging = boost::log;
+  namespace src = boost::log::sources;
+  namespace sinks = boost::log::sinks;
+  namespace keywords = boost::log::keywords;
+
+    boost::log::add_common_attributes();
+
+    logging::add_file_log(keywords::file_name = "bond.log", keywords::auto_flush = true, keywords::format = "%TimeStamp% %Message%");
+
+    logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::debug
+    );
+
+
+    logInfo("Bond runtime started!");
+    //sink->flush();
 }
 
 JavaThreadInfo AgentRuntime::getThreadInfo(jthread thread){
   jvmtiThreadInfo info;
   string name;
-  
+
   /* Get the thread information, which includes the name */
   jvmtiError error = ( jvmti )->GetThreadInfo ( thread, &info );
   JVMTIExitIfError(error, "Cannot get thread info" );
-  
+
   if ( info.name != nullptr ) {
     name = info.name;
     JVMTIFree(( void* ) info.name );
   }
-  
+
   auto ptid = pthread_self();
   auto stid = syscall(__NR_gettid);
-  
+
   return JavaThreadInfo(name, stid, ptid);
 }
 
 JavaThreadInfo AgentRuntime::getCurrentThreadInfo(){
   auto ptid = pthread_self();
   auto stid = -1;//(pid_t)syscall(__NR_gettid);
-  
+
   return JavaThreadInfo(stid, ptid);
 }
 
 void *AgentRuntime::JVMTIAllocate(int len){
   jvmtiError error;
   void      *ptr;
-  
+
   error = ( jvmti )->Allocate ( len, ( unsigned char ** ) &ptr );
   JVMTIExitIfError (error, "Cannot allocate memory" );
   return ptr;
@@ -116,7 +162,7 @@ void *AgentRuntime::JVMTIAllocate(int len){
 
 void AgentRuntime::JVMTIFree(void *ptr){
   jvmtiError error;
-  
+
   error = ( jvmti )->Deallocate ( ( unsigned char * ) ptr );
   JVMTIExitIfError ( error, "Cannot deallocate memory" );
 }
@@ -124,10 +170,10 @@ void AgentRuntime::JVMTIFree(void *ptr){
 void AgentRuntime::JVMTIExitIfError(jvmtiError errnum, const char *str){
   if ( errnum != JVMTI_ERROR_NONE ) {
     char       *errnum_str;
-    
+
     errnum_str = NULL;
     ( void ) ( jvmti )->GetErrorName ( errnum, &errnum_str );
-    
+
     fatal_error ( "ERROR: JVMTI: %d(%s): %s\n", errnum,
 		  ( errnum_str==NULL?"Unknown":errnum_str ),
 		  ( str==NULL?"":str ) );
@@ -138,14 +184,14 @@ void AgentRuntime::JVMTIAddJarToClasspath(const char *name){
   jvmtiError error;
   error = ( jvmti )->AddToBootstrapClassLoaderSearch ( ( const char* ) name );
   JVMTIExitIfError ( error, "Cannot add to boot classpath" );
-  
+
   error = ( jvmti )->AddToBootstrapClassLoaderSearch ( ( const char* ) name );
   JVMTIExitIfError ( error, "Cannot add to boot classpath" );
 }
 
 void fatal_error ( const char * format, ... ) {
   va_list ap;
-  
+
   va_start ( ap, format );
   ( void ) vfprintf ( stderr, format, ap );
   ( void ) fflush ( stderr );

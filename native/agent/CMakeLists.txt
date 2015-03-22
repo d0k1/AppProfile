@@ -40,7 +40,7 @@ if (Boost_NO_SYSTEM_PATHS)
   set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib")
 endif (Boost_NO_SYSTEM_PATHS)
 
-FIND_PACKAGE( Boost 1.55 COMPONENTS program_options system thread REQUIRED )
+FIND_PACKAGE( Boost 1.55 COMPONENTS log log_setup thread date_time filesystem system program_options REQUIRED )
 
 find_package(JNI REQUIRED)
 include_directories("src/java_crw_demo")

@@ -29,44 +29,64 @@
 #include <pthread.h>
 #include "agentoptions.h"
 
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+
 using namespace std;
 
 class AgentOptions;
 
 class AgentRuntime
 {
-  
+
 public:
   AgentRuntime(jvmtiEnv *jvmti);
-  
+
   void *JVMTIAllocate(int len);
   void JVMTIFree(void *ptr);
   void JVMTIAddJarToClasspath(const char *name);
   void JVMTIExitIfError(jvmtiError errnum, const char *str);
-  
+
   void agentGlobalLock();
   void agentGlobalUnlock();
 
   void VmStarted();
   void VmDead();
-  
+
   bool isVmStarted();
   bool isVmDead();
-  
+
   JavaThreadInfo getThreadInfo(jthread thread);
   JavaThreadInfo getCurrentThreadInfo();
-  
+
   string getEnvVariable(string name);
-  
+
   AgentOptions *getOptions();
+
+  void logTrace(string message);
+  void logDebug(string message);
+  void logInfo(string message);
+  void logWarning(string message);
+  void logError(string message);
+  void logFatal(string message);
+
 private:
+  boost::log::sources::severity_logger<boost::log::trivial::severity_level> &getLogger();
+  boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger;
+
   AgentOptions *options;
   int loadedClasses;
-  
+
   jvmtiEnv *jvmti;
   bool vm_dead;
   bool vm_started;
-  
+
   jrawMonitorID lock;
 };
 
