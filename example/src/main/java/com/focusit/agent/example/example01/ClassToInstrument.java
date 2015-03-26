@@ -9,7 +9,6 @@ public class ClassToInstrument extends AbstractTest implements TestInterfaceEnha
 	public ClassToInstrument(){
 		int i = 0;
 		i++;
-		System.out.println("constructor");
 	}
 
 	public int bar(){

@@ -28,27 +28,27 @@ ThreadCallStackProfiler::ThreadCallStackProfiler(){
 void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
-  pthread_t threadKey = info.getProcessTid();  
+  pthread_t threadKey = info.getProcessTid();
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
-  
+
   ThreadControl *ctrl = nullptr;
-  
+
   if(it==statByThread.end()){
     ctrl = new ThreadControl();
     statByThread.emplace(threadKey, ctrl);
   } else {
     ctrl = (it->second);
   }
-  
+
   // Вход в метод
   CallStatistics *stat = ctrl->current;
-  
+
   // если еще не были внтури ниодного метода
   if(stat==nullptr){
     // ищем такой же, для статистики
     auto root_it = ctrl->roots.find(methodId);
-    
+
     // если не бывали в таком методе раньше
     if(root_it==ctrl->roots.end()){
       stat = new CallStatistics();
@@ -59,19 +59,20 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
     } else {
       stat = root_it->second;
       stat->level=1;
+      ctrl->current = stat;
     }
   } else {
     // если уже внутри какого-то метода
     // пробуем найти метод внутри текущего, в который уже погружались
     auto child_it = ctrl->current->childs.find(methodId);
-    
+
     // не найден - создаем новый
     if(child_it == ctrl->current->childs.end()){
       if(ctrl->current->level<maxDepth){
 	stat = new CallStatistics();
 	stat->methodId = methodId;
 	stat->level = ctrl->current->level+1;
-	ctrl->current->childs.emplace(methodId, stat);      
+	ctrl->current->childs.emplace(methodId, stat);
       } else {
 	return;
       }
@@ -83,35 +84,35 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
     // текущим становиться stat метод
     ctrl->current = stat;
   }
-  
+
   stat->callCount++;
 }
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto methodId = Utils::getMethodId(cnum, mnum);
   auto info = getRuntime()->getCurrentThreadInfo();
-  pthread_t threadKey = info.getProcessTid();  
+  pthread_t threadKey = info.getProcessTid();
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
-  
+
   ThreadControl *ctrl = nullptr;
   if(it==statByThread.end()){
     return;
   }
-  
+
   ctrl = it->second;
   CallStatistics *stat = ctrl->current;
-  
+
   if(stat==nullptr) {
     return;
   }
-  
+
   if(stat->methodId!=methodId){
     return;
   }
-  
+
   stat->returnCount++;
-  
+
   if(stat->prevCall!=nullptr){
     ctrl->current = stat->prevCall;
   } else {
@@ -124,10 +125,10 @@ void make_shift(int level){
     cout << "\t";
 }
 
-void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, CallStatistics *> &stats, int level){  
+void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, CallStatistics *> &stats, int level){
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
-    auto method = classes->getMethodById(it->first);    
+    auto method = classes->getMethodById(it->first);
     make_shift(level);
     cout << method->getClass()->getName();
     cout << "#" <<  method->getName()<<method->getSignature() << " calls " << stat->callCount << " returns "<<stat->returnCount <<endl;
@@ -137,7 +138,7 @@ void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, Call
 
 void ThreadCallStackProfiler::printOnExit(){
   getRuntime()->agentGlobalLock();
-  
+
   cout << "Threads " << statByThread.size() <<endl;
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
@@ -158,7 +159,7 @@ void ThreadCallStackProfiler::threadStarted(jobject thread){
 void ThreadCallStackProfiler::threadStopped(jobject thread){
 }
 
-void resetCalls(unordered_map<unsigned long long, CallStatistics *> &stats){  
+void resetCalls(unordered_map<unsigned long long, CallStatistics *> &stats){
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     stat->callCount=0;
@@ -175,7 +176,7 @@ void ThreadCallStackProfiler::setData(AgentRuntime *runtime, JavaClassesInfo *cl
 
 void ThreadCallStackProfiler::reset() {
   getRuntime()->agentGlobalLock();
-  
+
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     ThreadControl *ctrl = it->second;
     ctrl->current = nullptr;
@@ -185,36 +186,36 @@ void ThreadCallStackProfiler::reset() {
 }
 
 string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<unsigned long long, CallStatistics *> &stats, unsigned long long parentId){
-  
+
   string result("");
-  
+
   for(auto it=stats.begin();it!=stats.end();it++){
-    auto method = classes->getMethodById(it->first);    
+    auto method = classes->getMethodById(it->first);
     string methodName = method->getFQN();
-    
-    format line("%d;%d;%d;%s;%d;%d\r\n");   
+
+    format line("%d;%d;%d;%s;%d;%d\r\n");
     CallStatistics *stat = it->second;
-    
+
     line % threadId % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount;
     result.append(line.str());
     result.append(printCall(classes, threadId, stat->childs, (unsigned long long)stat->methodId));
   }
-  
+
   return result;
 }
 
 
 string ThreadCallStackProfiler::printCsv(){
   getRuntime()->agentGlobalLock();
-  
+
   string result = "threadId;parentId;methodId;methodName;callCount;returnCount\r\n";
-  
+
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     ThreadControl *ctrl = it->second;
     result += printCall(getClasses(), it->first, ctrl->roots, 0);
   }
-  
-  getRuntime()->agentGlobalUnlock();  
-  
+
+  getRuntime()->agentGlobalUnlock();
+
   return result;
 }
