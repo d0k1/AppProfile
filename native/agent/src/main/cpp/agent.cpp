@@ -47,11 +47,11 @@ static void mnum_callbacks ( unsigned cnum, const char **names, const char**sigs
 
     for ( int mnum = 0 ; mnum < mcount ; mnum++ ) {
         JavaMethodInfo *method = classes->addClassMethod ( cnum, mnum, names[mnum], sigs[mnum] );
-	
+
 	if(runtime->getOptions()->isPrintInstrumentedClasses()){
 	  cout << "instrumented: "<< cnum <<":"<<mnum<<"="<<method->getClass()->getName() << "#" << method->getName()<<"#"<<method->getSignature() << endl;
 	}
-	
+
 	tracingProfiler->methodInstrumented(method);
     }
 }
@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL JavaCritical_Agent_native_1entry( jint cnum, jint mnum ) 
   if(paused.load()) {
     return;
   }
-  
+
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
@@ -70,7 +70,7 @@ JNIEXPORT void JNICALL JavaCritical_Agent_native_1exit ( jint cnum, jint mnum ) 
   if(paused.load()) {
     return;
   }
-  
+
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
@@ -78,7 +78,7 @@ JNIEXPORT void JNICALL Java_Agent_native_1entry( JNIEnv *env, jclass klass, jint
   if(paused.load()) {
     return;
   }
-  
+
   tracingProfiler->methodEntry ( cnum, mnum, nullptr );
 }
 
@@ -86,7 +86,7 @@ JNIEXPORT void JNICALL Java_Agent_native_1exit( JNIEnv *env, jclass klass, jint 
   if(paused.load()) {
     return;
   }
-  
+
   tracingProfiler->methodExit ( cnum, mnum, nullptr );
 }
 
@@ -130,7 +130,7 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
             {
                 STRING ( Agent_native_method_exit ),  "(II)V",
                 ( void* ) &JavaCritical_Agent_native_1exit
-            },	    
+            },
             {
                 STRING ( Agent_native_method_exit ),  "(II)V",
                 ( void* ) &Java_Agent_native_1exit
@@ -193,7 +193,7 @@ static void JNICALL cbVMInit ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread ) {
 
         /* The VM has started. */
         JavaThreadInfo info = runtime->getThreadInfo ( thread );
-	
+
 	if(runtime->getOptions()->isPrintVMEvents()){
 	  cout << "VMInit " << info.getName() << endl;
 	}
@@ -275,9 +275,9 @@ static void JNICALL cbThreadStart ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread
             JavaThreadInfo info = runtime->getThreadInfo ( thread );
             threads->addThread ( info );
 	    tracingProfiler->threadStarted(thread);
-	    
+
 	    if(runtime->getOptions()->isPrintVMEvents()){
-	      cout << "ThreadStart " << info.getName() << endl;
+	      cout << "ThreadStart " << info.getName() << " "<< runtime->getCurrentThreadInfo().getProcessTid() << endl;
 	    }
         }
     }
@@ -292,9 +292,9 @@ static void JNICALL cbThreadEnd ( jvmtiEnv *jvmti, JNIEnv *env, jthread thread )
             JavaThreadInfo info = runtime->getThreadInfo ( thread );
             threads->setThreadDead ( info );
 	    tracingProfiler->threadStopped(thread);
-	    
+
 	    if(runtime->getOptions()->isPrintVMEvents()){
-	      cout << "ThreadEnd " << info.getName() << endl;
+	      cout << "ThreadEnd " << info.getName() << " "<< runtime->getCurrentThreadInfo().getProcessTid() << endl;
 	    }
         }
     }
@@ -327,11 +327,11 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
             *new_class_data_len = 0;
             *new_class_data     = NULL;
 
-            // The tracker class itself? 
+            // The tracker class itself?
             if ( !runtime->getOptions()->isClassExcluded(classname) && strcmp ( classname, STRING ( Agent_class ) ) != 0 ) {
-		
+
 		//cout << classname << " instrumenting " << endl;
-		
+
                 jint           cnum;
                 int            system_class;
                 unsigned char *new_image;
@@ -363,18 +363,18 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
                                 NULL,
                                 &mnum_callbacks );
 
-                // If we got back a new class image, return it back as "the" new class image. This must be JVMTI Allocate space.                
+                // If we got back a new class image, return it back as "the" new class image. This must be JVMTI Allocate space.
                 if ( new_length > 0 ) {
                     unsigned char *jvmti_space;
 
                     jvmti_space = ( unsigned char * ) runtime->JVMTIAllocate ( ( jint ) new_length );
                     ( void ) memcpy ( ( void* ) jvmti_space, ( void* ) new_image, ( int ) new_length );
                     *new_class_data_len = ( jint ) new_length;
-                    *new_class_data = jvmti_space; 
+                    *new_class_data = jvmti_space;
                 }
 
                 if ( new_image != NULL ) {
-                    ( void ) free ( ( void* ) new_image ); 
+                    ( void ) free ( ( void* ) new_image );
                 }
             }
             ( void ) free ( ( void* ) classname );

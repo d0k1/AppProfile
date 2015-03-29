@@ -25,7 +25,9 @@ import java.util.concurrent.Executors;
 public class Application extends SpringBootServletInitializer {
 
 	public static void main(String[] args) throws Exception {
+
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
+		/*
 		ExecutorService service = Executors.newFixedThreadPool(4, new NettyThreadFactory("NettyExecutorService"));
 
 		JvmDataImport jvmDataImport = (JvmDataImport) ctx.getBean("jvmDataImport");
@@ -41,5 +43,6 @@ public class Application extends SpringBootServletInitializer {
 		ProfilerControl ctrl = (ProfilerControl) ctx.getBean("profilerControl");
 
 		service.submit(ctrl);
+		*/
 	}
 }

@@ -23,9 +23,9 @@ public class JavaAppExample03 {
 			}
 		};
 
-		ExecutorService executor = Executors.newFixedThreadPool(1);
+		ExecutorService executor = Executors.newFixedThreadPool(10);
 
-		for(int i=0;i<10000000;i++){
+		for(int i=0;i<1000000;i++){
 			executor.submit(work);
 		}
 		System.in.read();

@@ -30,31 +30,45 @@ using namespace std;
 struct ThreadControl final {
   unordered_map<unsigned long long, CallStatistics *> roots;
   CallStatistics *current;
-  
+
   ThreadControl():current(nullptr){};
+};
+
+struct Hash{
+  size_t operator()(const pthread_t &x) const{
+    return x % 200;//std::hash<long>()(x);
+  }
+};
+
+struct Equal {
+    // NOTE: Assumes lhs != nullptr && rhs != nullptr.
+    bool operator()(const pthread_t & lhs, const pthread_t & rhs) const {
+        return lhs == rhs;
+    }
 };
 
 class ThreadCallStackProfiler : public AbstractTracingProfiler
 {
 public:
   ThreadCallStackProfiler();
-  
+
   virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads) final;
-  
+
   virtual void methodEntry(int cnum, int mnum, jobject thread) override;
   virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
-  
+
   virtual void methodInstrumented(JavaMethodInfo *info) override;
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);
-  
+
   virtual void reset() override final;
   virtual string printCsv() override final;
-  
+
 private:
+  ThreadControl *getCurrentThreadControl();
   int maxDepth;
-  unordered_map<pthread_t, ThreadControl*> statByThread;
+  unordered_map<pthread_t, ThreadControl*, Hash, Equal> statByThread;
 };
 
 #endif // THREADCALLSTACKPROFILER_H

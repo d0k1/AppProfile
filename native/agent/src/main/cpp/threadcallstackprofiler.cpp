@@ -22,24 +22,39 @@
 #include "utils.h"
 using boost::format;
 
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+
+static void make_key()
+{
+    (void) pthread_key_create(&key, nullptr);
+}
+
 ThreadCallStackProfiler::ThreadCallStackProfiler(){
+}
+
+ThreadControl *ThreadCallStackProfiler::getCurrentThreadControl(){
+    return (ThreadControl *)pthread_getspecific(key);
 }
 
 void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   auto methodId = Utils::getMethodId(cnum, mnum);
-  auto info = getRuntime()->getCurrentThreadInfo();
-  pthread_t threadKey = info.getProcessTid();
+//  auto info = getRuntime()->getCurrentThreadInfo();
+//  pthread_t threadKey = info.getProcessTid();
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
-  auto it = statByThread.find(threadKey);
+//  auto it = statByThread.find(threadKey);
 
-  ThreadControl *ctrl = nullptr;
-
-  if(it==statByThread.end()){
-    ctrl = new ThreadControl();
-    statByThread.emplace(threadKey, ctrl);
-  } else {
-    ctrl = (it->second);
+  ThreadControl *ctrl = getCurrentThreadControl();
+  if(ctrl==nullptr){
+    return;
   }
+
+//  if(it==statByThread.end()){
+//    return;
+//  } else {
+//    ctrl = (it->second);
+//  }
 
   // Вход в метод
   CallStatistics *stat = ctrl->current;
@@ -69,10 +84,10 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
     // не найден - создаем новый
     if(child_it == ctrl->current->childs.end()){
       if(ctrl->current->level<maxDepth){
-	stat = new CallStatistics();
-	stat->methodId = methodId;
-	stat->level = ctrl->current->level+1;
-	ctrl->current->childs.emplace(methodId, stat);
+        stat = new CallStatistics();
+        stat->methodId = methodId;
+        stat->level = ctrl->current->level+1;
+        ctrl->current->childs.emplace(methodId, stat);
       } else {
 	return;
       }
@@ -90,17 +105,22 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto methodId = Utils::getMethodId(cnum, mnum);
-  auto info = getRuntime()->getCurrentThreadInfo();
-  pthread_t threadKey = info.getProcessTid();
+//  auto info = getRuntime()->getCurrentThreadInfo();
+//  pthread_t threadKey = info.getProcessTid();
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
-  auto it = statByThread.find(threadKey);
+//  auto it = statByThread.find(threadKey);
 
-  ThreadControl *ctrl = nullptr;
-  if(it==statByThread.end()){
+  ThreadControl *ctrl = getCurrentThreadControl();
+  if(ctrl==nullptr){
     return;
   }
 
-  ctrl = it->second;
+//  if(it==statByThread.end()){
+//    return;
+//  } else {
+//    ctrl = (it->second);
+//  }
+
   CallStatistics *stat = ctrl->current;
 
   if(stat==nullptr) {
@@ -154,9 +174,19 @@ void ThreadCallStackProfiler::methodInstrumented(JavaMethodInfo *info){
 }
 
 void ThreadCallStackProfiler::threadStarted(jobject thread){
+  pthread_once(&key_once, make_key);
+  ThreadControl *ctrl = new ThreadControl();
+  statByThread.emplace(getRuntime()->getCurrentThreadInfo().getProcessTid(), ctrl);
+
+  pthread_setspecific(key, ctrl);
 }
 
 void ThreadCallStackProfiler::threadStopped(jobject thread){
+//    ThreadControl *ctrl = getCurrentThreadControl();
+
+//    if(ctrl!=nullptr){
+//        delete ctrl;
+//    }
 }
 
 void resetCalls(unordered_map<unsigned long long, CallStatistics *> &stats){
