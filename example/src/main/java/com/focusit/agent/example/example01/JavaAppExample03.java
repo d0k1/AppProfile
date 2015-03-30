@@ -17,15 +17,16 @@ public class JavaAppExample03 {
 			public void run() {
 				try {
 					new ClassToInstrument().bar2();
+					new ClassToInstrument().bar2();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 		};
 
-		ExecutorService executor = Executors.newFixedThreadPool(10);
+		ExecutorService executor = Executors.newFixedThreadPool(100);
 
-		for(int i=0;i<1000000;i++){
+		for(int i=0;i<10000000;i++){
 			executor.submit(work);
 		}
 		System.in.read();

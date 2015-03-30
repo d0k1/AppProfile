@@ -77,20 +77,21 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
       ctrl->current = stat;
     }
   } else {
+
+    if(ctrl->current->level>=maxDepth){
+        return;
+    }
+
     // если уже внутри какого-то метода
     // пробуем найти метод внутри текущего, в который уже погружались
     auto child_it = ctrl->current->childs.find(methodId);
 
     // не найден - создаем новый
     if(child_it == ctrl->current->childs.end()){
-      if(ctrl->current->level<maxDepth){
         stat = new CallStatistics();
         stat->methodId = methodId;
         stat->level = ctrl->current->level+1;
         ctrl->current->childs.emplace(methodId, stat);
-      } else {
-	return;
-      }
     } else {
       stat = child_it->second;
     }
@@ -159,7 +160,7 @@ void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, Call
 void ThreadCallStackProfiler::printOnExit(){
   getRuntime()->agentGlobalLock();
 
-  cout << "Threads " << statByThread.size() <<endl;
+  cout << "Threads " << statByThread.size() << "Buckets " << statByThread.bucket_count() << endl;
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     cout << "Thread " << it->first << " " << endl;
@@ -223,10 +224,10 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
     auto method = classes->getMethodById(it->first);
     string methodName = method->getFQN();
 
-    format line("%d;%d;%d;%s;%d;%d\r\n");
+    format line("%d;%d;%d;%d;%s;%d;%d\r\n");
     CallStatistics *stat = it->second;
 
-    line % threadId % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount;
+    line % threadId % stat->level % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount;
     result.append(line.str());
     result.append(printCall(classes, threadId, stat->childs, (unsigned long long)stat->methodId));
   }
@@ -238,7 +239,7 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
 string ThreadCallStackProfiler::printCsv(){
   getRuntime()->agentGlobalLock();
 
-  string result = "threadId;parentId;methodId;methodName;callCount;returnCount\r\n";
+  string result = "threadId;level;parentId;methodId;methodName;callCount;returnCount\r\n";
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     ThreadControl *ctrl = it->second;
