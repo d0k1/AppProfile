@@ -21,29 +21,29 @@
 #define SIMPLECALLCOUNTERPROFILER_H
 
 #include "abstracttracingprofiler.h"
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 #include "javamethodinfo.h"
 #include <string>
 
 using namespace std;
 
-class SimpleCallCounterProfiler final : public AbstractTracingProfiler 
+class SimpleCallCounterProfiler final : public AbstractTracingProfiler
 {
 public:
   SimpleCallCounterProfiler();
   virtual void methodEntry(int cnum, int mnum, jobject thread) override;
   virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
-  
+
   virtual void methodInstrumented(JavaMethodInfo *info) override;
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);
-  
+
   virtual void reset() override final;
   virtual string printCsv() override final;
-  
+
 private:
-  unordered_map<pthread_t, unordered_map<unsigned long long, CallStatistics*>*> statByThread;
+  boost::unordered_map<pthread_t, boost::unordered_map<unsigned long long, CallStatistics*>*> statByThread;
 };
 
 #endif // SIMPLECALLCOUNTERPROFILER_H

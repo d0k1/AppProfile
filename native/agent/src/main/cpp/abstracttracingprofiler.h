@@ -24,7 +24,7 @@
 #include "javathreadsinfo.h"
 #include "agentruntime.h"
 
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 #include <string>
 
 class AgentRuntime;
@@ -37,15 +37,15 @@ struct CallStatistics final {
   unsigned long long methodId;
   unsigned short level=1;
   CallStatistics *prevCall;
-  unordered_map<unsigned long long, CallStatistics*> childs;
+  boost::unordered_map<unsigned long long, CallStatistics*> childs;
 };
 
 class AbstractTracingProfiler
 {
 public:
-  
+
   virtual void setData(AgentRuntime *runtime, JavaClassesInfo *classes, JavaThreadsInfo *threads);
-  
+
   virtual void methodEntry(int cnum, int mnum, jobject thread)=0;
   virtual void methodExit(int cnum, int mnum, jobject thread)=0;
   virtual void printOnExit()=0;
@@ -53,15 +53,15 @@ public:
   virtual void methodInstrumented(JavaMethodInfo *info)=0;
   virtual void threadStarted(jobject thread)=0;
   virtual void threadStopped(jobject thread)=0;
-  
+
   virtual void reset()=0;
   virtual string printCsv()=0;
 protected:
-  
+
   virtual AgentRuntime *getRuntime() final;
   virtual JavaClassesInfo *getClasses() final;
   virtual JavaThreadsInfo *getThreads() final;
-  
+
 private:
   AgentRuntime *runtime;
   JavaClassesInfo *classes;

@@ -21,14 +21,14 @@
 #define THREADCALLSTACKPROFILER_H
 
 #include "abstracttracingprofiler.h"
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 
 #include <string>
 
 using namespace std;
 
 struct ThreadControl final {
-  unordered_map<unsigned long long, CallStatistics *> roots;
+  boost::unordered_map<unsigned long long, CallStatistics *> roots;
   CallStatistics *current;
 
   ThreadControl():current(nullptr){};
@@ -68,7 +68,7 @@ public:
 private:
   ThreadControl *getCurrentThreadControl();
   int maxDepth;
-  unordered_map<pthread_t, ThreadControl*, Hash, Equal> statByThread;
+  boost::unordered_map<pthread_t, ThreadControl*, Hash, Equal> statByThread;
 };
 
 #endif // THREADCALLSTACKPROFILER_H
