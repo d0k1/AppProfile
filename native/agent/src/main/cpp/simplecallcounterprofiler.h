@@ -21,7 +21,7 @@
 #define SIMPLECALLCOUNTERPROFILER_H
 
 #include "abstracttracingprofiler.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "javamethodinfo.h"
 #include <string>
 
@@ -43,7 +43,7 @@ public:
   virtual string printCsv() override final;
 
 private:
-  boost::unordered_map<pthread_t, boost::unordered_map<unsigned long long, CallStatistics*>*> statByThread;
+  unordered_map<pthread_t, unordered_map<unsigned long long, CallStatistics*>*> statByThread;
 };
 
 #endif // SIMPLECALLCOUNTERPROFILER_H

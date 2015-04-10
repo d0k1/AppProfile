@@ -24,7 +24,7 @@
 #include "javathreadsinfo.h"
 #include "agentruntime.h"
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include <string>
 
 class AgentRuntime;
@@ -37,7 +37,7 @@ struct CallStatistics final {
   unsigned long long methodId;
   unsigned short level=1;
   CallStatistics *prevCall;
-  boost::unordered_map<unsigned long long, CallStatistics*> childs;
+  unordered_map<unsigned long long, CallStatistics*> childs;
 };
 
 class AbstractTracingProfiler

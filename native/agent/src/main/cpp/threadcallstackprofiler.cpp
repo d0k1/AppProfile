@@ -40,21 +40,11 @@ ThreadControl *ThreadCallStackProfiler::getCurrentThreadControl(){
 
 void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   auto methodId = Utils::getMethodId(cnum, mnum);
-//  auto info = getRuntime()->getCurrentThreadInfo();
-//  pthread_t threadKey = info.getProcessTid();
-  //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
-//  auto it = statByThread.find(threadKey);
 
   ThreadControl *ctrl = getCurrentThreadControl();
   if(ctrl==nullptr){
     return;
   }
-
-//  if(it==statByThread.end()){
-//    return;
-//  } else {
-//    ctrl = (it->second);
-//  }
 
   // Вход в метод
   CallStatistics *stat = ctrl->current;
@@ -106,21 +96,11 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
   auto methodId = Utils::getMethodId(cnum, mnum);
-//  auto info = getRuntime()->getCurrentThreadInfo();
-//  pthread_t threadKey = info.getProcessTid();
-  //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
-//  auto it = statByThread.find(threadKey);
 
   ThreadControl *ctrl = getCurrentThreadControl();
   if(ctrl==nullptr){
     return;
   }
-
-//  if(it==statByThread.end()){
-//    return;
-//  } else {
-//    ctrl = (it->second);
-//  }
 
   CallStatistics *stat = ctrl->current;
 
@@ -146,7 +126,7 @@ void make_shift(int level){
     cout << "\t";
 }
 
-void printCalls(JavaClassesInfo *classes, boost::unordered_map<unsigned long long, CallStatistics *> &stats, int level){
+void printCalls(JavaClassesInfo *classes, unordered_map<unsigned long long, CallStatistics *> &stats, int level){
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     auto method = classes->getMethodById(it->first);
@@ -190,7 +170,7 @@ void ThreadCallStackProfiler::threadStopped(jobject thread){
 //    }
 }
 
-void resetCalls(boost::unordered_map<unsigned long long, CallStatistics *> &stats){
+void resetCalls(unordered_map<unsigned long long, CallStatistics *> &stats){
   for(auto it=stats.begin();it!=stats.end();it++){
     CallStatistics *stat = it->second;
     stat->callCount=0;
@@ -216,7 +196,7 @@ void ThreadCallStackProfiler::reset() {
   getRuntime()->agentGlobalUnlock();
 }
 
-string printCall(JavaClassesInfo *classes, pthread_t threadId, boost::unordered_map<unsigned long long, CallStatistics *> &stats, unsigned long long parentId){
+string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<unsigned long long, CallStatistics *> &stats, unsigned long long parentId){
 
   string result("");
 

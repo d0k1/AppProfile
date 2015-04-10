@@ -20,7 +20,6 @@
 #include "simplecallcounterprofiler.h"
 #include <iostream>
 #include <boost/format.hpp>
-#include <boost/unordered_map.hpp>
 
 #include "utils.h"
 
@@ -39,10 +38,10 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
   pthread_t threadKey = info.getProcessTid();
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
-  boost::unordered_map<unsigned long long, CallStatistics*> *stat = nullptr;
+  unordered_map<unsigned long long, CallStatistics*> *stat = nullptr;
 
   if(it==statByThread.end()){
-    stat = new boost::unordered_map<unsigned long long, CallStatistics*>();
+    stat = new unordered_map<unsigned long long, CallStatistics*>();
     statByThread.emplace(threadKey, stat);
   } else {
     stat = (it->second);
@@ -68,7 +67,7 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
   //unsigned long long threadKey = (unsigned long long)(*(long *)thread);
   auto it = statByThread.find(threadKey);
 
-  boost::unordered_map<unsigned long long, CallStatistics*> *stat = nullptr;
+  unordered_map<unsigned long long, CallStatistics*> *stat = nullptr;
 
   if(it!=statByThread.end()){
     stat = (it->second);
@@ -100,7 +99,7 @@ void SimpleCallCounterProfiler::printOnExit(){
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
       cout << "Thread " << it->first << " " << endl;
-      boost::unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
+      unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
       cout << "\t" << "calls: " << calls->size() <<endl;
 
       for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
@@ -132,7 +131,7 @@ void SimpleCallCounterProfiler::threadStopped(jobject thread){
 
 void SimpleCallCounterProfiler::reset() {
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
-    boost::unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
+    unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
 
     for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
       CallStatistics *stat = call_it->second;
@@ -148,7 +147,7 @@ string SimpleCallCounterProfiler::printCsv(){
   string result = "threadId;methodName;callCount;returnCount\r\n";
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
-    boost::unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
+    unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
     pthread_t threadId = it->first;
 
     for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
