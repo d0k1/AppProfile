@@ -49,7 +49,7 @@ include_directories(${JAVA_INCLUDE_PATH2})
 include_directories( ${Boost_INCLUDE_DIR} )
 
 set(SOURCE_FILES
-    ${SRC}/agent.cpp ${SRC}/stacktracer.cpp  ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c ${SRC}/threadcallstackprofiler.cpp)
+    ${SRC}/agent.cpp ${SRC}/stacktracer.cpp ${SRC}/tickscounter.cpp ${SRC}/agentoptions.cpp ${SRC}/utils.cpp ${SRC}/agentruntime.cpp ${SRC}/javaclassinfo.cpp ${SRC}/javamethodinfo.cpp ${SRC}/javaclassesinfo.cpp ${SRC}/javathreadsinfo.cpp ${SRC}/javathreadinfo.cpp ${SRC}/simplecallcounterprofiler.cpp ${SRC}/abstracttracingprofiler.cpp src/java_crw_demo/java_crw_demo.c ${SRC}/threadcallstackprofiler.cpp)
 
 
 ##########################################################

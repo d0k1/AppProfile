@@ -37,6 +37,8 @@ struct CallStatistics final {
   unsigned long long methodId;
   unsigned short level=1;
   CallStatistics *prevCall;
+  unsigned long long ticks_spent=0;
+  unsigned long long ticks_last=0;
   unordered_map<unsigned long long, CallStatistics*> childs;
 };
 

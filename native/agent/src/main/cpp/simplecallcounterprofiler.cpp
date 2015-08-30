@@ -20,7 +20,7 @@
 #include "simplecallcounterprofiler.h"
 #include <iostream>
 #include <boost/format.hpp>
-
+#include "tickscounter.h"
 #include "utils.h"
 
 using namespace std;
@@ -58,6 +58,7 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
     call = (stat_it->second);
   }
 
+  call->ticks_last = timerCounter->getCounter();
   call->callCount++;
 }
 
@@ -85,6 +86,7 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
 
     if(call!=nullptr){
 	call->returnCount++;
+	call->ticks_spent += (timerCounter->getCounter() - call->ticks_last);
     }
   }
 }
@@ -103,14 +105,14 @@ void SimpleCallCounterProfiler::printOnExit(){
       cout << "\t" << "calls: " << calls->size() <<endl;
 
       for(auto call_it=calls->begin();call_it!=calls->end();call_it++){
-	CallStatistics stat = *call_it->second;
-	calls1++;
-	total += stat.callCount;
+        CallStatistics stat = *call_it->second;
+        calls1++;
+        total += stat.callCount;
 
-	auto method = getClasses()->getMethodById(call_it->first);
-	cout << "\t" << method->getClass()->getName();
+        auto method = getClasses()->getMethodById(call_it->first);
+        cout << "\t" << method->getClass()->getName();
 
-	cout << "#" <<  method->getName()<<method->getSignature() << " calls " << stat.callCount << " returns "<<stat.returnCount <<endl;
+        cout << "#" <<  method->getName()<<method->getSignature() << " calls " << stat.callCount << " returns "<<stat.returnCount << " ticks spent "<< stat.ticks_spent <<endl;
       }
   }
 
@@ -148,7 +150,7 @@ void SimpleCallCounterProfiler::reset() {
 }
 
 string SimpleCallCounterProfiler::printCsv(){
-  string result = "threadId;methodName;callCount;returnCount\r\n";
+  string result = "threadId;methodName;callCount;returnCount;ticks\r\n";
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     unordered_map<unsigned long long, CallStatistics*> *calls = it->second;
@@ -158,9 +160,9 @@ string SimpleCallCounterProfiler::printCsv(){
       auto method = getClasses()->getMethodById(call_it->first);
       string methodName = method->getFQN();
 
-      format line("%d;%s;%d;%d\r\n");
+      format line("%d;%s;%d;%d;%d\r\n");
       CallStatistics *stat = call_it->second;
-      line % threadId % methodName % stat->callCount % stat->returnCount;
+      line % threadId % methodName % stat->callCount % stat->returnCount % stat->ticks_spent;
       result.append(line.str());
     }
   }
