@@ -58,7 +58,7 @@ set(SOURCE_FILES
 set(GLOBAL_WARNINGS "-W -Wformat-security -Wno-char-subscripts -Wno-parentheses")
 set(GLOBAL_WARNINGS "${GLOBAL_WARNINGS} -Wno-write-strings -Wno-unused -Wl,--no-undefined")
 
-set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option -g3")
+set(GLOBAL_COPTS "-fno-strict-aliasing -fPIC -fno-omit-frame-pointer -fdiagnostics-show-option -O3")
 set(GLOBAL_COPTS "${GLOBAL_COPTS} -funsigned-char -fno-asynchronous-unwind-tables -msse2 -D__STDC_FORMAT_MACROS")
 
 set(CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++ ${CMAKE_CXX_FLAGS} ${GLOBAL_WARNINGS} ${GLOBAL_COPTS}  -pthread -std=c++14")
