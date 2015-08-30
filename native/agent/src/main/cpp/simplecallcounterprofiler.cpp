@@ -139,8 +139,12 @@ void SimpleCallCounterProfiler::reset() {
       stat->callCount=0;
       stat->returnCount=0;
       stat->prevCall=nullptr;
+      delete stat;
     }
+    calls->clear();
+    delete calls;
   }
+  statByThread.clear();
 }
 
 string SimpleCallCounterProfiler::printCsv(){
