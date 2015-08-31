@@ -69,8 +69,6 @@ TicksCounter::TicksCounter()
         //retval = 5;
         fallback();
     }
-
-
 }
 
 void TicksCounter::fallback()
