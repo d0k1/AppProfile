@@ -15,6 +15,10 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include "agentoptions.h"
+
+class AgentOptions;
+
 using namespace std;
 
 /**
@@ -40,21 +44,17 @@ using namespace std;
 class TicksCounter
 {
     public:
-        TicksCounter();
+        TicksCounter(AgentOptions *option);
         virtual ~TicksCounter();
         void increaseCounter();
         unsigned long long getCounter();
     protected:
     private:
-        int fd;
+        int fd=-1;
         struct sigaction old_, new_;
-        // 100 microseconds resolution
-        const int freq = 10000;
         atomic<unsigned long long> counter = {0};
 
         void fallback();
 };
-
-extern TicksCounter *timerCounter;
 
 #endif // TICSCOUNTER_H

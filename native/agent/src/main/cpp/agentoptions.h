@@ -33,17 +33,18 @@ class AbstractTracingProfiler;
 class AgentOptions
 {
 public:
-  AgentOptions(string filename);    
+  AgentOptions(string filename);
 
   bool isClassExcluded(const char *klass);
   string getHelperJar();
-  
+
   AbstractTracingProfiler *getTracingProfiler();
   bool isTracingProfilerPrintOnExit();
   bool isPrintVMEvents();
   bool isPrintInstrumentedClasses();
   bool isCsvOnExit();
   int getTracingProfilerDepth();
+  int getTimerFrequency();
 private:
   int tracingMaxDepth;
   bool printVMEvents;
@@ -56,13 +57,15 @@ private:
   string agentIncludeIgnore;
   string appId;
   string helperJar;
-  
+
   vector<string> excludes;
   vector<string> excludesIgnore;
-  
+
   vector<string> includes;
   vector<string> includesIgnore;
-  
+
+  int ticksFrequency;
+
   AbstractTracingProfiler *tracingProfiler;
 };
 

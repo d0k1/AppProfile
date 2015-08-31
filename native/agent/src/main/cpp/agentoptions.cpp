@@ -34,17 +34,23 @@ int AgentOptions::getTracingProfilerDepth(){
   return tracingMaxDepth;
 }
 
+int AgentOptions::getTimerFrequency()
+{
+    return ticksFrequency;
+}
+
 AgentOptions::AgentOptions(string filename){
   options_description desc("Options");
   variables_map vm;
-  
+
   string tracingProfilerType;
   string printOnExitValue;
   string printVMEventsValue;
   string printInstrumentedClassnamesValue;
   string csvOnExitValue;
   string maxDepthValue;
-  
+  string timerFreq;
+
   desc.add_options()("agent.exclude", boost::program_options::value<std::string>(&agentExclude));
   desc.add_options()("agent.exclude.ingore", boost::program_options::value<std::string>(&agentExcludeIgnore));
   desc.add_options()("agent.include", boost::program_options::value<std::string>(&agentInclude));
@@ -55,20 +61,21 @@ AgentOptions::AgentOptions(string filename){
   desc.add_options()("tracing.profiler.depth", boost::program_options::value<std::string>(&maxDepthValue));
   desc.add_options()("tracing.profiler.print.on.exit", boost::program_options::value<std::string>(&printOnExitValue));
   desc.add_options()("tracing.profiler.print.on.exit.csv", boost::program_options::value<std::string>(&csvOnExitValue));
-  
+  desc.add_options()("timer.freq", boost::program_options::value<std::string>(&timerFreq));
+
   desc.add_options()("print.vm.events", boost::program_options::value<std::string>(&printVMEventsValue));
   desc.add_options()("print.instrumented.classes", boost::program_options::value<std::string>(&printInstrumentedClassnamesValue));
 
   ifstream settings_file( filename , std::ifstream::in );
   store( parse_config_file( settings_file , desc, true ), vm );
-  notify( vm );    
+  notify( vm );
   settings_file.close();
-  
+
   excludes = Utils::splitString(agentExclude, ",");
   excludesIgnore = Utils::splitString(agentExcludeIgnore, ",");
   includes = Utils::splitString(agentInclude, ",");
   includesIgnore = Utils::splitString(agentIncludeIgnore, ",");
-  
+
   int defaultDepth = 5;
   tracingMaxDepth = defaultDepth;
   if(maxDepthValue.length()==0 || maxDepthValue.length()>2){
@@ -79,7 +86,13 @@ AgentOptions::AgentOptions(string filename){
   }catch(...){
     tracingMaxDepth=defaultDepth;
   }
-  
+
+  try{
+    ticksFrequency = stoi(timerFreq);
+  }catch(...){
+    ticksFrequency=0;
+  }
+
   if(csvOnExitValue=="false"){
     csvOnExit = false;
   } else {
@@ -90,19 +103,19 @@ AgentOptions::AgentOptions(string filename){
   } else {
     profilerPrintOnExit = false;
   }
-  
+
   if(printVMEventsValue=="true"){
     printVMEvents = true;
   } else {
     printVMEvents = false;
   }
-  
+
   if(printInstrumentedClassnamesValue=="true"){
     printInstrumentedClassnames = true;
   } else {
     printInstrumentedClassnames = false;
   }
-  
+
   if(tracingProfilerType.length()==0 || tracingProfilerType=="simple"){
     tracingProfiler = new SimpleCallCounterProfiler();
   }else if(tracingProfilerType=="threadcallstack"){
@@ -115,7 +128,7 @@ bool matchMask(string value, string regexp){
     return false;
   }
   regex e(regexp);
-  
+
   return regex_match(value, e);
 }
 
@@ -134,7 +147,7 @@ bool AgentOptions::isClassExcluded(const char *klass){
       }
     }
   }
-  
+
   for(auto it=includesIgnore.begin();it!=includesIgnore.end();++it){
     if(boost::algorithm::starts_with(className, *it)){
       skip = false;
@@ -148,14 +161,14 @@ bool AgentOptions::isClassExcluded(const char *klass){
       break;
     }
   }
-  
+
   for(auto it=excludesIgnore.begin();it!=excludesIgnore.end();++it){
     if(boost::algorithm::starts_with(className, *it)){
       skip = false;
       break;
     }
   }
-  
+
   return skip;
 }
 

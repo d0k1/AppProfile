@@ -11,8 +11,12 @@
 #include <iostream>
 
 #define Agent_class        Agent           /* Name of class we are using */
+
 #define Agent_method_entry        agent_entry    /* Name of java entry method */
 #define Agent_method_exit         agent_exit     /* Name of java exit method */
+#define Agent_method_newobj       agent_newobj
+#define Agent_method_newarr       agent_newarr
+
 #define Agent_native_method_entry native_entry   /* Name of java entry native */
 #define Agent_native_method_exit  native_exit    /* Name of java exit native */
 
@@ -33,11 +37,11 @@
 
 using namespace std;
 
-static AgentRuntime *runtime;
-static JavaClassesInfo *classes = new JavaClassesInfo();
-static JavaThreadsInfo *threads = new JavaThreadsInfo();
+AgentRuntime *runtime;
+JavaClassesInfo *classes = new JavaClassesInfo();
+JavaThreadsInfo *threads = new JavaThreadsInfo();
 
-static atomic<bool> paused(false);
+atomic<bool> paused(false);
 
 //static SimpleCallCounterProfiler *tracingProfiler = new SimpleCallCounterProfiler();
 static AbstractTracingProfiler *tracingProfiler = nullptr;//new ThreadCallStackProfiler();
@@ -356,8 +360,8 @@ static void JNICALL cbClassFileLoadHook ( jvmtiEnv *jvmti, JNIEnv* env, jclass c
                                 STRING ( Agent_class ), "L" STRING ( Agent_class ) ";",
                                 STRING ( Agent_method_entry ), "(II)V",
                                 STRING ( Agent_method_exit ), "(II)V",
-                                NULL, NULL,
-                                NULL, NULL,
+                                STRING( Agent_method_newobj ), "(Ljava/lang/Object;)V",
+                                STRING( Agent_method_newarr ), "(Ljava/lang/Object;)V",
                                 &new_image,
                                 &new_length,
                                 NULL,
@@ -399,6 +403,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
     }
 
     runtime = new AgentRuntime ( jvmti );
+    runtime->initHPET();
     tracingProfiler = runtime->getOptions()->getTracingProfiler();
     tracingProfiler->setData ( runtime, classes, threads );
 

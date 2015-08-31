@@ -19,6 +19,22 @@ public class Agent {
         }
     }
     
+    //private static native void native_newobj(Object o);
+    public static void agent_newobj(Object o)
+    {
+        if ( ready != 0 ) {
+            //_newobj(o);
+        }
+    }
+    
+    //private static native void native_newarr(Object a);
+    public static void agent_newarr(Object a)
+    {
+        if ( ready != 0 ) {
+            //_newarr(a);
+        }
+    }
+
     private static native void native_pause();
     public static void agent_pause(){
       native_pause();

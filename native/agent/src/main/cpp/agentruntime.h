@@ -37,16 +37,21 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include "tickscounter.h"
 
 using namespace std;
 
 class AgentOptions;
+
+class TicksCounter;
 
 class AgentRuntime
 {
 
 public:
   AgentRuntime(jvmtiEnv *jvmti);
+
+  ~AgentRuntime();
 
   void *JVMTIAllocate(int len);
   void JVMTIFree(void *ptr);
@@ -69,12 +74,17 @@ public:
 
   AgentOptions *getOptions();
 
+  void initHPET();
+
   void logTrace(string message);
   void logDebug(string message);
   void logInfo(string message);
   void logWarning(string message);
   void logError(string message);
   void logFatal(string message);
+
+  unsigned long long getTicks();
+  void incrementTicks();
 
 private:
   boost::log::sources::severity_logger<boost::log::trivial::severity_level> &getLogger();
@@ -88,6 +98,8 @@ private:
   bool vm_started;
 
   jrawMonitorID lock;
+
+  TicksCounter *counter;
 };
 
 void  fatal_error(const char * format, ...);

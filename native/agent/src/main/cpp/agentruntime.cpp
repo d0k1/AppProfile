@@ -66,6 +66,10 @@ void AgentRuntime::agentGlobalLock(){
   JVMTIExitIfError(error, "Cannot enter with raw monitor" );
 }
 
+unsigned long long AgentRuntime::getTicks(){
+    return counter->getCounter();
+}
+
 void AgentRuntime::agentGlobalUnlock(){
   jvmtiError error;
 
@@ -98,18 +102,18 @@ void AgentRuntime::logFatal(string message){
 }
 
 AgentRuntime::AgentRuntime( jvmtiEnv* jvmti ):jvmti(jvmti),vm_dead(false),vm_started(false) {
-  auto error = ( jvmti )->CreateRawMonitor ( "agentGlobalLock", & ( lock ) );
+    auto error = ( jvmti )->CreateRawMonitor ( "agentGlobalLock", & ( lock ) );
 
-  JVMTIExitIfError(error, "Cannot create raw monitor" );
+    JVMTIExitIfError(error, "Cannot create raw monitor" );
 
-  string propertiesFile = getEnvVariable("agent.config");
+    string propertiesFile = getEnvVariable("agent.config");
 
-  options = new AgentOptions(propertiesFile);
+    options = new AgentOptions(propertiesFile);
 
-  namespace logging = boost::log;
-  namespace src = boost::log::sources;
-  namespace sinks = boost::log::sinks;
-  namespace keywords = boost::log::keywords;
+    namespace logging = boost::log;
+    namespace src = boost::log::sources;
+    namespace sinks = boost::log::sinks;
+    namespace keywords = boost::log::keywords;
 
     boost::log::add_common_attributes();
 
@@ -120,9 +124,23 @@ AgentRuntime::AgentRuntime( jvmtiEnv* jvmti ):jvmti(jvmti),vm_dead(false),vm_sta
         logging::trivial::severity >= logging::trivial::debug
     );
 
-
     logInfo("Bond runtime started!");
     //sink->flush();
+}
+
+AgentRuntime::~AgentRuntime()
+{
+    delete counter;
+}
+
+void AgentRuntime::incrementTicks()
+{
+    counter->increaseCounter();
+}
+
+void AgentRuntime::initHPET()
+{
+    counter = new TicksCounter(options);
 }
 
 JavaThreadInfo AgentRuntime::getThreadInfo(jthread thread){

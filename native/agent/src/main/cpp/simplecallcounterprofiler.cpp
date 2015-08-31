@@ -58,7 +58,7 @@ void SimpleCallCounterProfiler::methodEntry(int cnum, int mnum, jobject thread){
     call = (stat_it->second);
   }
 
-  call->ticks_last = timerCounter->getCounter();
+  call->ticks_last = getRuntime()->getTicks();
   call->callCount++;
 }
 
@@ -86,7 +86,7 @@ void SimpleCallCounterProfiler::methodExit(int cnum, int mnum, jobject thread){
 
     if(call!=nullptr){
 	call->returnCount++;
-	call->ticks_spent += (timerCounter->getCounter() - call->ticks_last);
+	call->ticks_spent += (getRuntime()->getTicks() - call->ticks_last);
     }
   }
 }
