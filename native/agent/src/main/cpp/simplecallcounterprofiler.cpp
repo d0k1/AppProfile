@@ -160,7 +160,7 @@ string SimpleCallCounterProfiler::printCsv(){
       auto method = getClasses()->getMethodById(call_it->first);
       string methodName = method->getFQN();
 
-      format line("%d;%s;%d;%d;%d\r\n");
+      format line("\"%d\";\"%s\";\"%d\";\"%d\";\"%d\"\r\n");
       CallStatistics *stat = call_it->second;
       line % threadId % methodName % stat->callCount % stat->returnCount % stat->ticks_spent;
       result.append(line.str());

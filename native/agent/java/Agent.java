@@ -1,4 +1,9 @@
+import java.util.concurrent.atomic.AtomicLong;
+
 public class Agent {
+
+    private static AtomicLong start = null;
+    private static AtomicLong stop = null;
 
     private static int ready = 0;
     
@@ -53,5 +58,29 @@ public class Agent {
     private static native String native_csv();
     public static String agent_csv(){
       return native_csv();
+    }
+
+    public static void setStartMark(long val) {
+        start = new AtomicLong(val);
+    }
+
+    public static long getStartMark(){
+        if(start==null) {
+            return 0;
+        }
+
+        return start.get();
+    }
+
+    public static void setStopMark(long val) {
+        stop = new AtomicLong(val);
+    }
+
+    public static long getStopMark(){
+        if(stop==null) {
+            return 0;
+        }
+
+        return stop.get();
     }
 }

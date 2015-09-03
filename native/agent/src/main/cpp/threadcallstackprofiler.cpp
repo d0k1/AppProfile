@@ -92,6 +92,7 @@ void ThreadCallStackProfiler::methodEntry(int cnum, int mnum, jobject thread) {
   }
 
   stat->callCount++;
+  stat->ticks_last = getRuntime()->getTicks();
 }
 
 void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
@@ -112,6 +113,7 @@ void ThreadCallStackProfiler::methodExit(int cnum, int mnum, jobject thread){
     return;
   }
 
+  stat->ticks_spent += (getRuntime()->getTicks() - stat->ticks_last);
   stat->returnCount++;
 
   if(stat->prevCall!=nullptr){
@@ -204,10 +206,10 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
     auto method = classes->getMethodById(it->first);
     string methodName = method->getFQN();
 
-    format line("%d;%d;%d;%d;%s;%d;%d\r\n");
+    format line("\"%d\";\"%d\";\"%d\";\"%d\";\"%s\";\"%d\";\"%d\"\r\n");
     CallStatistics *stat = it->second;
 
-    line % threadId % stat->level % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount;
+    line % threadId % stat->level % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount % stat->ticks_spent;
     result.append(line.str());
     result.append(printCall(classes, threadId, stat->childs, (unsigned long long)stat->methodId));
   }
