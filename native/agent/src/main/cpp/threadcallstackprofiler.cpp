@@ -228,7 +228,7 @@ void ThreadCallStackProfiler::new_array(jobject obj)
 string ThreadCallStackProfiler::printCsv(){
   getRuntime()->agentGlobalLock();
 
-  string result = "threadId;level;parentId;methodId;methodName;callCount;returnCount\r\n";
+  string result = "threadId;level;parentId;methodId;methodName;callCount;returnCount;ticks\r\n";
 
   for(auto it=statByThread.begin();it!=statByThread.end();it++){
     ThreadControl *ctrl = it->second;
