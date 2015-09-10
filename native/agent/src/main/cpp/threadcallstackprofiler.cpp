@@ -206,7 +206,7 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
     auto method = classes->getMethodById(it->first);
     string methodName = method->getFQN();
 
-    format line("\"%d\";\"%d\";\"%d\";\"%d\";\"%s\";\"%d\";\"%d\"\r\n");
+    format line("\"%d\";\"%d\";\"%d\";\"%d\";\"%s\";\"%d\";\"%d\";\"%d\"\r\n");
     CallStatistics *stat = it->second;
 
     line % threadId % stat->level % parentId % (unsigned long long)stat->methodId % methodName % stat->callCount % stat->returnCount % stat->ticks_spent;
@@ -217,6 +217,13 @@ string printCall(JavaClassesInfo *classes, pthread_t threadId, unordered_map<uns
   return result;
 }
 
+void ThreadCallStackProfiler::new_object(jobject obj)
+{
+}
+
+void ThreadCallStackProfiler::new_array(jobject obj)
+{
+}
 
 string ThreadCallStackProfiler::printCsv(){
   getRuntime()->agentGlobalLock();

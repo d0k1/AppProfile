@@ -45,12 +45,17 @@ public:
   bool isCsvOnExit();
   int getTracingProfilerDepth();
   int getTimerFrequency();
+  bool isMemoryTracking();
+  bool isMemoryTrackingEvents();
 private:
   int tracingMaxDepth;
   bool printVMEvents;
   bool printInstrumentedClassnames;
   bool profilerPrintOnExit;
   bool csvOnExit;
+  bool memoryTracking;
+  bool memoryTrackingEvents;
+
   string agentExclude;
   string agentExcludeIgnore;
   string agentInclude;

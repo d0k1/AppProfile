@@ -21,6 +21,9 @@ extern "C" {
 JNIEXPORT void JNICALL JavaCritical_Agent_native_1entry(jint, jint);
 JNIEXPORT void JNICALL JavaCritical_Agent_native_1exit(jint, jint);
 
+JNIEXPORT void JNICALL Java_Agent_native_1newobj(JNIEnv *env, jclass klass, jobject o);
+JNIEXPORT void JNICALL Java_Agent_native_1newarr(JNIEnv *env, jclass klass, jobject a);
+
 JNIEXPORT void JNICALL Java_Agent_native_1entry(JNIEnv *, jclass, jint, jint);
 JNIEXPORT void JNICALL Java_Agent_native_1exit(JNIEnv *, jclass, jint, jint);
 

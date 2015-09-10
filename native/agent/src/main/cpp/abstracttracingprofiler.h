@@ -51,6 +51,8 @@ public:
   virtual void methodEntry(int cnum, int mnum, jobject thread)=0;
   virtual void methodExit(int cnum, int mnum, jobject thread)=0;
   virtual void printOnExit()=0;
+  virtual void new_object(jobject obj)=0;
+  virtual void new_array(jobject obj)=0;
 
   virtual void methodInstrumented(JavaMethodInfo *info)=0;
   virtual void threadStarted(jobject thread)=0;

@@ -39,6 +39,16 @@ int AgentOptions::getTimerFrequency()
     return ticksFrequency;
 }
 
+bool AgentOptions::isMemoryTracking()
+{
+    return memoryTracking;
+}
+
+bool AgentOptions::isMemoryTrackingEvents()
+{
+    return memoryTrackingEvents;
+}
+
 AgentOptions::AgentOptions(string filename){
   options_description desc("Options");
   variables_map vm;
@@ -50,6 +60,8 @@ AgentOptions::AgentOptions(string filename){
   string csvOnExitValue;
   string maxDepthValue;
   string timerFreq;
+  string memtrack;
+  string memtrackevents;
 
   desc.add_options()("agent.exclude", boost::program_options::value<std::string>(&agentExclude));
   desc.add_options()("agent.exclude.ingore", boost::program_options::value<std::string>(&agentExcludeIgnore));
@@ -62,6 +74,9 @@ AgentOptions::AgentOptions(string filename){
   desc.add_options()("tracing.profiler.print.on.exit", boost::program_options::value<std::string>(&printOnExitValue));
   desc.add_options()("tracing.profiler.print.on.exit.csv", boost::program_options::value<std::string>(&csvOnExitValue));
   desc.add_options()("timer.freq", boost::program_options::value<std::string>(&timerFreq));
+
+  desc.add_options()("memory.tracking", boost::program_options::value<std::string>(&memtrack));
+  desc.add_options()("memory.tracking.events", boost::program_options::value<std::string>(&memtrackevents));
 
   desc.add_options()("print.vm.events", boost::program_options::value<std::string>(&printVMEventsValue));
   desc.add_options()("print.instrumented.classes", boost::program_options::value<std::string>(&printInstrumentedClassnamesValue));
@@ -91,6 +106,18 @@ AgentOptions::AgentOptions(string filename){
     ticksFrequency = stoi(timerFreq);
   }catch(...){
     ticksFrequency=0;
+  }
+
+  if(memtrack=="false"){
+    memoryTracking = false;
+  } else {
+    memoryTracking = true;
+  }
+
+  if(memtrackevents=="false"){
+    memoryTrackingEvents = false;
+  } else {
+    memoryTrackingEvents = true;
   }
 
   if(csvOnExitValue=="false"){

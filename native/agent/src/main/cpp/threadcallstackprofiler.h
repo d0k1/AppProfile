@@ -58,6 +58,9 @@ public:
   virtual void methodExit(int cnum, int mnum, jobject thread) override;
   virtual void printOnExit() override;
 
+  virtual void new_object(jobject obj) override;
+  virtual void new_array(jobject obj) override;
+
   virtual void methodInstrumented(JavaMethodInfo *info) override;
   virtual void threadStarted(jobject thread);
   virtual void threadStopped(jobject thread);

@@ -26,6 +26,14 @@
 using namespace std;
 using boost::format;
 
+void SimpleCallCounterProfiler::new_object(jobject obj)
+{
+}
+
+void SimpleCallCounterProfiler::new_array(jobject obj)
+{
+}
+
 SimpleCallCounterProfiler::SimpleCallCounterProfiler(){
 }
 

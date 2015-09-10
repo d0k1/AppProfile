@@ -26,6 +26,7 @@
 #define Agent_native_method_csv  native_csv    /* Name of java exit native */
 
 #define Agent_VM_started      ready         /* Name of java static field */
+#define Agent_VM_memtrack     memory
 
 /* C macros to create strings from tokens */
 #define _STRING(s) #s
@@ -106,6 +107,17 @@ JNIEXPORT void JNICALL Java_Agent_native_1pause(JNIEnv *, jclass){
   paused.store(true);
 }
 
+JNIEXPORT void JNICALL Java_Agent_native_1newobj(JNIEnv *env, jclass klass, jobject o)
+{
+    tracingProfiler->new_object(o);
+}
+
+JNIEXPORT void JNICALL Java_Agent_native_1newarr(JNIEnv *env, jclass klass, jobject a)
+{
+    tracingProfiler->new_array(a);
+}
+
+
 JNIEXPORT jstring JNICALL Java_Agent_native_1csv(JNIEnv *env, jclass){
   string data = tracingProfiler->printCsv();
   jstring result = env->NewStringUTF(data.c_str());
@@ -121,9 +133,9 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
 
         /* Java Native Methods for class */
 
-        static JNINativeMethod registry[8] = {
+        static JNINativeMethod registry[10] = {
 
-	    {
+            {
                 STRING ( Agent_native_method_entry ), "(II)V",
                 ( void* ) &JavaCritical_Agent_native_1entry
             },
@@ -139,28 +151,36 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
                 STRING ( Agent_native_method_exit ),  "(II)V",
                 ( void* ) &Java_Agent_native_1exit
             },
-	    {
-	      STRING ( Agent_native_method_reset ),  "()V",
-	      ( void* ) &Java_Agent_native_1reset
-	    },
-	    {
-	      STRING ( Agent_native_method_resume ),  "()V",
-	      ( void* ) &Java_Agent_native_1resume
-	    },
-	    {
-	      STRING ( Agent_native_method_pause ),  "()V",
-	      ( void* ) &Java_Agent_native_1pause
-	    },
-	    {
-	      "native_csv",  "()Ljava/lang/String;",
-	      ( jstring* ) &Java_Agent_native_1csv
-	    }
-	};
+            {
+              STRING ( Agent_native_method_reset ),  "()V",
+              ( void* ) &Java_Agent_native_1reset
+            },
+            {
+              STRING ( Agent_native_method_resume ),  "()V",
+              ( void* ) &Java_Agent_native_1resume
+            },
+            {
+              STRING ( Agent_native_method_pause ),  "()V",
+              ( void* ) &Java_Agent_native_1pause
+            },
+            {
+              "native_csv",  "()Ljava/lang/String;",
+              ( jstring* ) &Java_Agent_native_1csv
+            },
+            {
+                "native_newobj", "(Ljava/lang/Object;)V",
+                (void*)&Java_Agent_native_1newobj
+            },
+            {
+                "native_newarr", "(Ljava/lang/Object;)V",
+                (void*)&Java_Agent_native_1newarr
+            }
+        };
 
-        /* The VM has started. */
-	if(runtime->getOptions()->isPrintVMEvents()){
-	  cout<< "VMStart" <<endl;
-	}
+            /* The VM has started. */
+        if(runtime->getOptions()->isPrintVMEvents()){
+          cout<< "VMStart" <<endl;
+        }
 
         /* Register Natives for class whose methods we use */
         klass = ( env )->FindClass ( STRING ( Agent_class ) );
@@ -183,6 +203,14 @@ static void JNICALL cbVMStart ( jvmtiEnv *jvmti, JNIEnv *env ) {
         }
         ( env )->SetStaticIntField ( klass, field, 1 );
 
+        if(runtime->getOptions()->isMemoryTracking()){
+            field = ( env )->GetStaticFieldID ( klass, STRING ( Agent_VM_memtrack ), "I" );
+            if ( field == NULL ) {
+                fatal_error ( "ERROR: JNI: Cannot get field from %s\n",
+                              STRING ( Agent_class ) );
+            }
+            ( env )->SetStaticIntField ( klass, field, 1 );
+        }
         /* Indicate VM has started */
         runtime->VmStarted();
 
@@ -409,6 +437,7 @@ JNIEXPORT jint JNICALL Agent_OnLoad ( JavaVM *vm, char *options, void *reserved 
 
     ( void ) memset ( &capabilities,0, sizeof ( capabilities ) );
     capabilities.can_generate_all_class_hook_events  = 1;
+    capabilities.can_tag_objects  = 1;
     error = ( jvmti )->AddCapabilities ( &capabilities );
     runtime->JVMTIExitIfError ( error, "Unable to get necessary JVMTI capabilities." );
 

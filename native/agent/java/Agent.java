@@ -6,6 +6,7 @@ public class Agent {
     private static AtomicLong stop = null;
 
     private static int ready = 0;
+    private static int memory = 0;
     
     private static native void native_entry(int cnum, int mnum);
     public static void agent_entry(int cnum, int mnum)
@@ -24,19 +25,19 @@ public class Agent {
         }
     }
     
-    //private static native void native_newobj(Object o);
+    private static native void native_newobj(Object o);
     public static void agent_newobj(Object o)
     {
-        if ( ready != 0 ) {
-            //_newobj(o);
+        if ( ready != 0 && memory != 0) {
+            native_newobj(o);
         }
     }
     
-    //private static native void native_newarr(Object a);
+    private static native void native_newarr(Object a);
     public static void agent_newarr(Object a)
     {
-        if ( ready != 0 ) {
-            //_newarr(a);
+        if ( ready != 0 && memory != 0) {
+            native_newarr(a);
         }
     }
 
