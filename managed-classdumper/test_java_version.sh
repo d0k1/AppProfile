@@ -1,0 +1,1 @@
+java -javaagent:./target/classdumper-1.0-jar-with-dependencies.jar -version

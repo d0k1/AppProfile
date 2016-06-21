@@ -1,0 +1,3 @@
+Premain-Class: com.focusit.agent.ClassDumper
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
